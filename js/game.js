@@ -1566,7 +1566,7 @@ function scaledGroup(t) {
 // "Dış yüzey" figürü: adli tıp şeması tarzında ön görünüm, anatomik pozisyon.
 function buildExternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "0 0 " + BODY.canvasW + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-36 0 " + (BODY.canvasW + 72) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1706,7 +1706,7 @@ function buildExternalFigure(markers, caseData) {
 // göğüs kafesi, pelvis ve renk kodlu iç organlar.
 function buildInternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "0 0 " + BODY.canvasW + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-36 0 " + (BODY.canvasW + 72) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1806,17 +1806,6 @@ function buildInternalFigure(markers, caseData) {
   skull.setAttribute("r", 11.4);
   skull.setAttribute("class", "bone-path");
   g.appendChild(skull);
-  [[65.4], [74.6]].forEach(function (sck) {
-    const socket = svgEl("circle");
-    socket.setAttribute("cx", sck[0]);
-    socket.setAttribute("cy", 21.6);
-    socket.setAttribute("r", 2.9);
-    socket.setAttribute("class", "bone-path light");
-    g.appendChild(socket);
-  });
-  g.appendChild(pathEl("M70,24.6 L68.8,28.2 L71.2,28.2 Z", "bone-path light"));
-  g.appendChild(pathEl("M61.4,27.4 C63,33.4 66,36.2 70,36.2 C74,36.2 77,33.4 78.6,27.4", "bone-path light"));
-  g.appendChild(pathEl("M66.4,31.4 L73.6,31.4", "bone-path light"));
 
   g.appendChild(pathEl("M52.8,56.4 C51,62 49.6,70 48.6,77.6 C48.1,81.4 47.8,85 47.9,88", "bone-path"));
   g.appendChild(pathEl("M87.2,56.4 C89,62 90.4,70 91.4,77.6 C91.9,81.4 92.2,85 92.1,88", "bone-path"));
@@ -1886,6 +1875,23 @@ const MARKER_COLORS = {
   liver: "#8f2d24"
 };
 
+function wrapLabel(text, maxChars) {
+  const words = text.split(" ");
+  const lines = [];
+  let cur = "";
+  words.forEach(function (w) {
+    const test = cur ? cur + " " + w : w;
+    if (test.length > maxChars && cur) {
+      lines.push(cur);
+      cur = w;
+    } else {
+      cur = test;
+    }
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+
 function buildMarker(m, layer, index) {
   const color = MARKER_COLORS[m.kind] || "#8f2d24";
   const group = svgEl("g");
@@ -1898,7 +1904,7 @@ function buildMarker(m, layer, index) {
   const dot = svgEl("circle");
   dot.setAttribute("cx", m.x);
   dot.setAttribute("cy", m.y);
-  dot.setAttribute("r", 6);
+  dot.setAttribute("r", 4.2);
   dot.setAttribute("fill", color);
   dot.setAttribute("class", "marker-dot");
   group.appendChild(dot);
@@ -1906,29 +1912,45 @@ function buildMarker(m, layer, index) {
   const halo = svgEl("circle");
   halo.setAttribute("cx", m.x);
   halo.setAttribute("cy", m.y);
-  halo.setAttribute("r", 9.5);
+  halo.setAttribute("r", 6.8);
   halo.setAttribute("fill", "none");
   halo.setAttribute("stroke", color);
-  halo.setAttribute("stroke-width", 1);
+  halo.setAttribute("stroke-width", 0.8);
   halo.setAttribute("opacity", 0.4);
   group.appendChild(halo);
 
   const num = svgEl("text");
   num.setAttribute("x", m.x);
-  num.setAttribute("y", m.y + 2.4);
+  num.setAttribute("y", m.y + 1.7);
   num.setAttribute("text-anchor", "middle");
   num.setAttribute("class", "marker-num");
   num.textContent = String((index || 0) + 1);
   group.appendChild(num);
 
-  const lx = m.x > 70 ? m.x - 4 : m.x + 4;
-  const anchor = m.x > 70 ? "end" : "start";
+  const right = m.x >= 70;
+  const lx = right ? m.x + 9 : m.x - 9;
+  const leader = svgEl("line");
+  leader.setAttribute("x1", right ? m.x + 4.6 : m.x - 4.6);
+  leader.setAttribute("y1", m.y);
+  leader.setAttribute("x2", right ? lx - 1 : lx + 1);
+  leader.setAttribute("y2", m.y);
+  leader.setAttribute("stroke", color);
+  leader.setAttribute("stroke-width", 0.6);
+  leader.setAttribute("opacity", 0.55);
+  group.appendChild(leader);
+
+  const lines = wrapLabel(m.label, 30);
   const label = svgEl("text");
-  label.setAttribute("x", lx);
-  label.setAttribute("y", m.y + (m.x > 70 ? -5 : 14));
-  label.setAttribute("text-anchor", anchor);
   label.setAttribute("class", "marker-label");
-  label.textContent = m.label;
+  label.setAttribute("text-anchor", right ? "start" : "end");
+  const startY = m.y - ((lines.length - 1) * 7) / 2 + 2;
+  lines.forEach(function (ln, i) {
+    const ts = svgEl("tspan");
+    ts.setAttribute("x", lx);
+    ts.setAttribute("y", startY + i * 7);
+    ts.textContent = ln;
+    label.appendChild(ts);
+  });
   group.appendChild(label);
 
   return group;

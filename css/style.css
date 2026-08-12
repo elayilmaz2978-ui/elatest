@@ -1538,7 +1538,7 @@ body.view-game .footer {
 }
 
 .marker-num {
-  font-size: 7px;
+  font-size: 5.5px;
   font-weight: bold;
   fill: #fff;
   font-family: Georgia, serif;
@@ -1564,12 +1564,12 @@ body.view-game .footer {
 
 .legend-num {
   flex: none;
-  width: 1.1rem;
-  height: 1.1rem;
-  margin-top: 0.05rem;
+  width: 0.92rem;
+  height: 0.92rem;
+  margin-top: 0.1rem;
   border-radius: 50%;
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: bold;
   display: inline-flex;
   align-items: center;
@@ -1598,10 +1598,14 @@ body.view-game .footer {
 }
 
 .marker-label {
-  font-size: 7px;
+  font-size: 6px;
   fill: var(--ink);
   font-family: Georgia, serif;
   font-style: italic;
+  paint-order: stroke;
+  stroke: var(--paper-panel);
+  stroke-width: 2.4px;
+  stroke-linejoin: round;
 }
 
 /* ---- Kart gezinme çubuğu ---- */
