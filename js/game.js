@@ -1698,24 +1698,23 @@ const PLAN_FORMS = {
     planRect(g, -hw - 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
     planRect(g, hw + 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
   },
-  // Oturur halde ceset: üstten görünüm, baş öne (masaya doğru) düşmüş.
+  // Oturur halde ceset: üstten, baş + gövde + iki kol + öne uzanan iki bacak.
   "body-seat": function (g) {
-    planEllipse(g, 0, 0.06, 0.36, 0.18, "plan-body");            // omuzlar
-    planEllipse(g, -0.34, -0.06, 0.09, 0.2, "plan-body", 24);    // sol kol
-    planEllipse(g, 0.34, -0.06, 0.09, 0.2, "plan-body", -24);    // sağ kol
-    planEllipse(g, 0, 0.3, 0.27, 0.17, "plan-body");             // kalça
-    planCircle(g, 0, -0.24, 0.16, "plan-body plan-body--head");  // baş (öne düşmüş)
+    planEllipse(g, -0.12, -0.42, 0.07, 0.24, "plan-body", 6);    // sol bacak (öne)
+    planEllipse(g, 0.12, -0.42, 0.07, 0.24, "plan-body", -6);    // sağ bacak (öne)
+    planEllipse(g, -0.28, -0.06, 0.05, 0.24, "plan-body", 30);   // sol kol
+    planEllipse(g, 0.28, -0.06, 0.05, 0.24, "plan-body", -30);   // sağ kol
+    planRect(g, 0, 0, 0.42, 0.44, "plan-body", 0.16);            // gövde
+    planCircle(g, 0, -0.3, 0.14, "plan-body plan-body--head");   // baş
   },
-  // Yatar halde ceset: üstten tebeşir konturu.
+  // Yatar halde ceset: üstten, kafa + gövde + iki kol + iki bacak (~1.7 m).
   body: function (g, o) {
-    const h = o.h || 1.7;
-    planCircle(g, 0, -h / 2 + 0.17, 0.17, "plan-body plan-body--head");   // baş
-    planEllipse(g, 0, -h / 2 + 0.42, 0.34, 0.15, "plan-body");            // omuzlar
-    planEllipse(g, -0.42, -h / 2 + 0.62, 0.09, 0.3, "plan-body", 30);     // sol kol
-    planEllipse(g, 0.42, -h / 2 + 0.62, 0.09, 0.3, "plan-body", -30);     // sağ kol
-    planRect(g, 0, 0.02, 0.5, h * 0.42, "plan-body", 0.2);                // gövde
-    planEllipse(g, -0.16, h / 2 - 0.34, 0.11, 0.36, "plan-body", 6);      // sol bacak
-    planEllipse(g, 0.16, h / 2 - 0.34, 0.11, 0.36, "plan-body", -6);      // sağ bacak
+    planCircle(g, 0, -0.7, 0.15, "plan-body plan-body--head");   // baş
+    planEllipse(g, -0.3, -0.22, 0.06, 0.3, "plan-body", 18);     // sol kol
+    planEllipse(g, 0.3, -0.22, 0.06, 0.3, "plan-body", -18);     // sağ kol
+    planRect(g, 0, -0.25, 0.46, 0.6, "plan-body", 0.18);         // gövde
+    planEllipse(g, -0.12, 0.45, 0.08, 0.42, "plan-body", 4);     // sol bacak
+    planEllipse(g, 0.12, 0.45, 0.08, 0.42, "plan-body", -4);     // sağ bacak
   },
   cup: function (g) {
     planCircle(g, 0, 0, 0.14, "plan-small");
@@ -1775,9 +1774,9 @@ function markerPos(o) {
 
 // Temiz, teknik numaralı işaretçi (kanıt numarası)
 function drawMarker(g, x, y, num, f) {
-  const r = 0.3 * f;
+  const r = 0.2 * f;
   planCircle(g, x, y, r, "plan-marker");
-  planText(g, x, y + r * 0.5, num, "plan-marker-num", 0.46 * f);
+  planText(g, x, y + r * 0.45, num, "plan-marker-num", 0.28 * f);
 }
 
 function buildSceneFigure(scene) {
@@ -1807,19 +1806,6 @@ function buildSceneFigure(scene) {
   svg.setAttribute("viewBox", (-padX) + " " + (-padTop) + " " + (w + padX * 2) + " " + (d + padTop + padBot));
   svg.setAttribute("class", "plan-svg");
 
-  const defs = svgEl("defs");
-  const soft = svgEl("filter");
-  soft.setAttribute("id", "plan-soft");
-  soft.setAttribute("x", "-40%"); soft.setAttribute("y", "-40%");
-  soft.setAttribute("width", "180%"); soft.setAttribute("height", "180%");
-  const drop = svgEl("feDropShadow");
-  drop.setAttribute("dx", 0.04); drop.setAttribute("dy", 0.07);
-  drop.setAttribute("stdDeviation", 0.05);
-  drop.setAttribute("flood-color", "rgba(45, 30, 14, 0.38)");
-  soft.appendChild(drop);
-  defs.appendChild(soft);
-  svg.appendChild(defs);
-
   drawPlanChrome(svg, plan, f);
   if (plan.enclosed) drawWalls(svg, plan);
 
@@ -1843,9 +1829,6 @@ function buildSceneFigure(scene) {
       if (o.rot) inner.setAttribute("transform", "rotate(" + o.rot + ")");
       planRect(inner, 0, 0, o.w || 0.5, o.h || 0.5, "plan-furniture", 0.04);
       shape.appendChild(inner);
-    }
-    if (o.form !== "patch" && o.form !== "body" && o.form !== "body-seat") {
-      shape.setAttribute("filter", "url(#plan-soft)");
     }
     g.appendChild(shape);
 
