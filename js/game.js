@@ -1506,6 +1506,16 @@ function planCircle(g, cx, cy, r, cls) {
   return c;
 }
 
+function planEllipse(g, cx, cy, rx, ry, cls, rot) {
+  const e = svgEl("ellipse");
+  e.setAttribute("cx", cx); e.setAttribute("cy", cy);
+  e.setAttribute("rx", rx); e.setAttribute("ry", ry);
+  if (rot) e.setAttribute("transform", "rotate(" + rot + " " + cx + " " + cy + ")");
+  e.setAttribute("class", cls);
+  g.appendChild(e);
+  return e;
+}
+
 function planPath(g, d, cls) {
   const p = svgEl("path");
   p.setAttribute("d", d);
@@ -1587,7 +1597,7 @@ function drawWalls(svg, plan) {
         const lx = horiz ? mid[0] : mid[0] + axis.out[0] * 0.5;
         const ly = horiz ? mid[1] + (axis.out[1] < 0 ? -0.5 : 0.72) : mid[1] + 0.1;
         const anchor = horiz ? "middle" : (axis.out[0] < 0 ? "end" : "start");
-        planText(svg, lx, ly, ft.label, "plan-feature-label", 0.42, anchor);
+        planText(svg, lx, ly, ft.label, "plan-feature-label", 0.46, anchor);
       }
     });
   });
@@ -1607,32 +1617,32 @@ function drawPlanChrome(svg, plan, f) {
     if (ft.kind === "line") planLine(svg, ft.x1, ft.y1, ft.x2, ft.y2, "plan-line");
   });
 
-  const dy = -0.85 * f;
+  const dy = -0.95 * f;
   planLine(svg, 0, dy, w, dy, "plan-dim");
   planLine(svg, 0, dy - 0.14 * f, 0, dy + 0.14 * f, "plan-dim");
   planLine(svg, w, dy - 0.14 * f, w, dy + 0.14 * f, "plan-dim");
-  planText(svg, w / 2, dy - 0.22 * f, w + " m", "plan-dim-text", 0.3 * f);
+  planText(svg, w / 2, dy - 0.2 * f, w + " m", "plan-dim-text", 0.36 * f);
 
-  const dx = -0.85 * f;
+  const dx = -0.95 * f;
   planLine(svg, dx, 0, dx, d, "plan-dim");
   planLine(svg, dx - 0.14 * f, 0, dx + 0.14 * f, 0, "plan-dim");
   planLine(svg, dx - 0.14 * f, d, dx + 0.14 * f, d, "plan-dim");
-  const dt = planText(svg, dx - 0.22 * f, d / 2, d + " m", "plan-dim-text", 0.3 * f);
-  dt.setAttribute("transform", "rotate(-90 " + (dx - 0.22 * f) + " " + (d / 2) + ")");
+  const dt = planText(svg, dx - 0.24 * f, d / 2, d + " m", "plan-dim-text", 0.36 * f);
+  dt.setAttribute("transform", "rotate(-90 " + (dx - 0.24 * f) + " " + (d / 2) + ")");
 
-  const nx = w + 1.05 * f, ny = -0.55 * f, nr = 0.5 * f;
+  const nx = w + 0.85 * f, ny = -0.45 * f, nr = 0.42 * f;
   planCircle(svg, nx, ny, nr, "plan-compass");
   planPath(svg, "M" + nx + "," + (ny + nr * 0.62) + " L" + nx + "," + (ny - nr * 0.62), "plan-compass plan-compass--needle");
   planPath(svg, "M" + nx + "," + (ny - nr * 0.62) +
     " L" + (nx - nr * 0.3) + "," + (ny - nr * 0.05) +
     " L" + (nx + nr * 0.3) + "," + (ny - nr * 0.05) + " Z", "plan-compass plan-compass--head");
-  planText(svg, nx, ny - nr - 0.18 * f, "K", "plan-compass-text", 0.42 * f);
+  planText(svg, nx, ny - nr - 0.16 * f, "K", "plan-compass-text", 0.44 * f);
 
-  const sy = d + 1.2 * f, sl = Math.min(2, w);
+  const sy = d + 0.95 * f, sl = Math.min(2, w);
   planLine(svg, 0, sy, sl, sy, "plan-dim");
   for (let m = 0; m <= sl; m++) {
     planLine(svg, m, sy - 0.12 * f, m, sy + 0.12 * f, "plan-dim");
-    planText(svg, m, sy + 0.48 * f, m === sl ? m + " m" : String(m), "plan-dim-text", 0.26 * f);
+    planText(svg, m, sy + 0.44 * f, m === sl ? m + " m" : String(m), "plan-dim-text", 0.3 * f);
   }
 }
 
@@ -1688,18 +1698,24 @@ const PLAN_FORMS = {
     planRect(g, -hw - 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
     planRect(g, hw + 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
   },
+  // Oturur halde ceset: üstten görünüm, baş öne (masaya doğru) düşmüş.
   "body-seat": function (g) {
-    const t = svgEl("ellipse");
-    t.setAttribute("cx", 0); t.setAttribute("cy", 0.12);
-    t.setAttribute("rx", 0.3); t.setAttribute("ry", 0.22);
-    t.setAttribute("class", "plan-body");
-    g.appendChild(t);
-    planCircle(g, 0, -0.22, 0.15, "plan-body");
+    planEllipse(g, 0, 0.06, 0.36, 0.18, "plan-body");            // omuzlar
+    planEllipse(g, -0.34, -0.06, 0.09, 0.2, "plan-body", 24);    // sol kol
+    planEllipse(g, 0.34, -0.06, 0.09, 0.2, "plan-body", -24);    // sağ kol
+    planEllipse(g, 0, 0.3, 0.27, 0.17, "plan-body");             // kalça
+    planCircle(g, 0, -0.24, 0.16, "plan-body plan-body--head");  // baş (öne düşmüş)
   },
+  // Yatar halde ceset: üstten tebeşir konturu.
   body: function (g, o) {
     const h = o.h || 1.7;
-    planCircle(g, 0, -h / 2 + 0.18, 0.17, "plan-body");
-    planRect(g, 0, 0.12, 0.52, h - 0.75, "plan-body", 0.2);
+    planCircle(g, 0, -h / 2 + 0.17, 0.17, "plan-body plan-body--head");   // baş
+    planEllipse(g, 0, -h / 2 + 0.42, 0.34, 0.15, "plan-body");            // omuzlar
+    planEllipse(g, -0.42, -h / 2 + 0.62, 0.09, 0.3, "plan-body", 30);     // sol kol
+    planEllipse(g, 0.42, -h / 2 + 0.62, 0.09, 0.3, "plan-body", -30);     // sağ kol
+    planRect(g, 0, 0.02, 0.5, h * 0.42, "plan-body", 0.2);                // gövde
+    planEllipse(g, -0.16, h / 2 - 0.34, 0.11, 0.36, "plan-body", 6);      // sol bacak
+    planEllipse(g, 0.16, h / 2 - 0.34, 0.11, 0.36, "plan-body", -6);      // sağ bacak
   },
   cup: function (g) {
     planCircle(g, 0, 0, 0.14, "plan-small");
@@ -1759,9 +1775,9 @@ function markerPos(o) {
 
 // Temiz, teknik numaralı işaretçi (kanıt numarası)
 function drawMarker(g, x, y, num, f) {
-  const r = 0.26 * f;
+  const r = 0.3 * f;
   planCircle(g, x, y, r, "plan-marker");
-  planText(g, x, y + r * 0.5, num, "plan-marker-num", 0.4 * f);
+  planText(g, x, y + r * 0.5, num, "plan-marker-num", 0.46 * f);
 }
 
 function buildSceneFigure(scene) {
@@ -1787,7 +1803,7 @@ function buildSceneFigure(scene) {
   fig.appendChild(h("p", "hint", "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
 
   const svg = svgEl("svg");
-  const padX = 1.9 * f, padTop = 1.8 * f, padBot = 2.1 * f;
+  const padX = 1.6 * f, padTop = 1.5 * f, padBot = 1.6 * f;
   svg.setAttribute("viewBox", (-padX) + " " + (-padTop) + " " + (w + padX * 2) + " " + (d + padTop + padBot));
   svg.setAttribute("class", "plan-svg");
 

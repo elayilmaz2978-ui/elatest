@@ -958,13 +958,13 @@ body.view-game .footer {
 
 .plan-wall {
   stroke: #33271a;
-  stroke-width: 0.16;
+  stroke-width: 0.18;
   stroke-linecap: square;
 }
 
 .plan-window {
   stroke: #4a6fa5;
-  stroke-width: 0.06;
+  stroke-width: 0.08;
 }
 
 .plan-door {
@@ -1016,7 +1016,7 @@ body.view-game .footer {
 .plan-furniture {
   fill: #e6d5ae;
   stroke: #4a3b28;
-  stroke-width: 0.05;
+  stroke-width: 0.06;
 }
 
 .plan-furniture--desk {
@@ -1042,8 +1042,8 @@ body.view-game .footer {
 
 .plan-detail {
   fill: none;
-  stroke: rgba(107, 90, 69, 0.8);
-  stroke-width: 0.03;
+  stroke: rgba(107, 90, 69, 0.85);
+  stroke-width: 0.04;
 }
 
 .plan-detail--dashed {
@@ -1051,10 +1051,13 @@ body.view-game .footer {
 }
 
 .plan-body {
-  fill: rgba(145, 92, 51, 0.1);
-  stroke: var(--accent);
+  fill: rgba(94, 58, 38, 0.32);
+  stroke: #6b2f22;
   stroke-width: 0.05;
-  stroke-dasharray: 0.15 0.1;
+}
+
+.plan-body--head {
+  fill: rgba(94, 58, 38, 0.45);
 }
 
 .plan-patch {
@@ -1067,7 +1070,7 @@ body.view-game .footer {
 .plan-small {
   fill: #f2e8cf;
   stroke: #4a3b28;
-  stroke-width: 0.04;
+  stroke-width: 0.05;
 }
 
 .plan-leader {
@@ -1079,7 +1082,7 @@ body.view-game .footer {
 .plan-marker {
   fill: var(--paper-panel);
   stroke: #33271a;
-  stroke-width: 0.05;
+  stroke-width: 0.06;
 }
 
 .plan-marker-num {
