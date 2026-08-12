@@ -1566,7 +1566,7 @@ function scaledGroup(t) {
 // "Dış yüzey" figürü: adli tıp şeması tarzında ön görünüm, anatomik pozisyon.
 function buildExternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-36 0 " + (BODY.canvasW + 72) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-30 0 " + (BODY.canvasW + 60) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1706,7 +1706,7 @@ function buildExternalFigure(markers, caseData) {
 // göğüs kafesi, pelvis ve renk kodlu iç organlar.
 function buildInternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-36 0 " + (BODY.canvasW + 72) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-30 0 " + (BODY.canvasW + 60) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1904,7 +1904,7 @@ function buildMarker(m, layer, index) {
   const dot = svgEl("circle");
   dot.setAttribute("cx", m.x);
   dot.setAttribute("cy", m.y);
-  dot.setAttribute("r", 4.2);
+  dot.setAttribute("r", 4.8);
   dot.setAttribute("fill", color);
   dot.setAttribute("class", "marker-dot");
   group.appendChild(dot);
@@ -1912,7 +1912,7 @@ function buildMarker(m, layer, index) {
   const halo = svgEl("circle");
   halo.setAttribute("cx", m.x);
   halo.setAttribute("cy", m.y);
-  halo.setAttribute("r", 6.8);
+  halo.setAttribute("r", 7.6);
   halo.setAttribute("fill", "none");
   halo.setAttribute("stroke", color);
   halo.setAttribute("stroke-width", 0.8);
@@ -1921,16 +1921,16 @@ function buildMarker(m, layer, index) {
 
   const num = svgEl("text");
   num.setAttribute("x", m.x);
-  num.setAttribute("y", m.y + 1.7);
+  num.setAttribute("y", m.y + 1.9);
   num.setAttribute("text-anchor", "middle");
   num.setAttribute("class", "marker-num");
   num.textContent = String((index || 0) + 1);
   group.appendChild(num);
 
   const right = m.x >= 70;
-  const lx = right ? m.x + 9 : m.x - 9;
+  const lx = right ? m.x + 10 : m.x - 10;
   const leader = svgEl("line");
-  leader.setAttribute("x1", right ? m.x + 4.6 : m.x - 4.6);
+  leader.setAttribute("x1", right ? m.x + 5.2 : m.x - 5.2);
   leader.setAttribute("y1", m.y);
   leader.setAttribute("x2", right ? lx - 1 : lx + 1);
   leader.setAttribute("y2", m.y);
@@ -1939,15 +1939,15 @@ function buildMarker(m, layer, index) {
   leader.setAttribute("opacity", 0.55);
   group.appendChild(leader);
 
-  const lines = wrapLabel(m.label, 30);
+  const lines = wrapLabel(m.label, 26);
   const label = svgEl("text");
   label.setAttribute("class", "marker-label");
   label.setAttribute("text-anchor", right ? "start" : "end");
-  const startY = m.y - ((lines.length - 1) * 7) / 2 + 2;
+  const startY = m.y - ((lines.length - 1) * 7.5) / 2 + 2.2;
   lines.forEach(function (ln, i) {
     const ts = svgEl("tspan");
     ts.setAttribute("x", lx);
-    ts.setAttribute("y", startY + i * 7);
+    ts.setAttribute("y", startY + i * 7.5);
     ts.textContent = ln;
     label.appendChild(ts);
   });
