@@ -43,7 +43,11 @@ const CASES = [
       + "bildirdi. Kapı içeriden kilitliydi; anahtar da yalnızca Arda'da bulundu. "
       + "Arda'nın son iki haftadır uykusuzluğu, dalgınlığı ve 'kâbuslar gördüğünü' söylediği "
       + "biliniyor. Masasında yarım bardak çay, pencere denizliklerinin altında bir parça nemli "
-      + "kıyı toprağı ve çekmecede kilitli bir kutu duruyordu. Kutunun içi boştu.",
+      + "kıyı toprağı ve çekmecede kilitli bir kutu duruyordu. Kutunun içi boştu. "
+      + "Uzun yıllardır aynı rafların arasında çalışan Arda, alışkanlıklarına sıkı sıkıya bağlı, "
+      + "titiz bir adam olarak tanınırdı; kütüphane kapandıktan sonra da içeride kalıp çalışması "
+      + "kimseyi şaşırtmazdı. O gece sessizliği yalnızca eski binanın ara sıra gelen gıcırtıları "
+      + "bozuyordu.",
     scene: {
       summary: "Kütüphane 6x5 m, pencereler kuzey cephede. Ceset, çalışma masasının "
         + "arkasındaki koltukta oturur durumda. Masanın üstünde yarım bardak çay, altında "
@@ -171,6 +175,8 @@ const CASES = [
         { subject: "kaan",  speaker: "Bekçi Kaan Yurt", text: "Arda sabahları kendi demlemesini yapar, akşam da çayı sonibragah birine bırakır gelirdi. Kimseye verecek biri yoktu o gece.", clue: true },
         { subject: "kaan",  speaker: "Hakim A. Karan", text: "Kütüphane gece 22:00 en gelen normal kapanış saati midir?" },
         { subject: "kaan",  speaker: "Bekçi Kaan Yurt", text: "Tutanak öyle diyorsa öyledir. Ben 22:00'da açık kapı gördüm; kapı içeriden kilitsiz boşaldığında öğreneceğiz.", clue: true },
+        { subject: "kaan",  speaker: "Hakim A. Karan", text: "Son bir şey, Kaan Bey. Son haftalarda devriyelerde arka bahçede dikkatinizi çeken bir şey oldu mu?" },
+        { subject: "kaan",  speaker: "Bekçi Kaan Yurt", text: "Şimdi aklıma geliyor... İki sabah, kilitli bıraktığım arka bahçe kapısını açık buldum. Rüzgâr dedim geçtim; artık o kadar emin değilim.", clue: true },
         { subject: "kenan", speaker: "Hakim A. Karan", text: "Sıra üçüncü görgü şahsında. Belediye çalışanı Kenan Sorgu, Perşembe akşamı saatlerinde içerdiniz mi?" },
         { subject: "kenan", speaker: "Kenan Sorgu", text: "Sulama düzeneğini ayarlamak için bahçeye gitmiştim. İçeri girmediğime yemin edebilirim." },
         { subject: "kenan", speaker: "Hakim A. Karan", text: "Pencere önünde devrilmiş sandalye ve kıyı çamuru var. Siz kıyıda çalışıyorsunuz, değil mi?" },
@@ -195,6 +201,8 @@ const CASES = [
         { subject: "nermin", speaker: "Nermin Kaya", text: "Evdeydim, kocam da yanımdaydı. Ama bir şey söyleyeyim: şu Fikret Bey'i geçen hafta iki gece arka bahçede gördüm, 'sigara içiyorum' dedi. Gece bekçisi bile bahçeye çıkmaz." },
         { subject: "nermin", speaker: "Hakim A. Karan", text: "Fikret Bey'in gece bahçede ne işi vardı?" },
         { subject: "nermin", speaker: "Nermin Kaya", text: "Pencereye doğru eğiliyordu. Ben yaşlı gözlerime güvenmem ama eğildiği pencere, Arda'nın odasının penceresiydi.", clue: true },
+        { subject: "nermin", speaker: "Hakim A. Karan", text: "'Bu kutu benim sigortam' dediniz. Kutu hakkında Arda Bey başka ne söyledi?" },
+        { subject: "nermin", speaker: "Nermin Kaya", text: "'Bana bir şey olursa, içindeki liste benim yerime konuşur' dedi. O zaman anlam vermemiştim; şimdi tüylerim diken diken.", clue: true },
         { subject: "hale",  speaker: "Hakim A. Karan", text: "Hale Hanım, çay ocağı sizinsiniz. Perşembe akşamı kütüphaneye çay gitti mi?" },
         { subject: "hale",  speaker: "Hale Demirci", text: "Gitti. Akşamüstü biri geldi, iki bardak çay istedi. 'Arda Abi'ye götüreceğim, akşam çayı sever' dedi." },
         { subject: "hale",  speaker: "Hakim A. Karan", text: "Kimdi bu kişi?" },
@@ -203,6 +211,8 @@ const CASES = [
         { subject: "hale",  speaker: "Hale Demirci", text: "Herkes bilir! O yüzden garibime gitti. Ama 'misafiri vardır' dedim, üstüne varmadım." },
         { subject: "hale",  speaker: "Hakim A. Karan", text: "Çaya bir şey katmış olabilir misiniz?" },
         { subject: "hale",  speaker: "Hale Demirci", text: "Ocağımın demliğine her akşam mühür vururum, sabah ben açarım. Benim çayımdan ölüm çıkmaz, kayıtlarım meydanda.", clue: true },
+        { subject: "hale",  speaker: "Hakim A. Karan", text: "İyice düşünün Hale Hanım. Çayı almaya gelen kişide dikkatinizi çeken başka bir şey var mıydı?" },
+        { subject: "hale",  speaker: "Hale Demirci", text: "Parmak uçlarında mürekkep lekesi vardı; kâğıt tozu, o arşiv kokusu... O yüzden kütüphaneden sandım. Şimdi düşününce, kütüphaneden sanmamı isteyen biriymiş.", clue: true },
         { subject: "tolga", speaker: "Hakim A. Karan", text: "Tolga Bey, Arda'nın yeğenisiniz. Aranız nasıldı?" },
         { subject: "tolga", speaker: "Tolga Yalın", text: "İyiydi... yani, son haftaya kadar. Borçlarım vardı, para istedim, vermedi. 'Bu miras sana kalmayacak' dedi, kavga ettik." },
         { subject: "tolga", speaker: "Hakim A. Karan", text: "Perşembe akşamı neredeydiniz?" },
@@ -220,7 +230,9 @@ const CASES = [
         { subject: "fikret", speaker: "Hakim A. Karan", text: "Polis kutunun içeriğini kimseye açıklamadı, Fikret Bey. 'Eksik evrak listesini' nereden biliyorsunuz?" },
         { subject: "fikret", speaker: "Fikret Aksel", text: "Tahmin ettim. Arşivde dedikodu olur, bilirsiniz. Arda'nın bir şeylerin eksildiğini söylediğini herkes duydu." },
         { subject: "fikret", speaker: "Hakim A. Karan", text: "Bir de şu var: Nermin Hanım sizi geçen hafta iki gece arka bahçede, pencerenin önünde görmüş." },
-        { subject: "fikret", speaker: "Fikret Aksel", text: "Sigara içiyordum. Bahçe herkese açık. Ayrıca ben kırk bir numara giyerim; çamurdaki iz falan benim değildir.", clue: true }
+        { subject: "fikret", speaker: "Fikret Aksel", text: "Sigara içiyordum. Bahçe herkese açık. Ayrıca ben kırk bir numara giyerim; çamurdaki iz falan benim değildir.", clue: true },
+        { subject: "fikret", speaker: "Hakim A. Karan", text: "Bir şey daha, Fikret Bey. 'Çamurdaki iz benim değildir' dediniz — oysa çamur izine dair kimseye bilgi vermedik." },
+        { subject: "fikret", speaker: "Fikret Aksel", text: "Ben... bahçede sigara içerken görmüştüm. Pencerenin önünde iz vardı. Gören herkes fark eder.", clue: true }
       ]
     },
     suspects: [
@@ -264,7 +276,11 @@ const CASES = [
       + "bulundu. Kapılar kilitli değildi; yan koltukta dünkü tarihli açık bir gazete, aynada "
       + "ise arka koltuk görünen bir açı vardı. Ferman kısa boylu bir erkekti ve son günlerde "
       + "'aşırı yorgunum, titriyorum' diyordu. Kapatılmamış benzin kapağı ve araç içine "
-      + "yayılmış iki farklı koku da rapora işlendi.",
+      + "yayılmış iki farklı koku da rapora işlendi. "
+      + "Yıllardır aynı şirkette şoförlük yapan Ferman, her sabah gazetesini kendisi alan, "
+      + "düzenine düşkün bir adamdı. Onu tanıyanlar son günlerde artan yorgunluğunu ve "
+      + "tedirginliğini fark etmişti; ama kimse bunun sonun başlangıcı olduğunu aklına "
+      + "getirmemişti.",
     scene: {
       summary: "Araç, şehir içi bir otoparkın arka bölgesinde. Motor çalışır, ışıklar sönük. "
         + "Sürücü koltuğuna yığılmış ceset. Yolcu koltuğunda dünkü gazete, arka koltukta ince "
@@ -382,6 +398,8 @@ const CASES = [
         { subject: "mert",  speaker: "Mert Benzinci", text: "Ferman kısa boylu, aynayı kendisi o açıya getiremez; birisi sürücü koltuğundan ayarlamış. Gazete dünküyse, araç dün de kullanılmadı demektir." },
         { subject: "mert",  speaker: "Hakim A. Karan", text: "Araç içinde tütün ve vanilya kokusu var." },
         { subject: "mert",  speaker: "Mert Benzinci", text: "Ferman içmezdi; tütün onun olamaz. Vanilya kokusu kız kardeşine, Selin'e ait olur; istasyon kayıtları onun her gün buraya geldiğini gösterir.", clue: true },
+        { subject: "mert",  speaker: "Hakim A. Karan", text: "Bir de istasyon kayıtları var Mert Bey. Ferman'dan sonra o pompaya yaklaşan araç oldu mu?" },
+        { subject: "mert",  speaker: "Mert Benzinci", text: "Ferman'dan sonra o pompaya tek araç yaklaşmadı. Yani kapağı açan, yakıt için değil; doğrudan o aracın yanına gelmiş.", clue: true },
         { subject: "selin", speaker: "Hakim A. Karan", text: "Selin Hanım, size geçiyorum. Kardeşinizin son durumu hakkında ne biliyorsunuz?" },
         { subject: "selin", speaker: "Selin", text: "Son günlerde çok yorgundu, 'titriyorum' dedi. Öğleden sonra uğradım, 'kendine dikkat et' dedim, çıktım." },
         { subject: "selin", speaker: "Hakim A. Karan", text: "Çıkar çıkmaz kapıyı kim kilitledi?" },
@@ -398,6 +416,8 @@ const CASES = [
         { subject: "nazan", speaker: "Eczacı Nazan", text: "İlacı alan kişi şişeyi aracında ya da evinde tuttuysa, ona erişen herkes değiştirebilir. Flunitrazepam her eczanede bulunmaz; ama karaborsası boldur." },
         { subject: "nazan", speaker: "Hakim A. Karan", text: "Sizden reçetesiz flunitrazepam isteyen oldu mu?" },
         { subject: "nazan", speaker: "Eczacı Nazan", text: "Bir hafta önce bir adam geldi, 'uyku için güçlü bir şey' dedi; uzun boylu, paltolu. Reddettim, reçetesiz veremem. Sinirlendi, çıktı.", clue: true },
+        { subject: "nazan", speaker: "Hakim A. Karan", text: "Selin Hanım sizin şişenizi kullansaydı, çayda bir iz kalır mıydı?" },
+        { subject: "nazan", speaker: "Eczacı Nazan", text: "Benim damlam yeşilimsidir; açık renkli çaya damlasa rengi dönerdi. Kullandığı şişe renksizdi diyor — demek şişe önceden değiştirilmiş.", clue: true },
         { subject: "yusuf", speaker: "Hakim A. Karan", text: "Yusuf Bey, otoparkın görevlisi sizsiniz. Gece neredeydiniz?" },
         { subject: "yusuf", speaker: "Yusuf", text: "Kulübedeydim; gözüm kamerada değil kapıdadır benim. Sabah aracı ben fark ettim, motor hâlâ çalışıyordu." },
         { subject: "yusuf", speaker: "Hakim A. Karan", text: "Araçta yoğun tütün kokusu var." },
@@ -406,6 +426,8 @@ const CASES = [
         { subject: "yusuf", speaker: "Yusuf", text: "Yedi gibi biri geldi. Uzun boylu, koyu paltolu. Sürücü kapısını açıp eğildi, iki dakika kaldı, çıktı. Yüzünü görmedim.", clue: true },
         { subject: "yusuf", speaker: "Hakim A. Karan", text: "Ferman'ın ablası dörtte gelmiş, kapıyı kilitlemeden gitmiş. Yani araç herkese açıktı." },
         { subject: "yusuf", speaker: "Yusuf", text: "Açıktı. Ama o uzun adam abla değildi; Selin Hanım kısacık kadın, kapıya bile zor yetişir. Bunu ben bile bilirim.", clue: true },
+        { subject: "yusuf", speaker: "Hakim A. Karan", text: "Son bir şey, Yusuf Bey. O uzun boylu adamda dikkatinizi çeken başka bir şey var mıydı?" },
+        { subject: "yusuf", speaker: "Yusuf", text: "Hava soğuk sayılmazdı ama ellerinde eldiven vardı. Acele etmeden, rahat yürüdü; ne yapacağını bilen biri gibi.", clue: true },
         { subject: "feride", speaker: "Hakim A. Karan", text: "Feride Hanım, Ferman'la iki yıl evli kaldınız. Boşanma çekişmeliymiş." },
         { subject: "feride", speaker: "Feride", text: "Çekişmeliydi. Nafakayı kesti; sigorta poliçesini de öğrenmiş, lehtarı bendim, onu bile iptal ettirmeye çalıştı." },
         { subject: "feride", speaker: "Hakim A. Karan", text: "Sigorta... Yani ölümü size para kazandırırdı." },
@@ -435,7 +457,9 @@ const CASES = [
         { subject: "kadir", speaker: "Hakim A. Karan", text: "Bir de eczane var. Nazan Hanım'a bir hafta önce uzun boylu, paltolu bir adam gelip reçetesiz güçlü uyku ilacı istemiş. Boyunuz kaç, Kadir Bey?" },
         { subject: "kadir", speaker: "Kadir Alaz", text: "Doksan iki. Bu şehirde uzun boylu bir tek ben miyim? Paltoyu da herkes giyer. Ben o eczaneye hiç gitmedim." },
         { subject: "kadir", speaker: "Hakim A. Karan", text: "Son olarak: Yusuf Bey ifadesinde sabah kimseyi aramadığını, doğrudan polisi aradığını söyledi. Motor detayını nereden biliyorsunuz?" },
-        { subject: "kadir", speaker: "Kadir Alaz", text: "Karıştırdım herhalde. Şoförler kendi arasında konuşur; duymuşumdur bir yerden.", clue: true }
+        { subject: "kadir", speaker: "Kadir Alaz", text: "Karıştırdım herhalde. Şoförler kendi arasında konuşur; duymuşumdur bir yerden.", clue: true },
+        { subject: "kadir", speaker: "Hakim A. Karan", text: "'Yusuf aradı sabah' demiştiniz. Saat kaçtı o arama? Kayıtlara baktıracağız." },
+        { subject: "kadir", speaker: "Kadir Alaz", text: "Tam hatırlamıyorum... Yedi gibi, belki biraz sonra. Acelem vardı, detaylar bulanık.", clue: true }
       ]
     },
     suspects: [
