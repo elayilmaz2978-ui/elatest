@@ -554,14 +554,6 @@ function cardBrief(area, c) {
   card.appendChild(h("h3", "case__title", c.title));
   card.appendChild(h("p", "case__story", c.story));
 
-  card.appendChild(h("h4", "report__subhead", "Kurban Profili"));
-  const v = c.autopsy.victim;
-  const chips = h("div", "brief-chips");
-  [v.age + " yaş", v.height + " cm", v.weight + " kg"].forEach(function (t) {
-    chips.appendChild(h("span", "chip", t));
-  });
-  card.appendChild(chips);
-
   card.appendChild(h("h4", "report__subhead", "Görevin"));
   const tasks = h("ol", "brief-tasks");
   ["Ölüm nedenini belirle.", "Katili tespit et ve sebebini çöz.", "Kararını doğru kanıtlarla destekle."]
@@ -1587,23 +1579,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl(FIG.armR, "body-part skin"));
   g.appendChild(pathEl(FIG.legL, "body-part skin"));
   g.appendChild(pathEl(FIG.legR, "body-part skin"));
-
-  g.appendChild(pathEl("M58.9,21.2 C57.6,21.6 57.5,24.8 59,25.6", "face-line"));
-  g.appendChild(pathEl("M81.1,21.2 C82.4,21.6 82.5,24.8 81,25.6", "face-line"));
-  g.appendChild(pathEl("M62.8,21.2 C64.4,20.4 66.6,20.4 67.8,21", "face-line"));
-  g.appendChild(pathEl("M72.2,21 C73.4,20.4 75.6,20.4 77.2,21.2", "face-line"));
-  [["M63.2,23.4 C64.4,22.2 66.4,22.2 67.4,23.4 C66.4,24.5 64.4,24.5 63.2,23.4 Z", 65.3],
-   ["M72.6,23.4 C73.6,22.2 75.6,22.2 76.8,23.4 C75.6,24.5 73.6,24.5 72.6,23.4 Z", 74.7]].forEach(function (e) {
-    g.appendChild(pathEl(e[0], "eye-shape"));
-    const pupil = svgEl("circle");
-    pupil.setAttribute("cx", e[1]);
-    pupil.setAttribute("cy", 23.35);
-    pupil.setAttribute("r", 0.9);
-    pupil.setAttribute("class", "pupil");
-    g.appendChild(pupil);
-  });
-  g.appendChild(pathEl("M68.7,28.2 C69.4,29.2 70.6,29.2 71.3,28.2", "face-line"));
-  g.appendChild(pathEl("M66.6,32.4 C68.6,33.6 71.4,33.6 73.4,32.4", "face-line"));
 
   g.appendChild(pathEl("M69,51.6 C65.4,50.9 60.6,51.3 56.8,53.3", "muscle-line"));
   g.appendChild(pathEl("M71,51.6 C74.6,50.9 79.4,51.3 83.2,53.3", "muscle-line"));

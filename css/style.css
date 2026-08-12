@@ -772,22 +772,6 @@ body.view-game .footer {
   content: "▸ ";
 }
 
-.brief-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.chip {
-  font-family: var(--font-type);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.35);
-  padding: 0.28rem 0.65rem 0.22rem;
-}
-
 .brief-tasks {
   margin: 0.4rem 0 0 1.3rem;
   display: grid;
