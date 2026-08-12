@@ -4,6 +4,7 @@
 //
 // Bir vakanın şeması:
 //   id, title, story                 → tanım + olay anlatımı
+//   teaser                           → arşiv kartında görünen kısa tanıtım cümlesi
 //   scene.summary                    → olay yeri kısa tarif
 //   scene.plan                       → kroki çerçevesi (koordinatlar METRE, x batı→doğu, y kuzey→güney; kuzey yukarıda)
 //      { caption, w, d, enclosed?, features? }
@@ -34,6 +35,8 @@ const CASES = [
   {
     id: 1,
     title: "Perşembe Gecesi Kütüphane Vakası",
+    teaser: "Kapısı içeriden kilitli bir arşiv odası, masada yarım bardak çay ve çekmecede "
+      + "boş bir kutu. Kütüphaneci Arda Yalın'ı o gece ne susturdu?",
     story: "25 Ekim Perşembe gecesi 22:40 sıralarında, belediye arşiv kütüphanesinde "
       + "kütüphaneci Arda Yalın (54), çalışma masasında, başı öne düşmüş halde bulundu. "
       + "Odaya ilk giren gece bekçisi Kaan Yurt, Arda'nın vücuduna dokunmadı ve durumu 112'ye "
@@ -246,6 +249,8 @@ const CASES = [
   {
     id: 2,
     title: "Şoför Işığında Vakası",
+    teaser: "Motoru çalışır, ışıkları sönük bir otomobil; dünkü gazete ve yanlış açıya ayarlı "
+      + "dikiz aynası. Şoför Ferman, direksiyona kimin geçtiğini biliyordu.",
     story: "Ferman (38), sabaha karşı otomobilinin sürücü koltuğunda, motoru çalışır halde "
       + "bulundu. Kapılar kilitli değildi; yan koltukta dünkü tarihli açık bir gazete, aynada "
       + "ise arka koltuk görünen bir açı vardı. Ferman kısa boylu bir erkekti ve son günlerde "

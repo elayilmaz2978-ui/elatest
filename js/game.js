@@ -1,64 +1,135 @@
-// Oyun mantığı — davranış katmanı.
-// Veri: cases.js (CASES). Bu dosya yalnızca arayüzü ve akışı yönetir.
+// ============================================================
+// OYUN MANTIĞI — DAVRANIŞ KATMANI
+// Veri: cases.js (CASES). Bu dosya arayüzü ve akışı yönetir.
+//
+// Akış: Lobi (mod + dosya seçimi) → Oyun (sırayla açılan kartlar)
+//   brief           Vaka Dosyası (özet + görev)
+//   scene           Olay Yeri (kroki + kanıtlar)
+//   csi             Kriminal Rapor
+//   autopsy         Otopsi Raporu (şema + toksikoloji)
+//   interrogation   Şüpheli Sorguları (tutanak + işaretleme)
+//   verdict         Karar Dosyan (mühürleme)
+// ============================================================
+
+const MODES = [
+  {
+    id: "classic",
+    name: "Klasik Soruşturma",
+    desc: "Tüm raporlar açık: olay yeri, kriminal, otopsi ve sorgular. Klasik deneyim.",
+    tag: "6 kart · tüm raporlar",
+    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "verdict"]
+  },
+  {
+    id: "interrogation",
+    name: "Sorgu Odası",
+    desc: "Adli raporlar dosyaya girmedi; yalnız vaka özeti, tutanaklar ve sezgilerin var.",
+    tag: "3 kart · raporsuz",
+    cards: ["brief", "interrogation", "verdict"]
+  },
+  {
+    id: "blind",
+    name: "Karanlık Dosya",
+    desc: "Sorgu yok, kriminal yok: yalnız olay yeri ve otopsiyle katili çıkar. Zorlu mod.",
+    tag: "4 kart · sorgusuz",
+    cards: ["brief", "scene", "autopsy", "verdict"]
+  }
+];
+
+const CARDS = {
+  brief: { title: "Vaka Dosyası", short: "Dosya" },
+  scene: { title: "Olay Yeri", short: "Olay Yeri" },
+  csi: { title: "Kriminal Rapor", short: "Kriminal" },
+  autopsy: { title: "Otopsi Raporu", short: "Otopsi" },
+  interrogation: { title: "Şüpheli Sorguları", short: "Sorgular" },
+  verdict: { title: "Karar Dosyan", short: "Karar" }
+};
 
 const state = {
-  caseIndex: 0,
-  currentCase: null,
-  marked: [],        // işaretlenen tutanak satır indexleri
+  view: "lobby",
+  modeId: "classic",
+  caseId: null,
+  cardIndex: 0,
+  unlocked: 1,
+  marked: [],
   activeSuspect: null,
-  resolved: false
+  resolved: false,
+  resultNode: null,
+  drawerOpen: false
 };
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const el = {
-  stage: document.getElementById("stage"),
-  caseNo: document.getElementById("case-no"),
   progressBar: document.getElementById("progress-bar"),
   tagline: document.querySelector(".tagline"),
-  verdictBox: document.querySelector(".verdict"),
-  title: document.getElementById("case-title"),
-  story: document.getElementById("case-story"),
-  sceneSummary: document.getElementById("scene-summary"),
-  scenePlan: document.getElementById("scene-plan"),
-  scenePlanMeta: document.getElementById("scene-plan-meta"),
-  planLegend: document.getElementById("plan-legend"),
-  sceneEvidence: document.getElementById("scene-evidence"),
-  csiExaminer: document.getElementById("csi-examiner"),
-  csiFinding: document.getElementById("csi-finding"),
-  csiItems: document.getElementById("csi-items"),
-  autPatholog: document.getElementById("autopsy-patholog"),
-  autExternal: document.getElementById("autopsy-external"),
-  autInternal: document.getElementById("autopsy-internal"),
-  anatExternal: document.getElementById("anat-external"),
-  anatInternal: document.getElementById("anat-internal"),
-  toxTable: document.getElementById("tox-table"),
-  autCause: document.getElementById("autopsy-cause"),
-  transcriptMeta: document.getElementById("transcript-meta"),
-  transcript: document.getElementById("transcript"),
-  sessionTabs: document.getElementById("session-tabs"),
-  sessionInfo: document.getElementById("session-info"),
-  transcriptList: document.getElementById("transcript-list"),
-  suspectGrid: document.getElementById("suspect-grid"),
-  clueList: document.getElementById("clue-list"),
-  clueEmpty: document.getElementById("clue-empty"),
-  causeSelect: document.getElementById("cause-select"),
-  suspectSelect: document.getElementById("suspect-select"),
-  motiveSelect: document.getElementById("motive-select"),
-  evidenceGrid: document.getElementById("evidence-grid"),
+  rankName: document.getElementById("rank-name"),
+  rankScore: document.getElementById("rank-score"),
+  statSolved: document.getElementById("stat-solved"),
+  viewLobby: document.getElementById("view-lobby"),
+  viewGame: document.getElementById("view-game"),
+  modeGrid: document.getElementById("mode-grid"),
+  caseGrid: document.getElementById("case-grid"),
   careerSummary: document.getElementById("career-summary"),
-  form: document.getElementById("verdict-form"),
-  result: document.getElementById("result"),
-  nextBtn: document.getElementById("next-case"),
+  backBtn: document.getElementById("back-btn"),
+  gameCaseNo: document.getElementById("game-case-no"),
+  gameCaseTitle: document.getElementById("game-case-title"),
+  gameModeChip: document.getElementById("game-mode-chip"),
+  drawerBtn: document.getElementById("drawer-btn"),
+  noteCount: document.getElementById("note-count"),
+  cardTabs: document.getElementById("card-tabs"),
+  cardArea: document.getElementById("card-area"),
+  prevCard: document.getElementById("prev-card"),
+  nextCard: document.getElementById("next-card"),
+  cardPos: document.getElementById("card-pos"),
+  drawer: document.getElementById("drawer"),
+  drawerBackdrop: document.getElementById("drawer-backdrop"),
+  drawerClose: document.getElementById("drawer-close"),
+  drawerList: document.getElementById("drawer-list"),
+  drawerEmpty: document.getElementById("drawer-empty"),
   confirmOverlay: document.getElementById("confirm-overlay"),
   confirmTitle: document.getElementById("confirm-title"),
   confirmBody: document.getElementById("confirm-body"),
   confirmYes: document.getElementById("confirm-yes"),
   confirmNo: document.getElementById("confirm-no"),
-  rankName: document.getElementById("rank-name"),
-  rankScore: document.getElementById("rank-score"),
   resetBtn: document.getElementById("reset-progress")
 };
+
+function h(tag, cls, text) {
+  const node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function modeById(id) {
+  for (let i = 0; i < MODES.length; i++) {
+    if (MODES[i].id === id) return MODES[i];
+  }
+  return MODES[0];
+}
+
+function activeMode() {
+  return modeById(state.modeId);
+}
+
+function currentCase() {
+  if (state.caseId == null) return null;
+  for (let i = 0; i < CASES.length; i++) {
+    if (CASES[i].id === state.caseId) return CASES[i];
+  }
+  return null;
+}
+
+function caseIndexById(id) {
+  for (let i = 0; i < CASES.length; i++) {
+    if (CASES[i].id === id) return i;
+  }
+  return -1;
+}
 
 // ================= Kalıcı ilerleme (localStorage) =================
 
@@ -117,6 +188,13 @@ function renderRankBadge() {
   const percent = MAX_TOTAL > 0 ? (total / MAX_TOTAL) * 100 : 0;
   el.rankName.textContent = rankFor(percent).toLocaleUpperCase("tr");
   el.rankScore.textContent = formatPoints(total);
+
+  let solved = 0;
+  CASES.forEach(function (c) {
+    const rec = progress.cases[c.id];
+    if (rec && rec.solved) solved += 1;
+  });
+  el.statSolved.textContent = solved + "/" + CASES.length;
 }
 
 function stampTextFor(rec) {
@@ -127,10 +205,10 @@ function stampTextFor(rec) {
 
 function renderCareerSummary() {
   const progress = loadProgress();
-  const solved = CASES.filter(function (c) { return progress.cases[c.id]; });
+  const played = CASES.filter(function (c) { return progress.cases[c.id]; });
 
   el.careerSummary.innerHTML = "";
-  if (!solved.length) {
+  if (!played.length) {
     el.careerSummary.classList.add("hidden");
     return;
   }
@@ -142,25 +220,14 @@ function renderCareerSummary() {
 
   const list = document.createElement("ul");
   list.className = "career-summary__list";
-  solved.forEach(function (c) {
+  played.forEach(function (c) {
     const rec = progress.cases[c.id];
     const li = document.createElement("li");
 
-    const no = document.createElement("span");
-    no.className = "career-summary__no";
-    no.textContent = "№" + String(c.id).padStart(2, "0");
-
-    const title = document.createElement("span");
-    title.className = "career-summary__title";
-    title.textContent = c.title;
-
-    const score = document.createElement("span");
-    score.className = "career-summary__score";
-    score.textContent = formatPoints(rec.score) + "/100";
-
-    const stamp = document.createElement("span");
-    stamp.className = "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad"));
-    stamp.textContent = stampTextFor(rec);
+    const no = h("span", "career-summary__no", "№" + pad(c.id));
+    const title = h("span", "career-summary__title", c.title);
+    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/100");
+    const stamp = h("span", "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
 
     li.appendChild(no);
     li.appendChild(title);
@@ -171,8 +238,7 @@ function renderCareerSummary() {
   el.careerSummary.appendChild(list);
 
   const total = totalScore(progress);
-  const foot = document.createElement("p");
-  foot.className = "career-summary__total";
+  const foot = h("p", "career-summary__total");
   foot.textContent = "Toplam " + formatPoints(total) + "/" + MAX_TOTAL + " puan · Rütbe: "
     + rankFor((total / MAX_TOTAL) * 100);
   if (total < MAX_TOTAL) {
@@ -214,34 +280,15 @@ el.confirmOverlay.addEventListener("click", function (e) {
 });
 
 document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape" && !el.confirmOverlay.classList.contains("hidden")) {
+  if (e.key !== "Escape") return;
+  if (!el.confirmOverlay.classList.contains("hidden")) {
     closeConfirm();
+  } else if (state.drawerOpen) {
+    closeDrawer();
   }
 });
 
 // ================= Görsel katman yardımcıları =================
-
-// Scroll ile beliren bölümler: her vaka yüklenişinde yeniden kurulur.
-const revealObserver = ("IntersectionObserver" in window) ? new IntersectionObserver(function (entries) {
-  entries.forEach(function (en) {
-    if (en.isIntersecting) {
-      en.target.classList.add("in");
-      revealObserver.unobserve(en.target);
-    }
-  });
-}, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }) : null;
-
-function armReveals() {
-  const items = document.querySelectorAll(".reveal");
-  if (!revealObserver || REDUCED) {
-    items.forEach(function (r) { r.classList.add("in"); });
-    return;
-  }
-  items.forEach(function (r) {
-    r.classList.remove("in");
-    revealObserver.observe(r);
-  });
-}
 
 // Liste öğelerini tek tek içeri süzer (--i ile kademeli gecikme).
 function stagger(container) {
@@ -258,15 +305,6 @@ function stagger(container) {
     container.classList.remove("stagger");
   }, 700 + kids.length * 80);
 }
-
-// Üstte dosya ilerleme çubuğu
-function updateProgress() {
-  const doc = document.documentElement;
-  const max = doc.scrollHeight - doc.clientHeight;
-  el.progressBar.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + "%";
-}
-window.addEventListener("scroll", updateProgress, { passive: true });
-window.addEventListener("resize", updateProgress);
 
 // Başlık sloganını daktilo efektiyle yazar
 function typeTagline() {
@@ -286,59 +324,757 @@ function typeTagline() {
   })();
 }
 
-function loadCase(index) {
-  const current = CASES[index % CASES.length];
-  state.currentCase = current;
+// ================= Görünüm yönetimi =================
+
+function showView(name) {
+  state.view = name;
+  document.body.classList.toggle("view-lobby", name === "lobby");
+  document.body.classList.toggle("view-game", name === "game");
+  el.viewLobby.classList.toggle("hidden", name !== "lobby");
+  el.viewGame.classList.toggle("hidden", name !== "game");
+}
+
+function scrollTopInstant() {
+  const prev = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, 0);
+  document.documentElement.style.scrollBehavior = prev;
+}
+
+function updateProgressBar() {
+  if (state.view !== "game") {
+    el.progressBar.style.width = "0%";
+    return;
+  }
+  const total = activeMode().cards.length;
+  el.progressBar.style.width = (Math.min(state.unlocked, total) / total) * 100 + "%";
+}
+
+// ================= Lobi =================
+
+function renderLobby() {
+  renderModeGrid();
+  renderCaseGrid();
+  renderCareerSummary();
+  renderRankBadge();
+  updateProgressBar();
+}
+
+function renderModeGrid() {
+  el.modeGrid.innerHTML = "";
+  MODES.forEach(function (m) {
+    const btn = h("button", "mode-card" + (m.id === state.modeId ? " selected" : ""));
+    btn.type = "button";
+    btn.setAttribute("aria-pressed", m.id === state.modeId ? "true" : "false");
+    btn.appendChild(h("span", "mode-card__name", m.name));
+    btn.appendChild(h("span", "mode-card__desc", m.desc));
+    btn.appendChild(h("span", "mode-card__tag", m.tag));
+    btn.addEventListener("click", function () {
+      if (state.modeId === m.id) return;
+      state.modeId = m.id;
+      renderModeGrid();
+      renderCaseGrid();
+    });
+    el.modeGrid.appendChild(btn);
+  });
+}
+
+function renderCaseGrid() {
+  el.caseGrid.innerHTML = "";
+  const progress = loadProgress();
+  const m = activeMode();
+
+  CASES.forEach(function (c) {
+    const rec = progress.cases[c.id];
+    const card = h("article", "case-file");
+
+    const top = h("div", "case-file__top");
+    top.appendChild(h("span", "case-file__no", "DOSYA №" + pad(c.id)));
+    if (rec) {
+      const stamp = h("span", "mini-stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
+      stamp.style.setProperty("--rot", (c.id % 2 === 0 ? -4 : 5) + "deg");
+      top.appendChild(stamp);
+    }
+    card.appendChild(top);
+
+    card.appendChild(h("h3", "case-file__title", c.title));
+    card.appendChild(h("p", "case-file__teaser", c.teaser));
+
+    const meta = h("ul", "case-file__meta");
+    meta.appendChild(h("li", null, c.suspects.length + " şüpheli"));
+    meta.appendChild(h("li", null, m.cards.length + " kart"));
+    meta.appendChild(h("li", null, m.name));
+    card.appendChild(meta);
+
+    if (rec) {
+      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/100"));
+    }
+
+    const open = h("button", "btn case-file__open", rec ? "Dosyayı yeniden aç" : "Dosyayı aç");
+    open.type = "button";
+    open.addEventListener("click", function () { openCase(c.id); });
+    card.appendChild(open);
+
+    el.caseGrid.appendChild(card);
+  });
+}
+
+// ================= Oyun kabuğu =================
+
+function openCase(caseId) {
+  state.caseId = caseId;
+  state.cardIndex = 0;
+  state.unlocked = 1;
   state.marked = [];
   state.activeSuspect = null;
   state.resolved = false;
-
-  el.caseNo.textContent = String(current.id).padStart(2, "0");
-  const oldStamp = el.verdictBox.querySelector(".stamp-verdict");
-  if (oldStamp) oldStamp.remove();
-
-  el.title.textContent = current.title;
-  el.story.textContent = current.story;
-
-  renderScene(current);
-  renderCsi(current);
-  renderAutopsy(current);
-  renderAnatomy(current);
-  renderTranscript(current);
-  renderSuspects();
-  renderClues();
-  fillSelects();
-
-  el.result.innerHTML = "";
-  el.result.className = "result";
-  el.nextBtn.classList.add("hidden");
-  el.nextBtn.textContent = "Sıradaki vaka";
-  el.form.classList.remove("hidden");
-  renderCareerSummary();
-
-  armReveals();
-  updateProgress();
+  state.resultNode = null;
+  closeDrawer();
+  showView("game");
+  renderGame();
+  scrollTopInstant();
 }
 
-// ================= Olay yeri =================
+function goLobby() {
+  state.caseId = null;
+  closeDrawer();
+  showView("lobby");
+  renderLobby();
+  scrollTopInstant();
+}
 
-function renderScene(caseData) {
-  el.sceneSummary.textContent = caseData.scene.summary;
-  renderScenePlan(caseData.scene);
+el.backBtn.addEventListener("click", function () {
+  if (!state.resolved && (state.marked.length || state.cardIndex > 0)) {
+    openConfirm(
+      "Dosyadan çıkılsın mı?",
+      "Bu oturumdaki ilerlemen ve işaretlediğin satırlar silinecek.",
+      "Evet, çık",
+      goLobby
+    );
+    return;
+  }
+  goLobby();
+});
 
-  el.sceneEvidence.innerHTML = "";
-  caseData.scene.evidence.forEach(function (ev) {
-    const li = document.createElement("li");
-    const strong = document.createElement("strong");
-    strong.textContent = ev.name;
-    li.appendChild(strong);
-    li.appendChild(document.createTextNode(" — " + ev.desc));
-    el.sceneEvidence.appendChild(li);
+function renderGame() {
+  const c = currentCase();
+  if (!c) { goLobby(); return; }
+
+  el.gameCaseNo.textContent = "DOSYA №" + pad(c.id);
+  el.gameCaseTitle.textContent = c.title;
+  el.gameModeChip.textContent = activeMode().name.toLocaleUpperCase("tr");
+
+  renderTabs();
+  renderCard();
+  renderCardNav();
+  renderDrawer();
+  updateNoteCount();
+  updateProgressBar();
+}
+
+function renderTabs() {
+  const cards = activeMode().cards;
+  el.cardTabs.innerHTML = "";
+  cards.forEach(function (key, i) {
+    const btn = h("button", "card-tab");
+    btn.type = "button";
+    btn.title = CARDS[key].title;
+    if (i === state.cardIndex) {
+      btn.classList.add("active");
+      btn.setAttribute("aria-current", "step");
+    }
+    if (i < state.unlocked && i !== state.cardIndex) btn.classList.add("done");
+    if (i >= state.unlocked) {
+      btn.classList.add("locked");
+      btn.disabled = true;
+      btn.title = "Önce önceki kartı tamamla";
+    }
+    btn.appendChild(h("span", "card-tab__no", pad(i + 1)));
+    btn.appendChild(h("span", "card-tab__label", CARDS[key].short));
+    btn.addEventListener("click", function () { goCard(i); });
+    el.cardTabs.appendChild(btn);
   });
-  stagger(el.sceneEvidence);
 }
 
-// Olay yeri krokisi: metre koordinatlı, ölçekli, numaralı SVG yerleşim planı.
+function goCard(i) {
+  const cards = activeMode().cards;
+  if (i < 0 || i >= cards.length || i >= state.unlocked) return;
+  state.cardIndex = i;
+  renderTabs();
+  renderCard();
+  renderCardNav();
+}
+
+function advanceCard() {
+  const cards = activeMode().cards;
+  if (state.cardIndex >= cards.length - 1) return;
+  state.cardIndex += 1;
+  state.unlocked = Math.max(state.unlocked, state.cardIndex + 1);
+  renderTabs();
+  renderCard();
+  renderCardNav();
+  updateProgressBar();
+}
+
+function renderCardNav() {
+  const cards = activeMode().cards;
+  const isLast = state.cardIndex === cards.length - 1;
+  el.cardPos.textContent = "KART " + pad(state.cardIndex + 1) + " / " + pad(cards.length);
+  el.prevCard.disabled = state.cardIndex === 0;
+  el.nextCard.disabled = isLast;
+  el.nextCard.textContent = isLast ? "Son kart" : "Sonraki: " + CARDS[cards[state.cardIndex + 1]].short + " →";
+}
+
+el.prevCard.addEventListener("click", function () { goCard(state.cardIndex - 1); });
+el.nextCard.addEventListener("click", advanceCard);
+
+function renderCard() {
+  const c = currentCase();
+  const key = activeMode().cards[state.cardIndex];
+  el.cardArea.innerHTML = "";
+  CARD_RENDERERS[key](el.cardArea, c);
+  if (!REDUCED) {
+    el.cardArea.classList.remove("card-in");
+    void el.cardArea.offsetWidth;
+    el.cardArea.classList.add("card-in");
+  }
+  scrollTopInstant();
+}
+
+function sectionHead(text) {
+  return h("h3", "section-head", text);
+}
+
+// ================= Kart: Vaka Dosyası =================
+
+function cardBrief(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Vaka Özeti"));
+  card.appendChild(h("p", "case__kicker", "Dosya №" + pad(c.id) + " · Gizli"));
+  card.appendChild(h("h3", "case__title", c.title));
+  card.appendChild(h("p", "case__story", c.story));
+
+  card.appendChild(h("h4", "report__subhead", "Kurban Profili"));
+  const v = c.autopsy.victim;
+  const chips = h("div", "brief-chips");
+  [v.age + " yaş", v.height + " cm", v.weight + " kg"].forEach(function (t) {
+    chips.appendChild(h("span", "chip", t));
+  });
+  card.appendChild(chips);
+
+  card.appendChild(h("h4", "report__subhead", "Görevin"));
+  const tasks = h("ol", "brief-tasks");
+  ["Ölüm nedenini belirle.", "Katili tespit et ve sebebini çöz.", "Kararını doğru kanıtlarla destekle."]
+    .forEach(function (t) { tasks.appendChild(h("li", null, t)); });
+  card.appendChild(tasks);
+
+  const m = activeMode();
+  const note = m.id === "interrogation"
+    ? "Bu modda adli raporlar (olay yeri, kriminal, otopsi) dosyada yok; yalnız tutanaklara güvenebilirsin."
+    : (m.id === "blind"
+      ? "Bu modda sorgu tutanağı ve kriminal rapor yok: kroki ve otopsi bulgularından çıkarım yap."
+      : "Tüm raporlar dosyada. Kartları sırayla aç; sorguda ipucu satırlarını işaretlemeyi unutma.");
+  card.appendChild(h("p", "hint", note));
+
+  area.appendChild(card);
+}
+
+// ================= Kart: Olay Yeri =================
+
+function cardScene(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Olay Yeri"));
+  card.appendChild(h("p", "report__body", c.scene.summary));
+  card.appendChild(buildSceneFigure(c.scene));
+
+  card.appendChild(h("h4", "report__subhead", "Olay yerinde toplananlar"));
+  const list = h("ul", "evidence-list");
+  c.scene.evidence.forEach(function (ev) {
+    const li = document.createElement("li");
+    li.appendChild(h("strong", null, ev.name));
+    li.appendChild(document.createTextNode(" — " + ev.desc));
+    list.appendChild(li);
+  });
+  card.appendChild(list);
+  area.appendChild(card);
+  stagger(list);
+}
+
+// ================= Kart: Kriminal =================
+
+function cardCsi(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Olay Yeri İnceleme Raporu"));
+  card.appendChild(h("p", "report__meta", c.csi.examiner + "  •  " + c.csi.date));
+  card.appendChild(h("p", "report__body", c.csi.finding));
+
+  card.appendChild(h("h4", "report__subhead", "Toplanan örnekler"));
+  const list = h("ul", "evidence-list");
+  c.csi.items.forEach(function (t) { list.appendChild(h("li", null, t)); });
+  card.appendChild(list);
+  area.appendChild(card);
+  stagger(list);
+}
+
+// ================= Kart: Otopsi =================
+
+function cardAutopsy(area, c) {
+  const aut = c.autopsy;
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Otopsi Raporu"));
+  card.appendChild(h("p", "report__meta", aut.pathologist + "  •  " + aut.date));
+
+  card.appendChild(h("h4", "report__subhead", "Dış Muayene"));
+  card.appendChild(h("p", "report__body", aut.external));
+  card.appendChild(h("h4", "report__subhead", "İç Muayene"));
+  card.appendChild(h("p", "report__body", aut.internal));
+
+  card.appendChild(h("h4", "report__subhead", "Yaralanma Haritası"));
+  card.appendChild(buildAnatomyGrid(c));
+
+  card.appendChild(h("h4", "report__subhead", "Toksikoloji"));
+  card.appendChild(buildToxTable(aut.toxicology));
+
+  card.appendChild(h("h4", "report__subhead", "Ölüm Nedeni Notu"));
+  card.appendChild(h("p", "report__body", aut.causeNote));
+
+  area.appendChild(card);
+}
+
+function buildToxTable(rows) {
+  const headers = ["Madde", "Sonuç", "Referans", "Yorum"];
+  const table = h("table", "tox-table");
+
+  const headRow = document.createElement("tr");
+  headers.forEach(function (t) { headRow.appendChild(h("th", null, t)); });
+  table.appendChild(headRow);
+
+  rows.forEach(function (row) {
+    const tr = document.createElement("tr");
+    row.forEach(function (cell) { tr.appendChild(h("td", null, cell)); });
+    table.appendChild(tr);
+  });
+  stagger(table);
+  return table;
+}
+
+// ================= Kart: Sorgular =================
+
+let interRefs = null;
+
+function cardInterrogation(area, c) {
+  const rec = c.interrogation;
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Şüpheli Sorguları"));
+  card.appendChild(h("p", "report__meta", rec.officer + "  •  " + rec.date));
+  card.appendChild(h("p", "hint",
+    "İpucu sakladığını düşündüğün satıra tıkla ve işaretle; işaretlerin Not Defterim'e düşer. "
+    + "Şüpheliyi aşağıdaki kartlardan çağır."));
+
+  const chips = h("div", "suspect-chips");
+  const info = h("p", "session-info");
+  const list = h("div", "transcript");
+  card.appendChild(chips);
+  card.appendChild(info);
+  card.appendChild(list);
+  area.appendChild(card);
+
+  if (!state.activeSuspect || !c.suspects.some(function (s) { return s.id === state.activeSuspect; })) {
+    state.activeSuspect = c.suspects[0].id;
+  }
+  interRefs = { chips: chips, info: info, list: list };
+  renderInterrogation(c);
+}
+
+function sessionRecords(caseData, subject) {
+  const out = [];
+  caseData.interrogation.records.forEach(function (row, i) {
+    if (row.subject === subject) out.push({ idx: i, row: row });
+  });
+  return out;
+}
+
+function renderInterrogation(c) {
+  if (!interRefs) return;
+
+  interRefs.chips.innerHTML = "";
+  c.suspects.forEach(function (s) {
+    const chip = h("button", "suspect-chip" + (s.id === state.activeSuspect ? " active" : ""));
+    chip.type = "button";
+    chip.appendChild(h("span", "suspect-chip__initial", s.initial));
+    chip.appendChild(h("span", "suspect-chip__name", s.name));
+    chip.addEventListener("click", function () {
+      state.activeSuspect = s.id;
+      renderInterrogation(c);
+    });
+    interRefs.chips.appendChild(chip);
+  });
+
+  const suspect = c.suspects.find(function (s) { return s.id === state.activeSuspect; });
+  const session = sessionRecords(c, state.activeSuspect);
+  interRefs.info.textContent = "Şu an sorguda: " + suspect.name
+    + " — " + suspect.note + " (" + session.length + " ifade)";
+
+  interRefs.list.innerHTML = "";
+  session.forEach(function (item) {
+    const row = item.row;
+    const line = h("div", "transcript-line"
+      + (row.clue ? " has-clue" : "")
+      + (row.speaker.indexOf("Hakim") === 0 ? " is-question" : ""));
+    line.appendChild(h("span", "transcript-who", row.speaker));
+    line.appendChild(h("span", "transcript-text", row.text));
+    if (state.marked.indexOf(item.idx) !== -1) line.classList.add("marked");
+    line.addEventListener("click", function () { toggleMark(item.idx); });
+    interRefs.list.appendChild(line);
+  });
+
+  if (!REDUCED) {
+    interRefs.list.classList.remove("swap");
+    void interRefs.list.offsetWidth;
+    interRefs.list.classList.add("swap");
+  }
+}
+
+function toggleMark(i) {
+  if (state.resolved) return;
+  const idx = state.marked.indexOf(i);
+  if (idx === -1) {
+    state.marked.push(i);
+  } else {
+    state.marked.splice(idx, 1);
+  }
+  renderInterrogation(currentCase());
+  renderDrawer();
+  updateNoteCount();
+}
+
+// ================= Kart: Karar =================
+
+let verdictRefs = null;
+
+// Puan ağırlıkları: vaka başına toplam 100.
+const WEIGHTS = { suspect: 40, cause: 25, motive: 20, evidence: 15 };
+
+function cardVerdict(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Karar Dosyan"));
+
+  if (state.resolved && state.resultNode) {
+    card.appendChild(state.resultNode);
+    const actions = h("div", "verdict-actions");
+    const idx = caseIndexById(c.id);
+    if (idx < CASES.length - 1) {
+      const next = h("button", "btn", "Sıradaki dosya →");
+      next.type = "button";
+      next.addEventListener("click", function () { openCase(CASES[idx + 1].id); });
+      actions.appendChild(next);
+    }
+    const back = h("button", "btn btn--ghost", "Arşive dön");
+    back.type = "button";
+    back.addEventListener("click", goLobby);
+    actions.appendChild(back);
+    card.appendChild(actions);
+    area.appendChild(card);
+    return;
+  }
+
+  card.appendChild(h("p", "hint",
+    "Doğru ölüm nedenini, katili ve sebebi seç; kararını destekleyen kanıtları işaretle. "
+    + "Yanlış kanıt seçimi puan düşürür."));
+
+  const form = h("form", "verdict-form");
+
+  form.appendChild(labelFor("cause-select", "Ölüm nedeni neydi?"));
+  const causeSelect = h("select", null);
+  causeSelect.id = "cause-select";
+  causeSelect.name = "cause";
+  c.deathCauses.forEach(function (cause) {
+    causeSelect.appendChild(h("option", null, cause)).value = cause;
+  });
+  form.appendChild(causeSelect);
+
+  form.appendChild(labelFor("suspect-select", "Katil kim?"));
+  const suspectSelect = h("select", null);
+  suspectSelect.id = "suspect-select";
+  suspectSelect.name = "suspect";
+  c.suspects.forEach(function (s) {
+    const opt = h("option", null, s.name);
+    opt.value = s.id;
+    suspectSelect.appendChild(opt);
+  });
+  form.appendChild(suspectSelect);
+
+  form.appendChild(labelFor("motive-select", "Katil neden yaptı?"));
+  const motiveSelect = h("select", null);
+  motiveSelect.id = "motive-select";
+  motiveSelect.name = "motive";
+  c.motives.forEach(function (motive) {
+    motiveSelect.appendChild(h("option", null, motive)).value = motive;
+  });
+  form.appendChild(motiveSelect);
+
+  const fieldset = document.createElement("fieldset");
+  fieldset.className = "evidence-pick";
+  const legend = h("legend");
+  legend.appendChild(document.createTextNode("Kararını hangi kanıtlar destekliyor? "));
+  legend.appendChild(h("span", "evidence-pick__warn", "Yanlış seçim puan düşürür."));
+  fieldset.appendChild(legend);
+  const grid = h("div", "evidence-grid");
+  c.verdictEvidence.forEach(function (ev) {
+    const label = h("label", "evidence-pick__item");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.name = "evidence";
+    box.value = ev.name;
+    label.appendChild(box);
+    label.appendChild(h("span", null, ev.name));
+    grid.appendChild(label);
+  });
+  fieldset.appendChild(grid);
+  form.appendChild(fieldset);
+
+  const submit = h("button", "btn", "Kararını ver");
+  submit.type = "submit";
+  form.appendChild(submit);
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (state.resolved) return;
+    openConfirm(
+      "Kararından emin misin?",
+      "Dosya mühürlenecek ve geri açılmayacak.",
+      "Evet, mühürle",
+      resolveVerdict
+    );
+  });
+
+  verdictRefs = {
+    causeSelect: causeSelect,
+    suspectSelect: suspectSelect,
+    motiveSelect: motiveSelect,
+    evidenceGrid: grid
+  };
+
+  card.appendChild(form);
+  area.appendChild(card);
+}
+
+function labelFor(forId, text) {
+  const label = h("label", null, text);
+  label.setAttribute("for", forId);
+  return label;
+}
+
+function evidenceByName(c, name) {
+  const found = c.verdictEvidence.find(function (ev) { return ev.name === name; });
+  return found || { ok: false, why: "" };
+}
+
+function resolveVerdict() {
+  if (state.resolved || !verdictRefs) return;
+  const c = currentCase();
+
+  const causeGuess = verdictRefs.causeSelect.value;
+  const suspectGuess = verdictRefs.suspectSelect.value;
+  const motiveGuess = verdictRefs.motiveSelect.value;
+
+  const causeRight = causeGuess === c.deathCauseCorrect;
+  const suspectRight = suspectGuess === c.culprit;
+  const motiveRight = motiveGuess === c.motiveCorrect;
+
+  const picks = Array.prototype.map.call(
+    verdictRefs.evidenceGrid.querySelectorAll("input:checked"),
+    function (input) { return input.value; }
+  );
+  const correctPicks = picks.filter(function (name) { return evidenceByName(c, name).ok; });
+  const wrongPicks = picks.filter(function (name) { return !evidenceByName(c, name).ok; });
+  const totalCorrect = c.verdictEvidence.filter(function (ev) { return ev.ok; }).length;
+  const evidenceScore = Math.max(
+    0,
+    WEIGHTS.evidence * (correctPicks.length - wrongPicks.length) / totalCorrect
+  );
+
+  const score = (causeRight ? WEIGHTS.cause : 0)
+    + (suspectRight ? WEIGHTS.suspect : 0)
+    + (motiveRight ? WEIGHTS.motive : 0)
+    + evidenceScore;
+
+  state.resolved = true;
+
+  const culprit = c.suspects.find(function (s) { return s.id === c.culprit; });
+  const solved = causeRight && suspectRight;
+  const partial = causeRight || suspectRight;
+
+  const result = h("div", "result " + (solved ? "correct" : (partial ? "partial" : "wrong")));
+
+  const stamp = h("span", "stamp-verdict " + (solved ? "ok" : (partial ? "mid" : "bad")));
+  stamp.textContent = solved ? "DOSYA KAPANDI" : (partial ? "KISMEN ÇÖZÜLDÜ" : "DOSYA AÇIK KALDI");
+  result.appendChild(stamp);
+
+  const report = h("table", "verdict-report");
+  const thead = document.createElement("tr");
+  ["", "Senin kararın", "Doğrusu", "Puan"].forEach(function (t) { thead.appendChild(h("th", null, t)); });
+  report.appendChild(thead);
+
+  function suspectName(id) {
+    const s = c.suspects.find(function (x) { return x.id === id; });
+    return s ? s.name : id;
+  }
+
+  function addRow(label, guess, correct, ok, points) {
+    const tr = h("tr", ok ? "row-ok" : "row-bad");
+    [label + (ok ? " ✓" : " ✗"), guess, correct, points].forEach(function (cell) {
+      tr.appendChild(h("td", null, cell));
+    });
+    report.appendChild(tr);
+  }
+
+  addRow("Ölüm nedeni", causeGuess, c.deathCauseCorrect, causeRight,
+    (causeRight ? WEIGHTS.cause : 0) + "/" + WEIGHTS.cause);
+  addRow("Katil", suspectName(suspectGuess), culprit.name, suspectRight,
+    (suspectRight ? WEIGHTS.suspect : 0) + "/" + WEIGHTS.suspect);
+  addRow("Sebep", motiveGuess, c.motiveCorrect, motiveRight,
+    (motiveRight ? WEIGHTS.motive : 0) + "/" + WEIGHTS.motive);
+  addRow("Kanıt seçimi",
+    picks.length ? correctPicks.length + " doğru, " + wrongPicks.length + " yanlış" : "Seçim yapılmadı",
+    totalCorrect + " doğru kanıt vardı",
+    correctPicks.length === totalCorrect && wrongPicks.length === 0,
+    formatPoints(evidenceScore) + "/" + WEIGHTS.evidence);
+
+  const totalRow = h("tr", "row-total");
+  const totalLabel = h("td", null, "TOPLAM");
+  totalLabel.colSpan = 3;
+  totalRow.appendChild(totalLabel);
+  totalRow.appendChild(h("td", null, formatPoints(score) + "/100"));
+  report.appendChild(totalRow);
+  result.appendChild(report);
+
+  if (picks.length) {
+    const review = h("ul", "evidence-review");
+    picks.forEach(function (name) {
+      const ev = evidenceByName(c, name);
+      const li = h("li", ev.ok ? "row-ok" : "row-bad");
+      li.appendChild(h("span", "evidence-review__mark", ev.ok ? "✓" : "✗"));
+      const body = h("span");
+      body.appendChild(h("strong", null, name + ": "));
+      body.appendChild(document.createTextNode(ev.why));
+      li.appendChild(body);
+      review.appendChild(li);
+    });
+    result.appendChild(review);
+  }
+
+  const missed = c.verdictEvidence.filter(function (ev) {
+    return ev.ok && picks.indexOf(ev.name) === -1;
+  });
+  if (missed.length) {
+    result.appendChild(h("p", "evidence-missed",
+      "Kaçırdığın doğru kanıtlar: " + missed.map(function (ev) { return ev.name; }).join(", ")));
+  }
+
+  const records = c.interrogation.records;
+  const clueHits = state.marked.filter(function (i) { return records[i].clue; }).length;
+  const totalClues = records.filter(function (r) { return r.clue; }).length;
+
+  let text = "İşaretlediğin " + state.marked.length + " satırdan " + clueHits
+    + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
+  if (solved) {
+    text += "Mükemmel! Hem ölüm nedenini (" + causeGuess + ") hem katili ("
+      + culprit.name + ") buldun. " + c.solution;
+  } else if (causeRight) {
+    text += "Ölüm nedeni doğru (" + causeGuess + ") ama sanık yanlış. Gerçek katil "
+      + culprit.name + " idi. " + c.solution;
+  } else if (suspectRight) {
+    text += "Katili buldun (" + culprit.name + ") ama ölüm nedeni yanlış. Doğrusu: "
+      + c.deathCauseCorrect + ". " + c.solution;
+  } else {
+    text += "İkisinde de yanıldın. Doğru ölüm nedeni: " + c.deathCauseCorrect
+      + "; katil: " + culprit.name + ". " + c.solution;
+  }
+  result.appendChild(h("p", "result__text", text));
+
+  state.resultNode = result;
+
+  const progress = loadProgress();
+  const prev = progress.cases[c.id];
+  const rec = {
+    score: Math.round(score * 10) / 10,
+    solved: solved,
+    partial: partial,
+    at: Date.now()
+  };
+  progress.cases[c.id] = prev && prev.score >= rec.score ? prev : rec;
+  saveProgress(progress);
+  renderRankBadge();
+
+  verdictRefs = null;
+  renderCard();
+  renderTabs();
+}
+
+const CARD_RENDERERS = {
+  brief: cardBrief,
+  scene: cardScene,
+  csi: cardCsi,
+  autopsy: cardAutopsy,
+  interrogation: cardInterrogation,
+  verdict: cardVerdict
+};
+
+// ================= Not Defteri çekmecesi =================
+
+function updateNoteCount() {
+  el.noteCount.textContent = String(state.marked.length);
+}
+
+function renderDrawer() {
+  el.drawerList.innerHTML = "";
+  const c = currentCase();
+  const records = c ? c.interrogation.records : [];
+
+  state.marked.forEach(function (i) {
+    const row = records[i];
+    if (!row) return;
+    const li = h("li", "drawer-item");
+    const body = h("p", "drawer-item__text");
+    body.appendChild(h("strong", null, row.speaker + ": "));
+    body.appendChild(document.createTextNode(row.text));
+    li.appendChild(body);
+    if (!state.resolved) {
+      const del = h("button", "drawer-item__del", "✕");
+      del.type = "button";
+      del.setAttribute("aria-label", "İşareti kaldır");
+      del.addEventListener("click", function () { toggleMark(i); });
+      li.appendChild(del);
+    }
+    el.drawerList.appendChild(li);
+  });
+  el.drawerEmpty.hidden = state.marked.length > 0;
+}
+
+function openDrawer() {
+  state.drawerOpen = true;
+  renderDrawer();
+  el.drawer.classList.add("open");
+  el.drawer.setAttribute("aria-hidden", "false");
+  el.drawerBackdrop.classList.remove("hidden");
+}
+
+function closeDrawer() {
+  state.drawerOpen = false;
+  el.drawer.classList.remove("open");
+  el.drawer.setAttribute("aria-hidden", "true");
+  el.drawerBackdrop.classList.add("hidden");
+}
+
+el.drawerBtn.addEventListener("click", function () {
+  if (state.drawerOpen) { closeDrawer(); } else { openDrawer(); }
+});
+el.drawerClose.addEventListener("click", closeDrawer);
+el.drawerBackdrop.addEventListener("click", closeDrawer);
+
+// ================= Olay yeri krokisi =================
+
 function svgEl(name) {
   return document.createElementNS("http://www.w3.org/2000/svg", name);
 }
@@ -394,7 +1130,6 @@ function planText(g, x, y, str, cls, size, anchor) {
 // içeri doğru n metre içerideki noktanın (x, y) koordinatları.
 function wallAxis(wall, plan) {
   const w = plan.w, d = plan.d;
-  // pt(u, n): duvar boyunca u metre, içeri doğru n metre (n>0 oda içi).
   switch (wall) {
     case "K": return { pt: function (u, n) { return [u, n]; }, len: w, out: [0, -1] };
     case "G": return { pt: function (u, n) { return [u, d - n]; }, len: w, out: [0, 1] };
@@ -462,7 +1197,6 @@ function drawWalls(svg, plan) {
 function drawPlanChrome(svg, plan, f) {
   const w = plan.w, d = plan.d;
 
-  // 1 metrelik ızgara
   for (let x = 1; x < w; x++) planLine(svg, x, 0, x, d, "plan-grid");
   for (let y = 1; y < d; y++) planLine(svg, 0, y, w, y, "plan-grid");
 
@@ -470,12 +1204,10 @@ function drawPlanChrome(svg, plan, f) {
     planRect(svg, w / 2, d / 2, w, d, "plan-boundary");
   }
 
-  // saha çizgileri (park yeri vb.)
   (plan.features || []).forEach(function (ft) {
     if (ft.kind === "line") planLine(svg, ft.x1, ft.y1, ft.x2, ft.y2, "plan-line");
   });
 
-  // ölçü okları
   const dy = -0.85 * f;
   planLine(svg, 0, dy, w, dy, "plan-dim");
   planLine(svg, 0, dy - 0.14 * f, 0, dy + 0.14 * f, "plan-dim");
@@ -489,7 +1221,6 @@ function drawPlanChrome(svg, plan, f) {
   const dt = planText(svg, dx - 0.22 * f, d / 2, d + " m", "plan-dim-text", 0.3 * f);
   dt.setAttribute("transform", "rotate(-90 " + (dx - 0.22 * f) + " " + (d / 2) + ")");
 
-  // kuzey oku
   const nx = w + 1.05 * f, ny = -0.55 * f, nr = 0.5 * f;
   planCircle(svg, nx, ny, nr, "plan-compass");
   planPath(svg, "M" + nx + "," + (ny + nr * 0.62) + " L" + nx + "," + (ny - nr * 0.62), "plan-compass plan-compass--needle");
@@ -498,7 +1229,6 @@ function drawPlanChrome(svg, plan, f) {
     " L" + (nx + nr * 0.3) + "," + (ny - nr * 0.05) + " Z", "plan-compass plan-compass--head");
   planText(svg, nx, ny - nr - 0.18 * f, "K", "plan-compass-text", 0.42 * f);
 
-  // ölçek çubuğu
   const sy = d + 1.2 * f, sl = Math.min(2, w);
   planLine(svg, 0, sy, sl, sy, "plan-dim");
   for (let m = 0; m <= sl; m++) {
@@ -613,16 +1343,24 @@ function markerPos(o) {
   return { x: o.x + hw + 0.5, y: o.y - hh - 0.4 };
 }
 
-function renderScenePlan(scene) {
+function buildSceneFigure(scene) {
   const plan = scene.plan;
   const objects = scene.objects;
   const w = plan.w, d = plan.d;
   const f = Math.max(1, Math.max(w, d) / 9);
 
-  el.scenePlan.innerHTML = "";
-  el.planLegend.innerHTML = "";
-  el.scenePlanMeta.textContent = plan.caption + "  •  " + w + "×" + d + " m  •  Kuzey yukarıda";
-  el.scenePlan.setAttribute("aria-label", "Olay yeri krokisi: " + plan.caption);
+  const fig = h("figure", "scene-figure");
+  const head = h("figcaption", "scene-figure__head");
+  head.appendChild(h("span", "scene-figure__title", "Olay Yeri Krokisi"));
+  head.appendChild(h("span", "scene-figure__meta", plan.caption + "  •  " + w + "×" + d + " m  •  Kuzey yukarıda"));
+  fig.appendChild(head);
+
+  const planBox = h("div", "scene-plan");
+  planBox.setAttribute("aria-label", "Olay yeri krokisi: " + plan.caption);
+  const legend = h("ol", "plan-legend");
+  fig.appendChild(planBox);
+  fig.appendChild(legend);
+  fig.appendChild(h("p", "hint", "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
 
   const svg = svgEl("svg");
   const padX = 1.9 * f, padTop = 1.8 * f, padBot = 2.1 * f;
@@ -667,35 +1405,24 @@ function renderScenePlan(scene) {
     items.push(g);
   });
 
-  el.scenePlan.appendChild(svg);
+  planBox.appendChild(svg);
 
-  // lejant
   const lis = [];
   objects.forEach(function (o, i) {
     const li = document.createElement("li");
     li.setAttribute("data-i", i);
+    li.appendChild(h("span", "plan-legend__num", String(i + 1)));
 
-    const num = document.createElement("span");
-    num.className = "plan-legend__num";
-    num.textContent = String(i + 1);
-    li.appendChild(num);
-
-    const text = document.createElement("span");
-    text.className = "plan-legend__text";
-    const strong = document.createElement("strong");
-    strong.textContent = o.label;
-    text.appendChild(strong);
+    const text = h("span", "plan-legend__text");
+    text.appendChild(h("strong", null, o.label));
     if (o.label2) {
       text.appendChild(document.createTextNode(" — "));
-      const sub = document.createElement("em");
-      sub.className = "plan-legend__sub";
-      sub.textContent = o.label2;
-      text.appendChild(sub);
+      text.appendChild(h("em", "plan-legend__sub", o.label2));
     }
     li.appendChild(text);
 
     li.tabIndex = 0;
-    el.planLegend.appendChild(li);
+    legend.appendChild(li);
     lis.push(li);
   });
 
@@ -712,56 +1439,8 @@ function renderScenePlan(scene) {
     lis[i].addEventListener("focus", function () { setHot(i, true); });
     lis[i].addEventListener("blur", function () { setHot(i, false); });
   });
-}
 
-// ================= CSI raporu =================
-
-function renderCsi(caseData) {
-  el.csiExaminer.textContent = caseData.csi.examiner + "  •  " + caseData.csi.date;
-  el.csiFinding.textContent = caseData.csi.finding;
-
-  el.csiItems.innerHTML = "";
-  caseData.csi.items.forEach(function (itemText) {
-    const li = document.createElement("li");
-    li.textContent = itemText;
-    el.csiItems.appendChild(li);
-  });
-  stagger(el.csiItems);
-}
-
-// ================= Otopsi raporu =================
-
-function renderAutopsy(caseData) {
-  const aut = caseData.autopsy;
-  el.autPatholog.textContent = aut.pathologist + "  •  " + aut.date;
-  el.autExternal.textContent = aut.external;
-  el.autInternal.textContent = aut.internal;
-  el.autCause.textContent = aut.causeNote;
-  renderToxTable(aut.toxicology);
-}
-
-function renderToxTable(rows) {
-  const headers = ["Madde", "Sonuç", "Referans", "Yorum"];
-  el.toxTable.innerHTML = "";
-
-  const headRow = document.createElement("tr");
-  headers.forEach(function (h) {
-    const th = document.createElement("th");
-    th.textContent = h;
-    headRow.appendChild(th);
-  });
-  el.toxTable.appendChild(headRow);
-
-  rows.forEach(function (row) {
-    const tr = document.createElement("tr");
-    row.forEach(function (cell) {
-      const td = document.createElement("td");
-      td.textContent = cell;
-      tr.appendChild(td);
-    });
-    el.toxTable.appendChild(tr);
-  });
-  stagger(el.toxTable);
+  return fig;
 }
 
 // ================= Anatomi figürleri =================
@@ -772,7 +1451,6 @@ const BODY = {
 };
 
 // Kurbanın boy/kilo bilgisinden vücut yapısı ölçeği üretir.
-// bulk (kg/m) 40 taban kabul edilir: iri yapı > 1, ince yapı < 1.
 function bodyScale(caseData) {
   const v = (caseData && caseData.autopsy && caseData.autopsy.victim) || {};
   if (!v.height || !v.weight) return { t: 1, l: 1 };
@@ -781,7 +1459,6 @@ function bodyScale(caseData) {
   return { t: t, l: 0.85 + 0.15 * t };
 }
 
-// Yardımcı: path öğesi üret
 function pathEl(d, cls) {
   const p = svgEl("path");
   p.setAttribute("d", d);
@@ -790,7 +1467,6 @@ function pathEl(d, cls) {
 }
 
 // Ön (anterior) görünüm, anatomik pozisyon — t=1 taban koordinatları.
-// Gövde ekseni x=70; baş merkezi (70,~21), göğüs 52-90, karın 90-125, pelvis 125-133.
 const FIG = {
   head: "M70,9.2 C76.8,9.2 81.2,14.2 81.2,20.8 C81.2,24.6 80.2,27.8 78.4,30.1 "
     + "C77.6,33 75.8,35.8 73.4,37 C72.2,37.6 67.8,37.6 66.6,37 "
@@ -842,7 +1518,6 @@ const FIG = {
     + "C71.4,131.7 71.1,128.4 70.6,126.4 C73.4,129.2 76.3,128.2 78.8,125.2 Z"
 };
 
-// Vücut tipi ölçeğini orta eksene (x=70) uygular.
 function scaledGroup(t) {
   const g = svgEl("g");
   g.setAttribute("transform", "translate(" + (70 * (1 - t)) + ",0) scale(" + t + ",1)");
@@ -850,7 +1525,6 @@ function scaledGroup(t) {
 }
 
 // "Dış yüzey" figürü: adli tıp şeması tarzında ön görünüm, anatomik pozisyon.
-// Yüz hatları nötr çizilir; gölgeli tıbbi illüstrasyon; yüzeyel damarlar görünür.
 function buildExternalFigure(markers, caseData) {
   const svg = svgEl("svg");
   svg.setAttribute("viewBox", "0 0 " + BODY.canvasW + " " + BODY.canvasH);
@@ -914,7 +1588,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl(FIG.legL, "body-part skin"));
   g.appendChild(pathEl(FIG.legR, "body-part skin"));
 
-  // yüz (nötr adli çizim): kulak, kaş, göz, burun, ağız
   g.appendChild(pathEl("M58.9,21.2 C57.6,21.6 57.5,24.8 59,25.6", "face-line"));
   g.appendChild(pathEl("M81.1,21.2 C82.4,21.6 82.5,24.8 81,25.6", "face-line"));
   g.appendChild(pathEl("M62.8,21.2 C64.4,20.4 66.6,20.4 67.8,21", "face-line"));
@@ -932,7 +1605,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl("M68.7,28.2 C69.4,29.2 70.6,29.2 71.3,28.2", "face-line"));
   g.appendChild(pathEl("M66.6,32.4 C68.6,33.6 71.4,33.6 73.4,32.4", "face-line"));
 
-  // gövde anatomik işaretleri
   g.appendChild(pathEl("M69,51.6 C65.4,50.9 60.6,51.3 56.8,53.3", "muscle-line"));
   g.appendChild(pathEl("M71,51.6 C74.6,50.9 79.4,51.3 83.2,53.3", "muscle-line"));
   g.appendChild(pathEl("M67.6,50.9 C68.8,52 71.2,52 72.4,50.9", "muscle-line faint"));
@@ -961,7 +1633,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl("M62.4,122.4 C64.9,126.2 67.4,128.7 69.6,129.7", "muscle-line faint"));
   g.appendChild(pathEl("M77.6,122.4 C75.1,126.2 72.6,128.7 70.4,129.7", "muscle-line faint"));
 
-  // kol ayrıntıları: dirsek, bilek, başparmak, parmak çizgileri
   g.appendChild(pathEl("M46.8,88.6 C49,89.4 51.4,89.4 53.6,88.6", "muscle-line faint"));
   g.appendChild(pathEl("M86.4,88.6 C88.6,89.4 91,89.4 93.2,88.6", "muscle-line faint"));
   g.appendChild(pathEl("M45.5,113.2 C47.5,113.9 49.7,113.9 51.5,113.2", "muscle-line faint"));
@@ -973,7 +1644,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl("M92.7,121.4 L92.9,125.4", "muscle-line faint"));
   g.appendChild(pathEl("M91,121.8 L91,125.7", "muscle-line faint"));
 
-  // bacak ayrıntıları: diz kapağı, ayak parmakları
   [[64.3], [75.7]].forEach(function (k) {
     const pat = svgEl("ellipse");
     pat.setAttribute("cx", k[0]);
@@ -990,7 +1660,6 @@ function buildExternalFigure(markers, caseData) {
   g.appendChild(pathEl("M81,230.6 L80.8,232.4", "muscle-line faint"));
   g.appendChild(pathEl("M78.2,230.8 L78,232.5", "muscle-line faint"));
 
-  // yüzeyel damarlar
   ["M50.6,70 C50,84 49.6,96 49.2,108",
    "M49.8,82 C47.4,88 46.6,94 46.2,100",
    "M89.4,70 C90,84 90.4,96 90.8,108",
@@ -1010,8 +1679,9 @@ function buildExternalFigure(markers, caseData) {
 
   return svg;
 }
-// "İskelet / iç organ" figürü: gerçek otopsi şeması tarzında — soluk beden
-// silüeti üzerinde omurga, göğüs kafesi, pelvis ve renk kodlu iç organlar.
+
+// "İskelet / iç organ" figürü: soluk beden silüeti üzerinde omurga,
+// göğüs kafesi, pelvis ve renk kodlu iç organlar.
 function buildInternalFigure(markers, caseData) {
   const svg = svgEl("svg");
   svg.setAttribute("viewBox", "0 0 " + BODY.canvasW + " " + BODY.canvasH);
@@ -1020,12 +1690,10 @@ function buildInternalFigure(markers, caseData) {
 
   const g = scaledGroup(t);
 
-  // soluk beden silüeti
   [FIG.head, FIG.neck, FIG.torso, FIG.armL, FIG.armR, FIG.legL, FIG.legR].forEach(function (d) {
     g.appendChild(pathEl(d, "silhouette"));
   });
 
-  // omurga (servikal + torakal/lomber omurlar)
   [38.5, 41.4, 44.3].forEach(function (y) {
     const v = svgEl("rect");
     v.setAttribute("x", 68);
@@ -1049,42 +1717,33 @@ function buildInternalFigure(markers, caseData) {
     g.appendChild(v);
   }
 
-  // iç organlar
   const organs = svgEl("g");
   organs.setAttribute("class", "organs");
 
-  // trakea + bronşlar
   organs.appendChild(pathEl("M68.6,41.5 L68.6,52.5 C68.6,54.5 69,55.8 70,56.6 C71,55.8 71.4,54.5 71.4,52.5 L71.4,41.5 C70.5,42.1 69.5,42.1 68.6,41.5 Z", "organ organ--trachea"));
   organs.appendChild(pathEl("M70,56.6 C68,58.6 66.4,60.6 65.4,62.6", "detail-line"));
   organs.appendChild(pathEl("M70,56.6 C72,58.6 73.6,60.6 74.6,62.6", "detail-line"));
 
-  // böbrekler (retroperitoneal, diğer organların altında)
   organs.appendChild(pathEl("M56.4,95.4 C54.8,96.2 54,98.4 54.4,101 C54.8,103.6 56.2,105.4 57.9,105.2 C59.4,105 60.2,103.2 60,100.8 C59.8,98.2 58.2,95.8 56.4,95.4 Z", "organ organ--kidney"));
   organs.appendChild(pathEl("M83.6,95.4 C85.2,96.2 86,98.4 85.6,101 C85.2,103.6 83.8,105.4 82.1,105.2 C80.6,105 79.8,103.2 80,100.8 C80.2,98.2 81.8,95.8 83.6,95.4 Z", "organ organ--kidney"));
 
-  // akciğerler (sağda 3 lob çizgisi, solda kalp çentiği)
   organs.appendChild(pathEl("M66.4,57.4 C61.4,58.2 57.2,62 55.9,67.6 C54.7,73.2 54.8,80.4 55.8,86 C56.6,90.2 58.6,92.8 61.6,93.3 C64.4,93.7 66.2,91.8 66.4,88.6 L66.6,61.8 C66.6,59.4 66.6,58 66.4,57.4 Z", "organ organ--lung"));
   organs.appendChild(pathEl("M73.6,57.4 C78.6,58.2 82.8,62 84.1,67.6 C85.3,73.2 85.2,80.4 84.2,86 C83.4,90.2 81.4,92.8 78.4,93.3 C75.6,93.7 73.9,91.8 73.7,89 C76,87.2 77.3,84.4 76.9,81.4 C76.5,78.8 75.1,77.2 73.5,76.7 L73.4,61.8 C73.4,59.4 73.4,58 73.6,57.4 Z", "organ organ--lung"));
   organs.appendChild(pathEl("M56.4,74 C59.4,77.4 62.8,79.6 66.4,80.6", "detail-line"));
   organs.appendChild(pathEl("M56.2,71.4 C59.4,70.6 63,70.4 66.5,70.8", "detail-line"));
   organs.appendChild(pathEl("M83.6,74 C80.6,77.4 77.4,79.4 74,80.2", "detail-line"));
 
-  // kalp (apeks sola aşağıda) + büyük damar hizaları
   organs.appendChild(pathEl("M66.2,63.2 C63.2,64.6 61.7,67.6 62.3,71.2 C62.9,75.2 65.1,79.4 68.5,82.4 C71.6,85.2 75.5,86.9 78.1,85.7 C80.5,84.5 81.3,81.6 80.5,78.4 C79.6,74.6 77.1,70.4 73.9,67.3 C71.5,64.9 68.8,62.4 66.2,63.2 Z", "organ organ--heart"));
   organs.appendChild(pathEl("M66.8,63.4 C66.2,61.4 66.4,59.6 67.4,58.2", "detail-line"));
   organs.appendChild(pathEl("M70.2,63 C70.4,61 71.2,59.4 72.6,58.4", "detail-line"));
   organs.appendChild(pathEl("M73.6,64.2 C74.6,62.4 76,61.2 77.6,60.8", "detail-line"));
 
-  // diyafram hattı
   organs.appendChild(pathEl("M55.4,89.4 C60.4,93.8 66,95.6 70,95.6 C74,95.6 79.6,93.8 84.6,89.4", "detail-line detail-line--dash"));
 
-  // karaciğer (sağ hipokondrium, orta hattı aşan sol lob)
   organs.appendChild(pathEl("M56.8,89.2 C54.8,91 54,94.4 55,97.6 C56,100.8 58.8,103 62.7,103.5 C67.2,104.1 71.7,103.1 75,101.1 C77,99.9 77.8,98.1 77,96.5 C75.8,94.1 72.2,92.5 68.2,91.5 C64.2,90.5 59.8,88.8 56.8,89.2 Z", "organ organ--liver"));
 
-  // mide (sol hipokondrium, J kıvrımı)
   organs.appendChild(pathEl("M72.6,90.2 C76.2,89.6 80.2,90.6 82.6,93.2 C84.8,95.6 85.2,98.8 83.6,101.4 C82,103.8 79.2,104.8 76.6,104 C74.6,103.4 73.2,101.8 73,99.8 C72.8,98 73.6,96.4 75,95.6 C74,94.4 73,92.4 72.6,90.2 Z", "organ organ--stomach"));
 
-  // ince bağırsak kitlesi + kıvrım çizgileri
   organs.appendChild(pathEl("M62.2,105.8 C58.7,107.8 57.3,111.8 57.7,116.3 C58.1,120.8 60.1,124.6 63.7,126.2 C67.1,127.7 72.9,127.7 76.3,126.2 C79.9,124.6 81.9,120.8 82.3,116.3 C82.7,111.8 81.3,107.8 77.8,105.8 C72.8,103.6 67.2,103.6 62.2,105.8 Z", "organ organ--gut"));
   ["M60.4,110.6 C64,109 68.4,109.2 71.6,111 C74.6,112.6 77.4,112.8 79.8,111.6",
    "M59.6,115.4 C63.4,113.8 67.6,114.2 70.8,116 C73.8,117.6 77,117.8 80.2,116.4",
@@ -1093,7 +1752,6 @@ function buildInternalFigure(markers, caseData) {
     organs.appendChild(pathEl(d, "detail-line"));
   });
 
-  // mesane
   const bladder = svgEl("ellipse");
   bladder.setAttribute("cx", 70);
   bladder.setAttribute("cy", 129.4);
@@ -1104,7 +1762,6 @@ function buildInternalFigure(markers, caseData) {
 
   g.appendChild(organs);
 
-  // göğüs kafesi: klavikula, sternum konturu, kotlar
   g.appendChild(pathEl("M69,52.2 C65.2,51.4 60.8,51.8 57.2,53.8", "bone-path"));
   g.appendChild(pathEl("M71,52.2 C74.8,51.4 79.2,51.8 82.8,53.8", "bone-path"));
   g.appendChild(pathEl("M68.5,52.6 L71.5,52.6 L71.2,68.4 C71.1,71 70.9,73.4 70,75.4 C69.1,73.4 68.9,71 68.8,68.4 Z", "bone-path light"));
@@ -1117,12 +1774,10 @@ function buildInternalFigure(markers, caseData) {
     g.appendChild(pathEl("M71.3," + y + " C76," + (y + 1.2) + " " + rx + "," + (y + 2.8) + " " + rx + "," + (y + 5.4) + " C" + rx + "," + (y + 7.2) + " " + (rx - 3) + "," + (y + 8.2) + " " + (rx - 6.5) + "," + (y + 8), "bone-path light"));
   });
 
-  // pelvis (ilyak kanatlar + pubis yayı)
   g.appendChild(pathEl("M69,118.6 C64.6,117.8 60.4,119 58.2,122 C56.4,124.6 56.6,127.8 58.8,130 C60.8,131.9 63.8,132.8 66.2,132.4 C67.8,132.1 68.8,131 69,129.6 Z", "bone-wing"));
   g.appendChild(pathEl("M71,118.6 C75.4,117.8 79.6,119 81.8,122 C83.6,124.6 83.4,127.8 81.2,130 C79.2,131.9 76.2,132.8 73.8,132.4 C72.2,132.1 71.2,131 71,129.6 Z", "bone-wing"));
   g.appendChild(pathEl("M66.4,132.6 C68.4,134.2 71.6,134.2 73.6,132.6", "bone-path light"));
 
-  // kafatası: kranyum, orbita, burun boşluğu, mandibula, diş hattı
   const skull = svgEl("circle");
   skull.setAttribute("cx", 70);
   skull.setAttribute("cy", 20.8);
@@ -1141,7 +1796,6 @@ function buildInternalFigure(markers, caseData) {
   g.appendChild(pathEl("M61.4,27.4 C63,33.4 66,36.2 70,36.2 C74,36.2 77,33.4 78.6,27.4", "bone-path light"));
   g.appendChild(pathEl("M66.4,31.4 L73.6,31.4", "bone-path light"));
 
-  // kol kemikleri: humerus, radius/ulna, el
   g.appendChild(pathEl("M52.8,56.4 C51,62 49.6,70 48.6,77.6 C48.1,81.4 47.8,85 47.9,88", "bone-path"));
   g.appendChild(pathEl("M87.2,56.4 C89,62 90.4,70 91.4,77.6 C91.9,81.4 92.2,85 92.1,88", "bone-path"));
   [[47.9], [92.1]].forEach(function (j) {
@@ -1169,7 +1823,6 @@ function buildInternalFigure(markers, caseData) {
     g.appendChild(pathEl(d, "bone-path light"));
   });
 
-  // bacak kemikleri: femur, patella, tibia/fibula, ayak
   g.appendChild(pathEl("M63.4,133.6 C63,142 63.2,152 64,161 C64.4,165.6 64.6,168.8 64.6,171", "bone-path"));
   g.appendChild(pathEl("M76.6,133.6 C77,142 76.8,152 76,161 C75.6,165.6 75.4,168.8 75.4,171", "bone-path"));
   [[64.6], [75.4]].forEach(function (k) {
@@ -1197,6 +1850,7 @@ function buildInternalFigure(markers, caseData) {
 
   return svg;
 }
+
 // Bir yaralanma işaretini çizer. kind -> renk/ikon.
 const MARKER_COLORS = {
   mydriasis: "#3a2e22",
@@ -1275,462 +1929,32 @@ function buildLegend(markers) {
   return ol;
 }
 
-function renderAnatomy(caseData) {
+function buildAnatomyGrid(caseData) {
   const inj = caseData.autopsy.injuries || { external: [], internal: [] };
-  el.anatExternal.innerHTML = "";
-  el.anatExternal.appendChild(buildExternalFigure(inj.external, caseData));
+  const grid = h("div", "anatomy-grid");
+
+  const f1 = h("figure", "anatomy");
+  f1.appendChild(h("figcaption", null, "Dış Yüzey Bulguları"));
+  const box1 = h("div");
+  box1.appendChild(buildExternalFigure(inj.external, caseData));
   const extLegend = buildLegend(inj.external);
-  if (extLegend) el.anatExternal.appendChild(extLegend);
-  el.anatInternal.innerHTML = "";
-  el.anatInternal.appendChild(buildInternalFigure(inj.internal, caseData));
+  if (extLegend) box1.appendChild(extLegend);
+  f1.appendChild(box1);
+  grid.appendChild(f1);
+
+  const f2 = h("figure", "anatomy");
+  f2.appendChild(h("figcaption", null, "İskelet / İç Organ Bulguları"));
+  const box2 = h("div");
+  box2.appendChild(buildInternalFigure(inj.internal, caseData));
   const intLegend = buildLegend(inj.internal);
-  if (intLegend) el.anatInternal.appendChild(intLegend);
+  if (intLegend) box2.appendChild(intLegend);
+  f2.appendChild(box2);
+  grid.appendChild(f2);
+
+  return grid;
 }
 
-// ================= Şüpheli sorguları =================
-
-// O an sorgulanan şüpheli: aktif değilse ilk şüpheliye döner.
-function activeSubject(caseData) {
-  const ids = caseData.suspects.map(function (s) { return s.id; });
-  if (ids.indexOf(state.activeSuspect) !== -1) return state.activeSuspect;
-  return ids[0];
-}
-
-function sessionRecords(caseData, subject) {
-  const out = [];
-  caseData.interrogation.records.forEach(function (row, i) {
-    if (row.subject === subject) out.push({ idx: i, row: row });
-  });
-  return out;
-}
-
-function renderTabs(caseData) {
-  el.sessionTabs.innerHTML = "";
-  const active = state.activeSuspect;
-
-  caseData.suspects.forEach(function (s) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "session-tab" + (s.id === active ? " active" : "");
-    btn.textContent = "Sorguya Çağır: " + s.name;
-    btn.addEventListener("click", function () {
-      selectSuspect(s.id);
-    });
-    el.sessionTabs.appendChild(btn);
-  });
-}
-
-function selectSuspect(id) {
-  state.activeSuspect = id;
-  renderTranscript(state.currentCase, true);
-  applyCardSelection();
-}
-
-function applyCardSelection() {
-  const cards = el.suspectGrid.querySelectorAll("[data-suspect-id]");
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i].getAttribute("data-suspect-id") === state.activeSuspect) {
-      cards[i].classList.add("selected");
-    } else {
-      cards[i].classList.remove("selected");
-    }
-  }
-}
-
-function renderTranscript(caseData, animate) {
-  const rec = caseData.interrogation;
-  el.transcriptMeta.textContent = rec.officer + "  •  " + rec.date;
-
-  state.activeSuspect = activeSubject(caseData);
-  renderTabs(caseData);
-
-  const suspect = caseData.suspects.find(function (s) { return s.id === state.activeSuspect; });
-  const session = sessionRecords(caseData, state.activeSuspect);
-  el.sessionInfo.textContent = "Şu an sorguda: " + suspect.name
-    + " — " + suspect.note + " (" + session.length + " ifade)";
-
-  el.transcriptList.innerHTML = "";
-  session.forEach(function (item) {
-    const row = item.row;
-    const line = document.createElement("div");
-    line.className = "transcript-line"
-      + (row.clue ? " has-clue" : "")
-      + (row.speaker.indexOf("Hakim") === 0 ? " is-question" : "");
-
-    const who = document.createElement("span");
-    who.className = "transcript-who";
-    who.textContent = row.speaker;
-
-    const body = document.createElement("span");
-    body.className = "transcript-text";
-    body.textContent = row.text;
-
-    line.appendChild(who);
-    line.appendChild(body);
-
-    if (state.marked.indexOf(item.idx) !== -1) {
-      line.classList.add("marked");
-    }
-
-    line.addEventListener("click", function () {
-      if (state.resolved) return;
-      toggleMark(item.idx);
-    });
-
-    el.transcriptList.appendChild(line);
-  });
-
-  if (animate && !REDUCED) {
-    el.transcriptList.classList.remove("swap");
-    void el.transcriptList.offsetWidth;
-    el.transcriptList.classList.add("swap");
-  }
-}
-
-function toggleMark(i) {
-  const idx = state.marked.indexOf(i);
-  if (idx === -1) {
-    state.marked.push(i);
-  } else {
-    state.marked.splice(idx, 1);
-  }
-  renderTranscript(state.currentCase);
-  renderClues();
-}
-
-// ================= Şüpheliler =================
-
-function renderSuspects() {
-  el.suspectGrid.innerHTML = "";
-  current().suspects.forEach(function (s) {
-    const card = document.createElement("div");
-    card.className = "suspect";
-    card.setAttribute("data-suspect-id", s.id);
-    if (s.id === state.activeSuspect) card.classList.add("selected");
-
-    const initial = document.createElement("span");
-    initial.className = "suspect__initial";
-    initial.textContent = s.initial;
-
-    const name = document.createElement("strong");
-    name.textContent = s.name;
-
-    const note = document.createElement("span");
-    note.className = "suspect__note";
-    note.textContent = s.note;
-
-    card.appendChild(initial);
-    card.appendChild(name);
-    card.appendChild(note);
-
-    card.addEventListener("click", function () {
-      selectSuspect(s.id);
-      el.transcript.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-
-    el.suspectGrid.appendChild(card);
-  });
-  stagger(el.suspectGrid);
-}
-
-// ================= İşaretlediklerim =================
-
-function renderClues() {
-  el.clueList.innerHTML = "";
-  const records = current().interrogation.records;
-
-  state.marked.forEach(function (i, k) {
-    const li = document.createElement("li");
-    const who = document.createElement("strong");
-    who.textContent = records[i].speaker + ": ";
-    li.appendChild(who);
-    li.appendChild(document.createTextNode(records[i].text));
-    if (k === state.marked.length - 1) {
-      li.classList.add("fresh");
-    }
-    el.clueList.appendChild(li);
-  });
-  el.clueEmpty.hidden = state.marked.length > 0;
-}
-
-// ================= Karar formu =================
-
-// Puan ağırlıkları: vaka başına toplam 100.
-const WEIGHTS = { suspect: 40, cause: 25, motive: 20, evidence: 15 };
-
-function fillSelects() {
-  el.causeSelect.innerHTML = "";
-  current().deathCauses.forEach(function (cause) {
-    const opt = document.createElement("option");
-    opt.value = cause;
-    opt.textContent = cause;
-    el.causeSelect.appendChild(opt);
-  });
-
-  el.suspectSelect.innerHTML = "";
-  current().suspects.forEach(function (s) {
-    const opt = document.createElement("option");
-    opt.value = s.id;
-    opt.textContent = s.name;
-    el.suspectSelect.appendChild(opt);
-  });
-
-  el.motiveSelect.innerHTML = "";
-  current().motives.forEach(function (motive) {
-    const opt = document.createElement("option");
-    opt.value = motive;
-    opt.textContent = motive;
-    el.motiveSelect.appendChild(opt);
-  });
-
-  renderEvidencePicker();
-}
-
-function renderEvidencePicker() {
-  el.evidenceGrid.innerHTML = "";
-  current().verdictEvidence.forEach(function (ev) {
-    const label = document.createElement("label");
-    label.className = "evidence-pick__item";
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.name = "evidence";
-    box.value = ev.name;
-    const text = document.createElement("span");
-    text.textContent = ev.name;
-    label.appendChild(box);
-    label.appendChild(text);
-    el.evidenceGrid.appendChild(label);
-  });
-}
-
-function current() {
-  return state.currentCase;
-}
-
-function evidenceByName(name) {
-  const found = current().verdictEvidence.find(function (ev) { return ev.name === name; });
-  return found || { ok: false, why: "" };
-}
-
-el.form.addEventListener("submit", function (e) {
-  e.preventDefault();
-  if (state.resolved) return;
-  openConfirm(
-    "Kararından emin misin?",
-    "Dosya mühürlenecek ve geri açılmayacak.",
-    "Evet, mühürle",
-    resolveVerdict
-  );
-});
-
-function resolveVerdict() {
-  if (state.resolved) return;
-  const c = current();
-
-  const causeGuess = el.causeSelect.value;
-  const suspectGuess = el.suspectSelect.value;
-  const motiveGuess = el.motiveSelect.value;
-
-  const causeRight = causeGuess === c.deathCauseCorrect;
-  const suspectRight = suspectGuess === c.culprit;
-  const motiveRight = motiveGuess === c.motiveCorrect;
-
-  const picks = Array.prototype.map.call(
-    el.evidenceGrid.querySelectorAll("input:checked"),
-    function (input) { return input.value; }
-  );
-  const correctPicks = picks.filter(function (name) { return evidenceByName(name).ok; });
-  const wrongPicks = picks.filter(function (name) { return !evidenceByName(name).ok; });
-  const totalCorrect = c.verdictEvidence.filter(function (ev) { return ev.ok; }).length;
-  const evidenceScore = Math.max(
-    0,
-    WEIGHTS.evidence * (correctPicks.length - wrongPicks.length) / totalCorrect
-  );
-
-  const score = (causeRight ? WEIGHTS.cause : 0)
-    + (suspectRight ? WEIGHTS.suspect : 0)
-    + (motiveRight ? WEIGHTS.motive : 0)
-    + evidenceScore;
-
-  state.resolved = true;
-  el.form.classList.add("hidden");
-  setupNextButton();
-
-  const culprit = c.suspects.find(function (s) { return s.id === c.culprit; });
-  const solved = causeRight && suspectRight;
-  const partial = causeRight || suspectRight;
-
-  el.result.innerHTML = "";
-  el.result.className = "result " + (solved ? "correct" : (partial ? "partial" : "wrong"));
-
-  // Karar mührü
-  const stamp = document.createElement("span");
-  stamp.className = "stamp-verdict " + (solved ? "ok" : (partial ? "mid" : "bad"));
-  stamp.textContent = solved ? "DOSYA KAPANDI" : (partial ? "KISMEN ÇÖZÜLDÜ" : "DOSYA AÇIK KALDI");
-  el.result.appendChild(stamp);
-
-  // Karşılaştırmalı karar raporu
-  const report = document.createElement("table");
-  report.className = "verdict-report";
-  const thead = document.createElement("tr");
-  ["", "Senin kararın", "Doğrusu", "Puan"].forEach(function (h) {
-    const th = document.createElement("th");
-    th.textContent = h;
-    thead.appendChild(th);
-  });
-  report.appendChild(thead);
-
-  function suspectName(id) {
-    const s = c.suspects.find(function (x) { return x.id === id; });
-    return s ? s.name : id;
-  }
-
-  function addRow(label, guess, correct, ok, points) {
-    const tr = document.createElement("tr");
-    tr.className = ok ? "row-ok" : "row-bad";
-    [label + (ok ? " ✓" : " ✗"), guess, correct, points].forEach(function (cell) {
-      const td = document.createElement("td");
-      td.textContent = cell;
-      tr.appendChild(td);
-    });
-    report.appendChild(tr);
-  }
-
-  addRow("Ölüm nedeni", causeGuess, c.deathCauseCorrect, causeRight,
-    (causeRight ? WEIGHTS.cause : 0) + "/" + WEIGHTS.cause);
-  addRow("Katil", suspectName(suspectGuess), culprit.name, suspectRight,
-    (suspectRight ? WEIGHTS.suspect : 0) + "/" + WEIGHTS.suspect);
-  addRow("Sebep", motiveGuess, c.motiveCorrect, motiveRight,
-    (motiveRight ? WEIGHTS.motive : 0) + "/" + WEIGHTS.motive);
-  addRow("Kanıt seçimi",
-    picks.length ? correctPicks.length + " doğru, " + wrongPicks.length + " yanlış" : "Seçim yapılmadı",
-    totalCorrect + " doğru kanıt vardı",
-    correctPicks.length === totalCorrect && wrongPicks.length === 0,
-    formatPoints(evidenceScore) + "/" + WEIGHTS.evidence);
-
-  const totalRow = document.createElement("tr");
-  totalRow.className = "row-total";
-  const totalLabel = document.createElement("td");
-  totalLabel.colSpan = 3;
-  totalLabel.textContent = "TOPLAM";
-  const totalValue = document.createElement("td");
-  totalValue.textContent = formatPoints(score) + "/100";
-  totalRow.appendChild(totalLabel);
-  totalRow.appendChild(totalValue);
-  report.appendChild(totalRow);
-
-  el.result.appendChild(report);
-
-  // Seçilen kanıtların değerlendirmesi
-  if (picks.length) {
-    const review = document.createElement("ul");
-    review.className = "evidence-review";
-    picks.forEach(function (name) {
-      const ev = evidenceByName(name);
-      const li = document.createElement("li");
-      li.className = ev.ok ? "row-ok" : "row-bad";
-      const mark = document.createElement("span");
-      mark.className = "evidence-review__mark";
-      mark.textContent = ev.ok ? "✓" : "✗";
-      const body = document.createElement("span");
-      const strong = document.createElement("strong");
-      strong.textContent = name + ": ";
-      body.appendChild(strong);
-      body.appendChild(document.createTextNode(ev.why));
-      li.appendChild(mark);
-      li.appendChild(body);
-      review.appendChild(li);
-    });
-    el.result.appendChild(review);
-  }
-
-  const missed = c.verdictEvidence.filter(function (ev) {
-    return ev.ok && picks.indexOf(ev.name) === -1;
-  });
-  if (missed.length) {
-    const missedP = document.createElement("p");
-    missedP.className = "evidence-missed";
-    missedP.textContent = "Kaçırdığın doğru kanıtlar: "
-      + missed.map(function (ev) { return ev.name; }).join(", ");
-    el.result.appendChild(missedP);
-  }
-
-  // İşaretlenen satırlardan kaçı gerçekten ipucuymuş?
-  const records = c.interrogation.records;
-  const clueHits = state.marked.filter(function (i) { return records[i].clue; }).length;
-  const totalClues = records.filter(function (r) { return r.clue; }).length;
-
-  const msg = document.createElement("p");
-  msg.className = "result__text";
-  let text = "İşaretlediğin " + state.marked.length + " satırdan " + clueHits
-    + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
-  if (solved) {
-    text += "Mükemmel! Hem ölüm nedenini (" + causeGuess + ") hem katili ("
-      + culprit.name + ") buldun. " + c.solution;
-  } else if (causeRight) {
-    text += "Ölüm nedeni doğru (" + causeGuess + ") ama sanık yanlış. Gerçek katil "
-      + culprit.name + " idi. " + c.solution;
-  } else if (suspectRight) {
-    text += "Katili buldun (" + culprit.name + ") ama ölüm nedeni yanlış. Doğrusu: "
-      + c.deathCauseCorrect + ". " + c.solution;
-  } else {
-    text += "İkisinde de yanıldın. Doğru ölüm nedeni: " + c.deathCauseCorrect
-      + "; katil: " + culprit.name + ". " + c.solution;
-  }
-  msg.textContent = text;
-  el.result.appendChild(msg);
-
-  // Kalıcı kayda işle (aynı vakanın en iyi skoru saklanır)
-  const progress = loadProgress();
-  const prev = progress.cases[c.id];
-  const rec = {
-    score: Math.round(score * 10) / 10,
-    solved: solved,
-    partial: partial,
-    at: Date.now()
-  };
-  progress.cases[c.id] = prev && prev.score >= rec.score ? prev : rec;
-  saveProgress(progress);
-  renderRankBadge();
-  renderCareerSummary();
-}
-
-function setupNextButton() {
-  const isLast = state.caseIndex % CASES.length === CASES.length - 1;
-  el.nextBtn.textContent = isLast ? "Kariyer özeti" : "Sıradaki vaka";
-  el.nextBtn.classList.remove("hidden");
-}
-
-function scrollTopInstant() {
-  const prev = document.documentElement.style.scrollBehavior;
-  document.documentElement.style.scrollBehavior = "auto";
-  window.scrollTo(0, 0);
-  document.documentElement.style.scrollBehavior = prev;
-}
-
-el.nextBtn.addEventListener("click", function () {
-  // Son vaka çözüldüyse kariyer özetine götür.
-  if (state.caseIndex % CASES.length === CASES.length - 1) {
-    renderCareerSummary();
-    el.careerSummary.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
-    el.careerSummary.classList.remove("career-summary--flash");
-    void el.careerSummary.offsetWidth;
-    el.careerSummary.classList.add("career-summary--flash");
-    return;
-  }
-  state.caseIndex += 1;
-  if (REDUCED) {
-    loadCase(state.caseIndex);
-    scrollTopInstant();
-    return;
-  }
-  el.stage.classList.add("stage--out");
-  setTimeout(function () {
-    loadCase(state.caseIndex);
-    scrollTopInstant();
-    el.stage.classList.remove("stage--out");
-  }, 290);
-});
+// ================= Sıfırlama ve başlatma =================
 
 el.resetBtn.addEventListener("click", function () {
   openConfirm(
@@ -1743,13 +1967,10 @@ el.resetBtn.addEventListener("click", function () {
       } catch (err) {
         // depolama yoksa sessiz geç
       }
-      renderRankBadge();
-      renderCareerSummary();
+      renderLobby();
     }
   );
 });
 
-loadCase(0);
+renderLobby();
 typeTagline();
-updateProgress();
-renderRankBadge();

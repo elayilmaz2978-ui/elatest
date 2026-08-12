@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=9">
+  <link rel="stylesheet" href="css/style.css?v=11">
 </head>
-<body>
+<body class="view-lobby">
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
   <div class="vignette" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
@@ -18,110 +18,63 @@
     <div class="stamp" style="--rot: 8deg" aria-hidden="true">GİZLİ</div>
     <h1 class="brand"><span class="brand__ela">ELA</span><span class="brand__dot">·</span>AGENCY</h1>
     <p class="tagline">Karanlık vakalar. Keskin zekâ. Tek sen.</p>
-    <p class="file-chip">DOSYA №<span id="case-no">01</span> · GİZLİ</p>
-    <p class="rank-chip">RÜTBE: <span id="rank-name">ÇAYLAK</span> · <span id="rank-score">0</span> PUAN</p>
+    <div class="hero-chips">
+      <p class="rank-chip">RÜTBE: <span id="rank-name">ÇAYLAK</span> · <span id="rank-score">0</span> PUAN</p>
+      <p class="stat-chip">KAPATILAN DOSYA: <span id="stat-solved">0/0</span></p>
+    </div>
   </header>
 
-  <main class="stage" id="stage">
-    <section id="case" class="case reveal">
-      <p class="case__kicker">Vaka Dosyası</p>
-      <h2 id="case-title" class="case__title">—</h2>
-      <p id="case-story" class="case__story"></p>
-    </section>
-
-    <section id="scene" class="report reveal">
-      <h3 class="section-head">Olay Yeri</h3>
-      <p id="scene-summary" class="report__body"></p>
-      <figure class="scene-figure">
-        <figcaption class="scene-figure__head">
-          <span class="scene-figure__title">Olay Yeri Krokisi</span>
-          <span id="scene-plan-meta" class="scene-figure__meta"></span>
-        </figcaption>
-        <div id="scene-plan" class="scene-plan"></div>
-        <ol id="plan-legend" class="plan-legend"></ol>
-        <p class="hint">Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır.</p>
-      </figure>
-      <h4 class="report__subhead">Olay yerinde toplananlar</h4>
-      <ul id="scene-evidence" class="evidence-list"></ul>
-    </section>
-
-    <section id="csi" class="report reveal">
-      <h3 class="section-head">Olay Yeri İnceleme Raporu</h3>
-      <p id="csi-examiner" class="report__meta"></p>
-      <p id="csi-finding" class="report__body"></p>
-      <h4 class="report__subhead">Toplanan örnekler</h4>
-      <ul id="csi-items" class="evidence-list"></ul>
-    </section>
-
-    <section id="autopsy" class="report reveal">
-      <h3 class="section-head">Otopsi Raporu</h3>
-      <p id="autopsy-patholog" class="report__meta"></p>
-      <h4 class="report__subhead">Dış Muayene</h4>
-      <p id="autopsy-external" class="report__body"></p>
-      <h4 class="report__subhead">İç Muayene</h4>
-      <p id="autopsy-internal" class="report__body"></p>
-      <h4 class="report__subhead">Yaralanma Haritası</h4>
-      <div class="anatomy-grid">
-        <figure class="anatomy">
-          <figcaption>Dış Yüzey Bulguları</figcaption>
-          <div id="anat-external"></div>
-        </figure>
-        <figure class="anatomy">
-          <figcaption>İskelet / İç Organ Bulguları</figcaption>
-          <div id="anat-internal"></div>
-        </figure>
-      </div>
-      <h4 class="report__subhead">Toksikoloji</h4>
-      <table id="tox-table" class="tox-table"></table>
-      <h4 class="report__subhead">Ölüm Nedeni Notu</h4>
-      <p id="autopsy-cause" class="report__body"></p>
-    </section>
-
-    <section id="transcript" class="report reveal">
-      <h3 class="section-head">Şüpheli Sorguları</h3>
-      <p id="transcript-meta" class="report__meta"></p>
-      <div id="session-tabs" class="session-tabs" role="tablist"></div>
-      <p id="session-info" class="session-info"></p>
-      <p class="hint">İpucu sakladığını düşündüğün satıra tıkla ve işaretle. İşaretlerin "İşaretlediklerim"de toplanır. Şüpheliyi kartlardan ya da yukarıdaki sekmelerden çağır.</p>
-      <div id="transcript-list" class="transcript"></div>
-    </section>
-
-    <section class="panel reveal">
-      <h3 class="section-head">Şüpheliler</h3>
-      <div id="suspect-grid" class="suspect-grid"></div>
-    </section>
-
-    <section class="panel reveal">
-      <h3 class="section-head">İşaretlediklerim</h3>
-      <ul id="clue-list" class="clue-list"></ul>
-      <p id="clue-empty" class="hint">Tutanaktan satır işaretledikçe buraya düşecek.</p>
-    </section>
-
-    <section class="panel verdict reveal">
-      <h3 class="section-head">Karar Dosyan</h3>
+  <main class="stage">
+    <section id="view-lobby" class="lobby">
+      <section class="lobby__block">
+        <h2 class="lobby__head">Görev Modu</h2>
+        <p class="hint">Dosyayı nasıl oynayacağını seç. Modu istediğin an değiştirip dosyayı yeniden açabilirsin.</p>
+        <div id="mode-grid" class="mode-grid" aria-label="Görev modu seçimi"></div>
+      </section>
+      <section class="lobby__block">
+        <h2 class="lobby__head">Dosya Arşivi</h2>
+        <p class="hint">Bir dosya seç ve soruşturmayı başlat. Kartlar sırayla açılır; karar verdiğinde dosya mühürlenir.</p>
+        <div id="case-grid" class="case-grid"></div>
+      </section>
       <div id="career-summary" class="career-summary hidden"></div>
-      <form id="verdict-form" class="verdict-form">
-        <label for="cause-select">Ölüm nedeni neydi?</label>
-        <select id="cause-select" name="cause"></select>
-        <label for="suspect-select">Katil kim?</label>
-        <select id="suspect-select" name="suspect"></select>
-        <label for="motive-select">Katil neden yaptı?</label>
-        <select id="motive-select" name="motive"></select>
-        <fieldset class="evidence-pick">
-          <legend>Kararını hangi kanıtlar destekliyor? <span class="evidence-pick__warn">Yanlış seçim puan düşürür.</span></legend>
-          <div id="evidence-grid" class="evidence-grid"></div>
-        </fieldset>
-        <button type="submit" class="btn">Kararını ver</button>
-      </form>
-      <p id="result" class="result" aria-live="polite"></p>
-      <button id="next-case" class="btn btn--ghost hidden">Sıradaki vaka</button>
+    </section>
+
+    <section id="view-game" class="game hidden">
+      <header class="game-head">
+        <button id="back-btn" class="game-head__back" type="button">← Arşiv</button>
+        <div class="game-head__file">
+          <span id="game-case-no" class="game-head__no"></span>
+          <h2 id="game-case-title" class="game-head__title"></h2>
+        </div>
+        <span id="game-mode-chip" class="game-head__mode"></span>
+        <button id="drawer-btn" class="game-head__notes" type="button">Not Defterim (<span id="note-count">0</span>)</button>
+      </header>
+      <nav id="card-tabs" class="card-tabs" aria-label="Vaka kartları"></nav>
+      <div id="card-area" class="card-area"></div>
+      <footer class="card-nav">
+        <button id="prev-card" class="btn btn--ghost" type="button">← Önceki</button>
+        <span id="card-pos" class="card-nav__pos"></span>
+        <button id="next-card" class="btn" type="button">Sonraki →</button>
+      </footer>
     </section>
   </main>
 
-  <footer class="footer reveal">
+  <footer class="footer">
     <p>© 2026 ELA AGENCY — Bu bir kurgu. Gerçek suçları polise bırak.</p>
     <button id="reset-progress" class="footer-reset" type="button">İlerlemeyi sıfırla</button>
   </footer>
+
+  <div id="drawer-backdrop" class="drawer-backdrop hidden"></div>
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Not defteri">
+    <header class="drawer__head">
+      <h3 class="drawer__title">Not Defterim</h3>
+      <button id="drawer-close" class="drawer__close" type="button" aria-label="Not defterini kapat">✕</button>
+    </header>
+    <div class="drawer__body">
+      <ul id="drawer-list" class="drawer-list"></ul>
+      <p id="drawer-empty" class="drawer__empty">Tutanaklardan satır işaretledikçe burada toplanır.</p>
+    </div>
+  </aside>
 
   <div id="confirm-overlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
     <div class="confirm-box">
@@ -134,7 +87,7 @@
     </div>
   </div>
 
-  <script src="js/cases.js?v=9"></script>
-  <script src="js/game.js?v=9"></script>
+  <script src="js/cases.js?v=11"></script>
+  <script src="js/game.js?v=11"></script>
 </body>
 </html>
