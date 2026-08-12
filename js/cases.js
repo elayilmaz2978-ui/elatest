@@ -90,14 +90,23 @@ const CASES = [
     csi: {
       examiner: "Olay Yeri İnceleme Görevlisi S. Demir",
       date: "26 Ekim, 00:15",
-      finding: "Kapı içeriden kilitli; tek istisna arka bahçe penceresi. Bardaktan sıvı "
-        + "numunesi alındı (50 ml). Çamur iki ayrı ayakkabı izine karşılık geldi: biri masaya "
-        + "ulaşan spor, diğeri pencerenin önündeki yuvarlak taban. Kilitli kutu laboratuvara "
-        + "gönderildi. İlk değerlendirme: 'içeriden kilit — içeride cevap'.",
+      finding: "Kapı içeriden kilitli; tek istisna arka bahçe penceresi. Pencere çilesi "
+        + "gevşetilmiş; denizlikte taze macun izi ve koyu renkli bir kumaş lifi bulundu. "
+        + "Bardaktan sıvı numunesi alındı (50 ml); bardağın kenarında soluk bir ruj izi tespit "
+        + "edildi. Çamur iki ayrı ayakkabı izine karşılık geldi: biri masaya ulaşan 42 numara "
+        + "spor ayakkabı — iz pencereden masaya gidip geri dönüyor — diğeri pencerenin önündeki "
+        + "yuvarlak taban. Devrik sandalyenin altında ezilmiş toprak topakları var; odada "
+        + "boğuşma izi yok. Kilitli kutunun kilidi zorlanmadan açılmış; içi eldivenle "
+        + "boşaltılmış olmalı ki tek parmak izi alınamadı. Arka bahçede yabani Datura (boru "
+        + "çiçeği) öbeği tespit edildi; tohum keselerinin bir kısmı koparılmış. İlk değerlendirme: "
+        + "'içeriden kilit — cevap içeride'.",
       items: [
         "Bardak içi sıvı: 50 ml, laboratuvara",
+        "Bardak kenarı ruj izi: karşılaştırma için adli fotoğraf",
         "Çamur kazınması: 2 örnek",
-        "Kutu + kilit düzeneği: adli fotoğraf",
+        "Denizlik macunu + kumaş lifi: 1 örnek",
+        "Kutu + kilit düzeneği: adli fotoğraf, zorlama izi yok",
+        "Datura öbeği: bitki ve tohum kesesi örneği",
         "Parmak izi taraması: sonuçsuz"
       ]
     },
@@ -301,14 +310,21 @@ const CASES = [
     csi: {
       examiner: "Olay Yeri İnceleme Görevlisi F. Balcı",
       date: "Vaka günü 07:45",
-      finding: "Kapı kilitsiz; kontak anahtarı çevrik. Gazete dünkü tarihle açık. Ayna arka "
-        + "koltuk görünecek biçimde ayarlı. Benzin kapağı açık. Araç içi koku örnekleri alındı. "
-        + "Ön koltukta içecek izine rastlanmadı.",
+      finding: "Kapılar kilitsiz; kontak anahtarı çevrik, motor rölantide çalışır bulundu. "
+        + "Gazete dünkü tarihle açık; sayfalarında yalnızca Ferman'a ait izler var. Dikiz "
+        + "aynası arka koltuğu gösterecek biçimde ayarlı — ayna düğmesinde silinmiş, yarım bir "
+        + "avuç izi kaldı. Benzin kapağı açık; kapağın vida dişine açık renkli bir bez lifi "
+        + "takılmış. Sürücü kapısının yanında, otopark çıkışına dönük 44-45 numara yarım taban "
+        + "izi bulundu. Araç içinde izmarit yok; tütün kokusu döşemeye değil havaya sinmiş — "
+        + "yani yakın zamanda biri kapı açıkken içmiş. Ön koltukta içecek izine rastlanmadı; "
+        + "demek ki çay bardağı araçtan çıkarıldı.",
       items: [
         "Koku örneği (tütün/vanilya): 2 aktif karbon tüpü",
-        "Gazete (fiziksel kanıt)",
-        "Ayna mekanizması fotoğrafı",
-        "Benzin kapağı çevresi DNA örneği"
+        "Gazete: fiziksel kanıt + parmak izi taraması",
+        "Ayna mekanizması: adli fotoğraf + avuç izi sürüntüsü",
+        "Benzin kapağı çevresi: DNA örneği + bez lifi",
+        "Yarım taban izi: alçı kalıp alındı",
+        "Battaniye: lif örneği"
       ]
     },
     autopsy: {
