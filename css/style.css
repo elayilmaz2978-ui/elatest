@@ -2701,3 +2701,115 @@ body.view-game .footer {
   font-size: 0.75rem;
   color: var(--ink-soft);
 }
+
+/* ---- Takım / ekip ---- */
+.team-setup__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.team-setup__label {
+  font-family: var(--font-type);
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.team-count {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  color: var(--ink);
+  font-family: var(--font-type);
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+.team-count.selected {
+  border-color: var(--accent);
+  background: rgba(143, 45, 36, 0.1);
+  color: var(--accent);
+  font-weight: 700;
+}
+.team-setup__names {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+.team-setup__name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--font-type);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.team-setup__name input {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  color: var(--ink);
+  padding: 0.4rem 0.55rem;
+  font-family: var(--font-type);
+}
+.team-bar {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 1rem 0;
+}
+.team-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+.team-chip strong { font-size: 0.85rem; color: var(--ink); }
+.team-chip em { font-size: 0.68rem; color: var(--ink-soft); font-style: normal; }
+.team-chip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(143, 45, 36, 0.14);
+}
+.team-consensus { margin-top: 0.6rem; }
+.team-consensus__label {
+  font-family: var(--font-type);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.team-consensus__chips { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.team-consent {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  color: var(--ink-soft);
+  font-family: var(--font-type);
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+}
+.team-consent.on {
+  border-color: var(--ok);
+  color: var(--ok);
+  background: rgba(58, 122, 58, 0.1);
+  font-weight: 700;
+}
+.team-contrib {
+  margin-top: 0.8rem;
+  list-style: none;
+  border-top: 1px dashed var(--line);
+  padding-top: 0.6rem;
+  font-size: 0.9rem;
+}
+.team-contrib__head {
+  font-family: var(--font-type);
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+}
+.drawer-item__by {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-family: var(--font-type);
+  font-size: 0.68rem;
+  color: var(--brass);
+  border: 1px solid var(--line);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+}

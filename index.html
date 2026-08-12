@@ -27,6 +27,11 @@
   <main class="stage">
     <section id="view-lobby" class="lobby">
       <section class="lobby__block">
+        <h2 class="lobby__head">Ekip Kurulumu</h2>
+        <p class="hint">Tek başına ya da aynı cihazda 2-4 dedektif oyna. Rol dağılımı otomatik yapılır; işaretler ortak havuza düşer ve karar ancak herkes onaylarsa mühürlenir.</p>
+        <div id="team-setup" class="team-setup"></div>
+      </section>
+      <section class="lobby__block">
         <h2 class="lobby__head">Görev Modu</h2>
         <p class="hint">Dosyayı nasıl oynayacağını seç. Modu istediğin an değiştirip dosyayı yeniden açabilirsin.</p>
         <div id="mode-grid" class="mode-grid" aria-label="Görev modu seçimi"></div>
@@ -49,6 +54,7 @@
         <span id="game-mode-chip" class="game-head__mode"></span>
         <button id="drawer-btn" class="game-head__notes" type="button">Not Defterim (<span id="note-count">0</span>)</button>
       </header>
+      <div id="team-bar" class="team-bar hidden" aria-label="Ekip"></div>
       <nav id="card-tabs" class="card-tabs" aria-label="Vaka kartları"></nav>
       <div id="card-area" class="card-area"></div>
       <footer class="card-nav">

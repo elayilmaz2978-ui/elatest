@@ -47,6 +47,8 @@ const CARDS = {
   verdict: { title: "Karar Dosyan", short: "Karar" }
 };
 
+const ROLES = ["Olay Yeri", "Kriminal", "Adli Tıp", "Sorgu"];
+
 const state = {
   view: "lobby",
   modeId: "classic",
@@ -54,10 +56,16 @@ const state = {
   cardIndex: 0,
   unlocked: 1,
   marked: [],
+  markedBy: {},
+  players: [],
+  teamCount: 1,
+  activePlayer: 0,
+  teamConfirm: [],
   activeSuspect: null,
   resolved: false,
   resultNode: null,
   drawerOpen: false,
+  net: null,
   timeline: null,
   timelineScore: null,
   timelineCorrect: 0,
@@ -80,6 +88,8 @@ const el = {
   statSolved: document.getElementById("stat-solved"),
   viewLobby: document.getElementById("view-lobby"),
   viewGame: document.getElementById("view-game"),
+  teamSetup: document.getElementById("team-setup"),
+  teamBar: document.getElementById("team-bar"),
   modeGrid: document.getElementById("mode-grid"),
   caseGrid: document.getElementById("case-grid"),
   careerSummary: document.getElementById("career-summary"),
@@ -369,11 +379,123 @@ function updateProgressBar() {
 // ================= Lobi =================
 
 function renderLobby() {
+  renderTeamSetup();
   renderModeGrid();
   renderCaseGrid();
   renderCareerSummary();
   renderRankBadge();
   updateProgressBar();
+}
+
+// ================= Ekip (takım) =================
+
+function isTeam() {
+  return state.players.length > 1;
+}
+
+function roleName(i) {
+  return ROLES[i % ROLES.length];
+}
+
+function syncPlayers() {
+  const names = state.teamNames || [];
+  const out = [];
+  for (let i = 0; i < state.teamCount; i++) {
+    const custom = (names[i] || "").trim();
+    out.push({ name: custom || (i + 1) + ". Dedektif", role: roleName(i) });
+  }
+  state.players = out;
+}
+
+function renderTeamSetup() {
+  if (!el.teamSetup) return;
+  el.teamSetup.innerHTML = "";
+  const row = h("div", "team-setup__row");
+  row.appendChild(h("span", "team-setup__label", "Oyuncu sayısı:"));
+  for (let n = 1; n <= 4; n++) {
+    const b = h("button", "team-count" + (state.teamCount === n ? " selected" : ""), n + (n === 1 ? " (tek)" : ""));
+    b.type = "button";
+    b.addEventListener("click", function () {
+      state.teamCount = n;
+      syncPlayers();
+      renderTeamSetup();
+    });
+    row.appendChild(b);
+  }
+  el.teamSetup.appendChild(row);
+
+  if (state.teamCount > 1) {
+    const names = h("div", "team-setup__names");
+    for (let i = 0; i < state.teamCount; i++) {
+      const wrap = h("label", "team-setup__name");
+      wrap.appendChild(h("span", null, roleName(i)));
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.placeholder = (i + 1) + ". Dedektif";
+      inp.value = (state.teamNames && state.teamNames[i]) || "";
+      inp.maxLength = 14;
+      inp.addEventListener("input", function () {
+        (state.teamNames = state.teamNames || [])[i] = inp.value;
+        syncPlayers();
+      });
+      wrap.appendChild(inp);
+      names.appendChild(wrap);
+    }
+    el.teamSetup.appendChild(names);
+  }
+  syncPlayers();
+}
+
+function renderTeamBar() {
+  if (!el.teamBar) return;
+  el.teamBar.classList.toggle("hidden", !isTeam());
+  el.teamBar.innerHTML = "";
+  if (!isTeam()) return;
+  state.players.forEach(function (p, i) {
+    const chip = h("button", "team-chip" + (i === state.activePlayer ? " active" : ""));
+    chip.type = "button";
+    chip.appendChild(h("strong", null, p.name));
+    chip.appendChild(h("em", null, p.role));
+    chip.title = "İşaretleri bu dedektife yaz";
+    chip.addEventListener("click", function () {
+      state.activePlayer = i;
+      renderTeamBar();
+    });
+    el.teamBar.appendChild(chip);
+  });
+}
+
+function teamAllConfirmed() {
+  for (let i = 0; i < state.players.length; i++) {
+    if (!state.teamConfirm[i]) return false;
+  }
+  return state.players.length > 0;
+}
+
+function renderTeamConsensus() {
+  if (!verdictRefs || !verdictRefs.consensus) return;
+  const box = verdictRefs.consensus;
+  box.innerHTML = "";
+  if (!isTeam()) return;
+  box.appendChild(h("span", "team-consensus__label", "Ekip onayı:"));
+  const chips = h("div", "team-consensus__chips");
+  state.players.forEach(function (p, i) {
+    const b = h("button", "team-consent" + (state.teamConfirm[i] ? " on" : ""), (state.teamConfirm[i] ? "✓ " : "") + p.name);
+    b.type = "button";
+    b.addEventListener("click", function () {
+      state.teamConfirm[i] = !state.teamConfirm[i];
+      netSend({ t: "confirm", i: i, on: !!state.teamConfirm[i] });
+      renderTeamConsensus();
+    });
+    chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  if (verdictRefs.submit) verdictRefs.submit.disabled = !teamAllConfirmed();
+}
+
+// Çevrimiçi senkron: yerel modda etkisiz, çevrimiçi odada mesajları iletir.
+function netSend(msg) {
+  if (state.net && state.net.send) state.net.send(msg);
 }
 
 function renderModeGrid() {
@@ -442,6 +564,10 @@ function openCase(caseId) {
   state.cardIndex = 0;
   state.unlocked = 1;
   state.marked = [];
+  state.markedBy = {};
+  state.teamConfirm = [];
+  state.activePlayer = 0;
+  syncPlayers();
   state.activeSuspect = null;
   state.resolved = false;
   state.resultNode = null;
@@ -490,6 +616,7 @@ function renderGame() {
   el.gameCaseTitle.textContent = c.title;
   el.gameModeChip.textContent = activeMode().name.toLocaleUpperCase("tr");
 
+  renderTeamBar();
   renderTabs();
   renderCard();
   renderCardNav();
@@ -814,8 +941,12 @@ function toggleMark(i) {
   const idx = state.marked.indexOf(i);
   if (idx === -1) {
     state.marked.push(i);
+    state.markedBy[i] = state.activePlayer;
+    netSend({ t: "mark", i: i, by: state.activePlayer });
   } else {
     state.marked.splice(idx, 1);
+    delete state.markedBy[i];
+    netSend({ t: "unmark", i: i });
   }
   renderInterrogation(currentCase());
   renderDrawer();
@@ -1141,13 +1272,20 @@ function cardVerdict(area, c) {
 
   const submit = h("button", "btn", "Kararını ver");
   submit.type = "submit";
+
+  const consensus = h("div", "team-consensus");
+  form.appendChild(consensus);
   form.appendChild(submit);
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     if (state.resolved) return;
+    if (isTeam() && !teamAllConfirmed()) {
+      openConfirm("Ekip onayı eksik", "Kararı mühürlemek için tüm dedektifler onay vermeli.", "Tamam", null);
+      return;
+    }
     openConfirm(
-      "Kararından emin misin?",
+      isTeam() ? "Ekip kararından emin misiniz?" : "Kararından emin misin?",
       "Dosya mühürlenecek ve geri açılmayacak.",
       "Evet, mühürle",
       resolveVerdict
@@ -1158,8 +1296,11 @@ function cardVerdict(area, c) {
     causeSelect: causeSelect,
     suspectSelect: suspectSelect,
     motiveSelect: motiveSelect,
-    evidenceInput: evInput
+    evidenceInput: evInput,
+    submit: submit,
+    consensus: consensus
   };
+  renderTeamConsensus();
 
   card.appendChild(form);
   area.appendChild(card);
@@ -1331,6 +1472,20 @@ function resolveVerdict() {
   const clueHits = state.marked.filter(function (i) { return records[i].clue; }).length;
   const totalClues = records.filter(function (r) { return r.clue; }).length;
 
+  if (isTeam()) {
+    const contrib = h("ul", "team-contrib");
+    contrib.appendChild(h("li", "team-contrib__head", "Dedektif katkısı:"));
+    state.players.forEach(function (p, pi) {
+      const own = state.marked.filter(function (i) { return state.markedBy[i] === pi; });
+      const real = own.filter(function (i) { return records[i] && records[i].clue; }).length;
+      const li = h("li");
+      li.appendChild(h("strong", null, p.name + " (" + p.role + "): "));
+      li.appendChild(document.createTextNode(own.length + " işaret, " + real + " gerçek ipucu"));
+      contrib.appendChild(li);
+    });
+    result.appendChild(contrib);
+  }
+
   let text = "İşaretlediğin " + state.marked.length + " satırdan " + clueHits
     + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
   if (solved) {
@@ -1420,6 +1575,9 @@ function renderDrawer() {
     body.appendChild(h("strong", null, row.speaker + ": "));
     body.appendChild(document.createTextNode(row.text));
     li.appendChild(body);
+    if (isTeam() && state.markedBy[i] != null && state.players[state.markedBy[i]]) {
+      li.appendChild(h("span", "drawer-item__by", state.players[state.markedBy[i]].name));
+    }
     if (!state.resolved) {
       const del = h("button", "drawer-item__del", "✕");
       del.type = "button";
