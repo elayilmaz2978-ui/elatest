@@ -1,0 +1,711 @@
+:root {
+  --ink: #3a2e22;          /* sepya mürekkep */
+  --ink-soft: #6b5a45;     /* soluk mürekkep (yan metin) */
+  --paper: #e9dcbf;        /* eski kâğıt */
+  --paper-deep: #dcc9a4;   /* daha koyu kâğıt */
+  --paper-panel: #f2e7d0;  /* rapor kartı zemini */
+  --accent: #8f2d24;       /* koyu kırmızı (noir dokunuş) */
+  --blood: #5f1414;
+  --line: #b49a6d;         /* eski mürekkep çizgisi */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.topbar {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+  border-bottom: 3px double var(--accent);
+  background: var(--paper-deep);
+}
+
+.brand {
+  font-size: 2.2rem;
+  letter-spacing: 0.35em;
+  color: var(--accent);
+}
+
+.tagline {
+  margin-top: 0.4rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.stage {
+  flex: 1;
+  max-width: 800px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: grid;
+  gap: 2.5rem;
+}
+
+.case {
+  border-left: 4px solid var(--accent);
+  padding-left: 1.25rem;
+}
+
+.case__title {
+  font-size: 1.6rem;
+  color: var(--accent);
+  margin-bottom: 0.75rem;
+}
+
+.section-head {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+/* ---- Rapor bloğu (CSI / otopsi) ---- */
+.report {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  background: var(--paper-panel);
+  padding: 1.25rem;
+}
+
+.report__meta {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+}
+
+.report__body {
+  color: var(--ink);
+  line-height: 1.7;
+}
+
+.report__subhead {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin: 1rem 0 0.4rem;
+  letter-spacing: 0.1em;
+  font-weight: bold;
+}
+
+.evidence-list {
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+}
+
+.evidence-list li {
+  border-bottom: 1px dashed var(--line);
+  padding: 0.3rem 0;
+}
+
+.evidence-list strong {
+  color: var(--ink);
+}
+
+/* ---- Olay yeri krokisi (SVG) ---- */
+.scene-plan {
+  margin-top: 0.8rem;
+  border: 1px solid var(--line);
+  background: var(--paper-deep);
+  padding: 0.5rem;
+}
+
+.scene-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.plan-shape {
+  fill: var(--paper-panel);
+  stroke: var(--ink-soft);
+  stroke-width: 0.5;
+  stroke-dasharray: 1,0.8;
+}
+
+.plan-label {
+  fill: var(--ink-soft);
+  font-size: 3px;
+  font-family: Georgia, serif;
+}
+
+/* ---- Olay yeri "fotoğrafı" (SVG illüstrasyon, sepya kasa) ---- */
+.scene-photo {
+  margin-top: 0.8rem;
+  border: 8px solid #b49a6d;
+  box-shadow: inset 0 0 20px rgba(58, 46, 34, 0.25);
+}
+
+.scene-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: sepia(0.35) contrast(1.02);
+}
+
+.scene-object {
+  stroke: rgba(58, 46, 34, 0.55);
+  stroke-width: 0.5;
+}
+
+.scene-label {
+  font-size: 2.4px;
+  fill: #3a2e22;
+  font-family: Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  paint-order: stroke;
+  stroke: rgba(233, 220, 191, 0.8);
+  stroke-width: 0.6px;
+  stroke-linejoin: round;
+}
+
+.scene-label--sub {
+  font-size: 2px;
+  fill: #6b5a45;
+}
+
+
+/* ---- Sorgu tutanağı ---- */
+.transcript {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.transcript-line {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid transparent;
+  background: var(--paper-panel);
+  border-left: 3px solid var(--line);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-size: 0.92rem;
+}
+
+.transcript-line:hover {
+  border-color: var(--accent);
+}
+
+.transcript-line.marked {
+  background: var(--paper-deep);
+  border-left: 3px solid var(--blood);
+}
+
+.transcript-line.marked .transcript-text::before {
+  content: "▪ işaretlendi — ";
+  color: var(--blood);
+}
+
+.transcript-who {
+  flex: 0 0 auto;
+  min-width: 120px;
+  font-weight: bold;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+}
+
+.transcript-text {
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* ---- Şüpheli sorguları: sekmeler ---- */
+.session-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.session-tab {
+  background: var(--paper-deep);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.9rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.session-tab:hover {
+  border-color: var(--accent);
+}
+
+.session-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--paper-panel);
+}
+
+.session-info {
+  margin: 0.7rem 0 0.4rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.transcript-line.is-question {
+  background: rgba(138, 109, 59, 0.08);
+}
+
+.transcript-line.is-question .transcript-who::after {
+  content: " soruyor";
+  color: var(--ink-soft);
+  font-weight: normal;
+}
+
+/* ---- Toksikoloji tablosu ---- */
+.tox-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.tox-table th,
+.tox-table td {
+  text-align: left;
+  border: 1px solid var(--line);
+  padding: 0.4rem 0.6rem;
+}
+
+.tox-table th {
+  background: var(--accent);
+  color: var(--paper-panel);
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.tox-table td {
+  color: var(--ink);
+}
+
+/* ---- Anatomi figürleri ---- */
+.anatomy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 0.8rem;
+}
+
+.anatomy {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  padding: 0.6rem 0.6rem 0.8rem;
+}
+
+.anatomy figcaption {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 0.3rem;
+}
+
+.anatomy-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.body-path {
+  fill: #d5bf95;
+  stroke: #6b5a45;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.body-part {
+  fill: #d5bf95;
+  stroke: #6b5a45;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+/* Ten gradyanı — .body-part'tan sonra tanımlı olduğu için fill'i ezer. */
+.body-part.skin {
+  fill: url(#skinGrad);
+}
+
+/* Tıbbi illüstrasyon gölgelemesi ve cilt parlaması (gövde üstünde) */
+.body-shade {
+  fill: url(#torsoShade);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.body-gloss {
+  fill: url(#skinGloss);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Yüzeyel damarlar */
+.vessel {
+  fill: none;
+  stroke: #7f93b8;
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.muscle-line {
+  fill: none;
+  stroke: #a98f63;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.muscle-line.faint {
+  opacity: 0.4;
+}
+
+.navel {
+  fill: #8a6f47;
+  stroke: none;
+}
+
+.organs {
+  opacity: 0.9;
+}
+
+.organ {
+  fill-opacity: 0.55;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+  stroke-opacity: 0.85;
+}
+
+.organ--lung {
+  fill: #d79aa0;
+  stroke: #a05a63;
+}
+
+.organ--heart {
+  fill: #c0392b;
+  stroke: #7f1d16;
+}
+
+.organ--liver {
+  fill: #9c6b3f;
+  stroke: #6b4526;
+}
+
+.organ--stomach {
+  fill: #cbb593;
+  stroke: #8a6f47;
+}
+
+.organ--gut {
+  fill: #cfa97a;
+  stroke: #9c743f;
+}
+
+.organ--bladder {
+  fill: #d9c26a;
+  stroke: #a08a3a;
+}
+
+.bone-path {
+  fill: none;
+  stroke: #6b5a45;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.bone-path.light {
+  stroke-width: 1.5;
+  opacity: 0.65;
+}
+
+.marker-num {
+  font-size: 7px;
+  font-weight: bold;
+  fill: #fff;
+  font-family: Georgia, serif;
+  pointer-events: none;
+}
+
+.anatomy-legend {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.anatomy-legend li {
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.legend-num {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.05rem;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker {
+  cursor: help;
+}
+
+.marker:hover .marker-dot {
+  transform: scale(1.5);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.marker:hover .marker-label {
+  fill: #a53a24;
+  font-weight: bold;
+}
+
+.marker-dot {
+  animation: marker-pop 0.4s ease;
+}
+
+@keyframes marker-pop {
+  from { transform-origin: center; transform: scale(0); }
+  to   { transform-origin: center; transform: scale(1); }
+}
+
+.marker-label {
+  font-size: 7px;
+  fill: var(--ink);
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+
+.clue-list {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.clue-list li {
+  background: var(--paper-panel);
+  border: 1px solid var(--line);
+  padding: 0.7rem 1rem;
+  transition: border-color 0.2s;
+}
+
+.clue-list li::before {
+  content: "▸ ";
+  color: var(--blood);
+}
+
+.clue-list li:hover {
+  border-color: var(--accent);
+}
+
+.clue-list li.fresh {
+  border-color: var(--accent);
+  animation: clue-in 0.5s ease;
+}
+
+@keyframes clue-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.suspect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.suspect {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  padding: 0.9rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.suspect:hover {
+  border-color: var(--accent);
+}
+
+.suspect .suspect__initial {
+  display: block;
+  font-size: 1.9rem;
+  color: var(--blood);
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+}
+
+.suspect .suspect__note {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+.suspect.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(143, 45, 36, 0.25);
+}
+
+.hint {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+.interrogation {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  padding: 1.25rem;
+}
+
+.active-suspect {
+  color: var(--accent);
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.question-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.question {
+  background: var(--paper-deep);
+  border: 1px solid var(--line);
+  text-align: left;
+  color: var(--ink);
+  padding: 0.6rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.question:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.question:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.answer-box {
+  margin-top: 1rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  color: var(--ink);
+  font-style: italic;
+}
+
+.verdict-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.verdict-form select {
+  flex: 1;
+  min-width: 200px;
+  background: var(--paper-panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.8rem;
+  font-family: inherit;
+}
+
+.btn {
+  background: var(--accent);
+  color: var(--paper-panel);
+  border: none;
+  padding: 0.6rem 1.4rem;
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.result {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  font-style: italic;
+}
+
+.result.correct {
+  color: #3a7a3a;
+}
+
+.result.partial {
+  color: #a86a1e;
+}
+
+.result.wrong {
+  color: var(--blood);
+}
+
+.footer {
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.hidden {
+  display: none;
+}

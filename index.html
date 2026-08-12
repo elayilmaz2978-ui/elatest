@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELAGENCYLER — Son Görev</title>
+  <link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">ELA·AGENCY</h1>
+    <p class="tagline">Karanlık vakalar. Keskin zekâ. Tek sen.</p>
+  </header>
+
+  <main class="stage">
+    <section id="case" class="case">
+      <h2 id="case-title" class="case__title">—</h2>
+      <p id="case-story" class="case__story"></p>
+    </section>
+
+    <section id="scene" class="report">
+      <h3 class="section-head">Olay Yeri</h3>
+      <p id="scene-summary" class="report__body"></p>
+      <div id="scene-photo" class="scene-photo" role="img" aria-label="Olay yeri fotoğrafı"></div>
+      <ul id="scene-evidence" class="evidence-list"></ul>
+    </section>
+
+    <section id="csi" class="report">
+      <h3 class="section-head">Olay Yeri İnceleme Raporu</h3>
+      <p id="csi-examiner" class="report__meta"></p>
+      <p id="csi-finding" class="report__body"></p>
+      <h4 class="report__subhead">Toplanan örnekler</h4>
+      <ul id="csi-items" class="evidence-list"></ul>
+    </section>
+
+    <section id="autopsy" class="report">
+      <h3 class="section-head">Otopsi Raporu</h3>
+      <p id="autopsy-patholog" class="report__meta"></p>
+      <h4 class="report__subhead">Dış Muayene</h4>
+      <p id="autopsy-external" class="report__body"></p>
+      <h4 class="report__subhead">İç Muayene</h4>
+      <p id="autopsy-internal" class="report__body"></p>
+      <h4 class="report__subhead">Yaralanma Haritası</h4>
+      <div class="anatomy-grid">
+        <figure class="anatomy">
+          <figcaption>Dış Yüzey Bulguları</figcaption>
+          <div id="anat-external"></div>
+        </figure>
+        <figure class="anatomy">
+          <figcaption>İskelet / İç Organ Bulguları</figcaption>
+          <div id="anat-internal"></div>
+        </figure>
+      </div>
+      <h4 class="report__subhead">Toksikoloji</h4>
+      <table id="tox-table" class="tox-table"></table>
+      <h4 class="report__subhead">Ölüm Nedeni Notu</h4>
+      <p id="autopsy-cause" class="report__body"></p>
+    </section>
+
+    <section id="transcript" class="report">
+      <h3 class="section-head">Şüpheli Sorguları</h3>
+      <p id="transcript-meta" class="report__meta"></p>
+      <div id="session-tabs" class="session-tabs" role="tablist"></div>
+      <p id="session-info" class="session-info"></p>
+      <p class="hint">İpucu sakladığını düşündüğün satıra tıkla ve işaretle. İşaretlerin "İşaretlediklerim"de toplanır. Şüpheliyi kartlardan ya da yukarıdaki sekmelerden çağır.</p>
+      <div id="transcript-list" class="transcript"></div>
+    </section>
+
+    <section class="suspects">
+      <h3 class="section-head">Şüpheliler</h3>
+      <div id="suspect-grid" class="suspect-grid"></div>
+    </section>
+
+    <section class="clues">
+      <h3 class="section-head">İşaretlediklerim</h3>
+      <ul id="clue-list" class="clue-list"></ul>
+      <p id="clue-empty" class="hint">Tutanaktan satır işaretledikçe buraya düşecek.</p>
+    </section>
+
+    <section class="verdict">
+      <h3 class="section-head">Karar Dosyan</h3>
+      <form id="verdict-form" class="verdict-form">
+        <label for="cause-select">Ölüm nedeni neydi?</label>
+        <select id="cause-select" name="cause"></select>
+        <label for="suspect-select">Katil kim?</label>
+        <select id="suspect-select" name="suspect"></select>
+        <button type="submit" class="btn">Kararını ver</button>
+      </form>
+      <p id="result" class="result" aria-live="polite"></p>
+      <button id="next-case" class="btn btn--ghost hidden">Sıradaki vaka</button>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 ELA AGENCY — Bu bir kurgu. Gerçek suçları polise bırak.</p>
+  </footer>
+
+  <script src="js/cases.js?v=5"></script>
+  <script src="js/game.js?v=5"></script>
+</body>
+</html>
