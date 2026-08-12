@@ -2263,14 +2263,14 @@ function buildInternalFigure(markers, caseData) {
 // Bir yaralanma işaretini çizer. kind -> renk/ikon.
 const MARKER_COLORS = {
   mydriasis: "#3a2e22",
-  flush: "#b03012",
+  flush: "#a8642e",
   dry: "#8a6d3b",
-  stomach: "#b03012",
-  heart: "#8f2d24",
+  stomach: "#a8642e",
+  heart: "#7a4a28",
   bladder: "#4a6fa5",
   miosis: "#3a2e22",
   cold: "#4a6fa5",
-  liver: "#8f2d24"
+  liver: "#8f5e33"
 };
 
 function wrapLabel(text, maxChars) {
@@ -2291,7 +2291,7 @@ function wrapLabel(text, maxChars) {
 }
 
 function buildMarker(m, layer, index) {
-  const color = MARKER_COLORS[m.kind] || "#8f2d24";
+  const color = MARKER_COLORS[m.kind] || "#7a4a28";
   const group = svgEl("g");
   group.setAttribute("class", "marker");
 
@@ -2362,7 +2362,7 @@ function buildLegend(markers) {
     const li = document.createElement("li");
     const num = document.createElement("span");
     num.className = "legend-num";
-    num.style.backgroundColor = MARKER_COLORS[m.kind] || "#8f2d24";
+    num.style.backgroundColor = MARKER_COLORS[m.kind] || "#7a4a28";
     num.textContent = String(i + 1);
     li.appendChild(num);
     li.appendChild(document.createTextNode(m.label));

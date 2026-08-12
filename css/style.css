@@ -10,9 +10,9 @@
   --paper-deep: #d9c69f;     /* daha koyu kâğıt */
   --paper-panel: #f4ead2;    /* rapor kartı zemini */
   --paper-edge: #c9b285;     /* kart kenarı */
-  --accent: #8f2d24;         /* koyu kırmızı (noir dokunuş) */
-  --accent-bright: #b23a2c;  /* parlak kırmızı */
-  --blood: #5f1414;
+  --accent: #7a4a28;         /* kahve (noir dokunuş) */
+  --accent-bright: #a56d3d;  /* parlak kahve */
+  --blood: #4a2f1a;          /* koyu kahve */
   --line: #b49a6d;           /* eski mürekkep çizgisi */
   --brass: #c9a86a;          /* pirinç/eski altın vurgu */
   --noir: #16120e;           /* koyu başlık zemini */
@@ -47,14 +47,14 @@ body {
   overflow-x: clip;
   background:
     radial-gradient(1100px 480px at 50% -120px, rgba(255, 241, 205, 0.55), transparent 65%),
-    radial-gradient(800px 420px at 88% 24%, rgba(143, 45, 36, 0.05), transparent 60%),
+    radial-gradient(800px 420px at 88% 24%, rgba(122, 74, 40, 0.05), transparent 60%),
     radial-gradient(700px 420px at 8% 68%, rgba(107, 90, 69, 0.08), transparent 60%),
     var(--paper);
   background-attachment: fixed;
 }
 
 ::selection {
-  background: rgba(143, 45, 36, 0.85);
+  background: rgba(122, 74, 40, 0.85);
   color: #f6ead2;
 }
 
@@ -119,7 +119,7 @@ body {
   height: 100%;
   width: 0;
   background: linear-gradient(90deg, var(--accent), var(--accent-bright));
-  box-shadow: 0 0 8px rgba(178, 58, 44, 0.75);
+  box-shadow: 0 0 8px rgba(165, 109, 61, 0.75);
   transition: width 0.35s ease;
 }
 
@@ -170,8 +170,8 @@ body.view-game .footer {
 }
 
 .brand__ela {
-  color: #d4574a;
-  text-shadow: 0 0 20px rgba(212, 87, 74, 0.5);
+  color: #cf9a55;
+  text-shadow: 0 0 20px rgba(207, 154, 85, 0.5);
 }
 
 .brand__dot {
@@ -219,8 +219,8 @@ body.view-game .footer {
 
 .rank-chip {
   color: var(--accent-bright);
-  border: 1px solid rgba(178, 58, 44, 0.55);
-  background: rgba(178, 58, 44, 0.08);
+  border: 1px solid rgba(165, 109, 61, 0.55);
+  background: rgba(165, 109, 61, 0.08);
 }
 
 .stat-chip {
@@ -313,7 +313,8 @@ body.view-game .footer {
   color: var(--ink);
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--line);
-  background: linear-gradient(180deg, var(--paper-panel) 0%, #eee0c1 100%);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1rem 1.1rem 1.05rem;
   cursor: pointer;
   box-shadow: var(--shadow-card);
@@ -328,7 +329,7 @@ body.view-game .footer {
 
 .mode-card.selected {
   border-left-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(143, 45, 36, 0.3), var(--shadow-card);
+  box-shadow: 0 0 0 2px rgba(122, 74, 40, 0.3), var(--shadow-card);
 }
 
 .mode-card.selected::after {
@@ -383,7 +384,8 @@ body.view-game .footer {
   gap: 0.6rem;
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--accent);
-  background: linear-gradient(180deg, var(--paper-panel) 0%, #eee0c1 100%);
+  border-radius: 14px 2px 14px 14px;
+  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1.2rem 1.2rem 1.3rem;
   box-shadow: var(--shadow-card);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -513,7 +515,8 @@ body.view-game .footer {
   color: var(--brass);
   background: rgba(201, 168, 106, 0.07);
   border: 1px solid rgba(201, 168, 106, 0.5);
-  padding: 0.45rem 0.8rem 0.38rem;
+  border-radius: 999px;
+  padding: 0.45rem 0.95rem 0.38rem;
   cursor: pointer;
   transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
@@ -522,7 +525,7 @@ body.view-game .footer {
 .game-head__notes:hover {
   color: #f6ead2;
   border-color: var(--accent-bright);
-  background: rgba(178, 58, 44, 0.2);
+  background: rgba(165, 109, 61, 0.2);
 }
 
 .game-head__file {
@@ -555,9 +558,10 @@ body.view-game .footer {
   font-size: 0.64rem;
   letter-spacing: 0.18em;
   color: var(--accent-bright);
-  border: 1px solid rgba(178, 58, 44, 0.55);
-  background: rgba(178, 58, 44, 0.12);
-  padding: 0.3rem 0.6rem 0.24rem;
+  border: 1px solid rgba(165, 109, 61, 0.55);
+  border-radius: 999px;
+  background: rgba(165, 109, 61, 0.12);
+  padding: 0.3rem 0.7rem 0.24rem;
 }
 
 /* ---- Kart sekmeleri ---- */
@@ -578,10 +582,11 @@ body.view-game .footer {
   font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--ink);
-  background: var(--paper-deep);
+  background: rgba(217, 198, 159, 0.8);
   border: 1px solid var(--line);
   border-bottom-width: 3px;
-  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
@@ -592,10 +597,10 @@ body.view-game .footer {
 }
 
 .card-tab.active {
-  background: var(--accent);
+  background: rgba(122, 74, 40, 0.92);
   border-color: var(--blood);
   color: #f6ead2;
-  box-shadow: 0 4px 12px rgba(143, 45, 36, 0.35);
+  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
 }
 
 .card-tab:disabled {
@@ -639,7 +644,8 @@ body.view-game .footer {
   position: relative;
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--accent);
-  background: linear-gradient(180deg, var(--paper-panel) 0%, #eee0c1 100%);
+  border-radius: 14px 2px 14px 14px;
+  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1.5rem 1.5rem 1.8rem;
   box-shadow: var(--shadow-card);
 }
@@ -907,9 +913,9 @@ body.view-game .footer {
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(143, 45, 36, 0.6);
-  border: 1.5px solid rgba(143, 45, 36, 0.55);
-  outline: 1.5px solid rgba(143, 45, 36, 0.4);
+  color: rgba(122, 74, 40, 0.6);
+  border: 1.5px solid rgba(122, 74, 40, 0.55);
+  outline: 1.5px solid rgba(122, 74, 40, 0.4);
   outline-offset: 2.5px;
   border-radius: 4px;
   padding: 0.16rem 0.55rem;
@@ -1042,7 +1048,7 @@ body.view-game .footer {
 }
 
 .plan-body {
-  fill: rgba(143, 45, 36, 0.1);
+  fill: rgba(122, 74, 40, 0.1);
   stroke: var(--accent);
   stroke-width: 0.05;
   stroke-dasharray: 0.15 0.1;
@@ -1089,7 +1095,7 @@ body.view-game .footer {
 
 .plan-item.hot .plan-marker {
   fill: var(--accent-bright);
-  stroke: #5f1414;
+  stroke: #4a2f1a;
 }
 
 .plan-item.hot .plan-marker-num {
@@ -1141,7 +1147,7 @@ body.view-game .footer {
 .plan-legend li.hot .plan-legend__num,
 .plan-legend li:hover .plan-legend__num {
   background: var(--accent-bright);
-  border-color: #5f1414;
+  border-color: #4a2f1a;
   color: #f6ead2;
 }
 
@@ -1178,10 +1184,11 @@ body.view-game .footer {
   font-family: var(--font-body);
   font-size: 0.86rem;
   color: var(--ink);
-  background: var(--paper-deep);
+  background: rgba(217, 198, 159, 0.8);
   border: 1px solid var(--line);
   border-bottom-width: 3px;
-  padding: 0.42rem 0.8rem;
+  border-radius: 999px;
+  padding: 0.42rem 0.95rem;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
 }
@@ -1192,10 +1199,10 @@ body.view-game .footer {
 }
 
 .suspect-chip.active {
-  background: var(--accent);
+  background: rgba(122, 74, 40, 0.92);
   border-color: var(--blood);
   color: #f6ead2;
-  box-shadow: 0 4px 12px rgba(143, 45, 36, 0.35);
+  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
 }
 
 .suspect-chip__initial {
@@ -1205,7 +1212,7 @@ body.view-game .footer {
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #7d271f, var(--blood));
+  background: radial-gradient(circle at 35% 30%, #6b4423, var(--blood));
   color: #f3e6c8;
   font-family: var(--font-display);
   font-weight: 600;
@@ -1237,8 +1244,9 @@ body.view-game .footer {
   gap: 0.6rem;
   padding: 0.55rem 0.8rem;
   border: 1px solid transparent;
-  background: var(--paper-panel);
+  background: rgba(244, 234, 210, 0.85);
   border-left: 3px solid var(--line);
+  border-radius: 8px;
   cursor: pointer;
   font-size: 0.92rem;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
@@ -1425,8 +1433,8 @@ body.view-game .footer {
 }
 
 .organ--heart {
-  fill: #c0392b;
-  stroke: #7f1d16;
+  fill: #a4552f;
+  stroke: #6e3a1f;
 }
 
 .organ--liver {
@@ -1572,7 +1580,7 @@ body.view-game .footer {
 }
 
 .marker:hover .marker-label {
-  fill: #a53a24;
+  fill: var(--accent);
   font-weight: bold;
 }
 
@@ -1616,25 +1624,26 @@ body.view-game .footer {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  background: linear-gradient(180deg, #a33428, var(--accent));
+  background: linear-gradient(180deg, rgba(143, 90, 48, 0.9), rgba(122, 74, 40, 0.9));
   color: #f6ead2;
   border: none;
   border-bottom: 3px solid var(--blood);
+  border-radius: 12px;
   padding: 0.7rem 1.6rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(143, 45, 36, 0.35);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background 0.18s ease;
 }
 
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(143, 45, 36, 0.4);
+  box-shadow: 0 8px 18px rgba(122, 74, 40, 0.4);
   filter: brightness(1.06);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(143, 45, 36, 0.35);
+  box-shadow: 0 2px 6px rgba(122, 74, 40, 0.35);
 }
 
 .btn:disabled {
@@ -1644,15 +1653,16 @@ body.view-game .footer {
 }
 
 .btn--ghost {
-  background: transparent;
+  background: rgba(122, 74, 40, 0.06);
   color: var(--accent);
   border: 1px solid var(--accent);
   border-bottom-width: 3px;
+  border-radius: 12px;
   box-shadow: none;
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: rgba(143, 45, 36, 0.08);
+  background: rgba(122, 74, 40, 0.08);
   box-shadow: none;
 }
 
@@ -1679,9 +1689,10 @@ body.view-game .footer {
   min-width: 200px;
   appearance: none;
   -webkit-appearance: none;
-  background: var(--paper-panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f2d24' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
+  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4a28' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
   color: var(--ink);
   border: 1px solid var(--line);
+  border-radius: 10px;
   padding: 0.65rem 2.2rem 0.65rem 0.9rem;
   font-family: var(--font-body);
   font-size: 0.92rem;
@@ -1696,12 +1707,13 @@ body.view-game .footer {
 .verdict-form select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(143, 45, 36, 0.18);
+  box-shadow: 0 0 0 3px rgba(122, 74, 40, 0.18);
 }
 
 .evidence-pick {
   flex-basis: 100%;
   border: 1px dashed var(--line);
+  border-radius: 12px;
   padding: 0.8rem 0.9rem 0.9rem;
   margin-top: 0.35rem;
 }
@@ -1723,7 +1735,8 @@ body.view-game .footer {
   width: 100%;
   margin-top: 0.55rem;
   border: 1px solid var(--line);
-  background: var(--paper-panel);
+  border-radius: 10px;
+  background: rgba(244, 234, 210, 0.9);
   color: var(--ink);
   padding: 0.55rem 0.7rem;
   font-family: var(--font-type);
@@ -1853,7 +1866,7 @@ body.view-game .footer {
 
 .verdict-report tr.row-bad td:nth-child(2) {
   text-decoration: line-through;
-  text-decoration-color: rgba(95, 20, 20, 0.5);
+  text-decoration-color: rgba(74, 47, 26, 0.5);
 }
 
 .verdict-report tr.row-total td {
@@ -1961,6 +1974,7 @@ body.view-game .footer {
   height: 2rem;
   background: none;
   border: 1px solid var(--line);
+  border-radius: 50%;
   color: var(--ink-soft);
   font-size: 0.95rem;
   line-height: 1;
@@ -1992,7 +2006,8 @@ body.view-game .footer {
   align-items: flex-start;
   border: 1px solid var(--line);
   border-left: 3px solid var(--blood);
-  background: var(--paper);
+  border-radius: 8px;
+  background: rgba(231, 217, 186, 0.85);
   padding: 0.6rem 0.7rem;
   font-size: 0.85rem;
   line-height: 1.5;
@@ -2120,9 +2135,10 @@ body.view-game .footer {
 .confirm-box {
   max-width: 420px;
   width: 100%;
-  background: var(--paper-panel);
+  background: rgba(244, 234, 210, 0.96);
   border: 1px solid var(--paper-edge);
   border-top: 4px solid var(--accent);
+  border-radius: 14px;
   box-shadow: var(--shadow-card);
   padding: 1.5rem 1.4rem 1.3rem;
   text-align: center;
@@ -2395,8 +2411,9 @@ body.view-game .footer {
   display: block;
   width: 100%;
   text-align: left;
-  background: var(--paper-panel);
+  background: rgba(244, 234, 210, 0.85);
   border: 1px solid var(--line);
+  border-radius: 9px;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 0.88rem;
@@ -2435,7 +2452,7 @@ body.view-game .footer {
 
 .timeline-item.bad {
   border-color: var(--blood);
-  background: rgba(95, 20, 20, 0.07);
+  background: rgba(74, 47, 26, 0.07);
   cursor: default;
 }
 
@@ -2467,6 +2484,7 @@ body.view-game .footer {
   margin-top: 1.1rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--line);
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.35);
 }
 
@@ -2482,6 +2500,7 @@ body.view-game .footer {
   padding: 0.45rem 0.6rem;
   margin-bottom: 0.35rem;
   border: 1px solid transparent;
+  border-radius: 8px;
   font-size: 0.9rem;
   line-height: 1.45;
   cursor: pointer;
@@ -2505,7 +2524,7 @@ body.view-game .footer {
 
 .quiz-opt.bad {
   border-color: var(--blood);
-  background: rgba(95, 20, 20, 0.08);
+  background: rgba(74, 47, 26, 0.08);
 }
 
 .quiz-q__answer {
@@ -2524,6 +2543,7 @@ body.view-game .footer {
 
 .elim-row {
   border: 1px solid var(--line);
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.35);
   padding: 0.75rem 0.9rem;
 }
@@ -2554,9 +2574,10 @@ body.view-game .footer {
   min-width: 220px;
   appearance: none;
   -webkit-appearance: none;
-  background: var(--paper-panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238f2d24' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
+  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4a28' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
   color: var(--ink);
   border: 1px solid var(--line);
+  border-radius: 10px;
   padding: 0.55rem 2.2rem 0.55rem 0.8rem;
   font-family: var(--font-body);
   font-size: 0.88rem;
@@ -2665,7 +2686,7 @@ body.view-game .footer {
 .drawer-notes__input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(143, 45, 36, 0.15);
+  box-shadow: 0 0 0 3px rgba(122, 74, 40, 0.15);
 }
 
 .drawer-notes__hint {
