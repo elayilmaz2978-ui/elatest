@@ -1258,13 +1258,28 @@ const PLAN_FORMS = {
   },
   car: function (g, o) {
     const w = o.w || 1.9, h = o.h || 4.6;
-    planRect(g, 0, 0, w, h, "plan-furniture plan-furniture--car", 0.5);
-    const wy = -h / 2 + h * 0.24;
-    planPath(g, "M" + (-w / 2 + 0.14) + "," + wy + " Q0," + (wy + 0.22) + " " + (w / 2 - 0.14) + "," + wy, "plan-detail");
-    const ry = h / 2 - h * 0.18;
-    planPath(g, "M" + (-w / 2 + 0.16) + "," + ry + " Q0," + (ry - 0.2) + " " + (w / 2 - 0.16) + "," + ry, "plan-detail");
-    planRect(g, -w / 2 - 0.08, wy + 0.1, 0.14, 0.1, "plan-furniture", 0.03);
-    planRect(g, w / 2 + 0.08, wy + 0.1, 0.14, 0.1, "plan-furniture", 0.03);
+    const hw = w / 2, hh = h / 2;
+
+    const body = svgEl("path");
+    body.setAttribute("d",
+      "M0," + (-hh)
+      + " C" + (w * 0.36) + "," + (-hh) + " " + hw + "," + (-hh + h * 0.14) + " " + hw + "," + (-hh + h * 0.26)
+      + " L" + hw + "," + (hh - h * 0.16)
+      + " C" + hw + "," + (hh - h * 0.05) + " " + (w * 0.3) + "," + hh + " 0," + hh
+      + " C" + (-w * 0.3) + "," + hh + " " + (-hw) + "," + (hh - h * 0.05) + " " + (-hw) + "," + (hh - h * 0.16)
+      + " L" + (-hw) + "," + (-hh + h * 0.26)
+      + " C" + (-hw) + "," + (-hh + h * 0.14) + " " + (-w * 0.36) + "," + (-hh) + " 0," + (-hh) + " Z");
+    body.setAttribute("class", "plan-furniture plan-furniture--car");
+    g.appendChild(body);
+
+    const wy = -hh + h * 0.3;
+    planPath(g, "M" + (-hw + 0.16) + "," + wy + " Q0," + (wy + 0.26) + " " + (hw - 0.16) + "," + wy, "plan-detail");
+    const ry = hh - h * 0.22;
+    planPath(g, "M" + (-hw + 0.18) + "," + ry + " Q0," + (ry - 0.24) + " " + (hw - 0.18) + "," + ry, "plan-detail");
+    planRect(g, 0, h * 0.03, w - 0.62, h * 0.36, "plan-detail", 0.22);
+
+    planRect(g, -hw - 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
+    planRect(g, hw + 0.1, wy + 0.06, 0.16, 0.12, "plan-furniture", 0.04);
   },
   "body-seat": function (g) {
     const t = svgEl("ellipse");
@@ -1335,34 +1350,11 @@ function markerPos(o) {
   return { x: o.x + hw + 0.5, y: o.y - hh - 0.4 };
 }
 
-// Sarı kanıt çadırı (tent) işaretçisi
-function drawTent(g, x, y, num, f) {
-  const s = 0.62 * f;
-
-  const shadow = svgEl("ellipse");
-  shadow.setAttribute("cx", x + s * 0.1);
-  shadow.setAttribute("cy", y + s * 0.52);
-  shadow.setAttribute("rx", s * 0.66);
-  shadow.setAttribute("ry", s * 0.15);
-  shadow.setAttribute("class", "plan-tent-shadow");
-  g.appendChild(shadow);
-
-  const side = svgEl("path");
-  side.setAttribute("d", "M" + x + "," + (y - s * 0.55)
-    + " L" + (x + s * 0.46) + "," + (y + s * 0.5)
-    + " L" + (x + s * 0.68) + "," + (y + s * 0.36)
-    + " L" + (x + s * 0.18) + "," + (y - s * 0.62) + " Z");
-  side.setAttribute("class", "plan-tent-side");
-  g.appendChild(side);
-
-  const front = svgEl("path");
-  front.setAttribute("d", "M" + (x - s * 0.46) + "," + (y + s * 0.5)
-    + " L" + x + "," + (y - s * 0.55)
-    + " L" + (x + s * 0.46) + "," + (y + s * 0.5) + " Z");
-  front.setAttribute("class", "plan-tent");
-  g.appendChild(front);
-
-  planText(g, x, y + s * 0.36, num, "plan-tent-num", 0.62 * s);
+// Temiz, teknik numaralı işaretçi (kanıt numarası)
+function drawMarker(g, x, y, num, f) {
+  const r = 0.26 * f;
+  planCircle(g, x, y, r, "plan-marker");
+  planText(g, x, y + r * 0.5, num, "plan-marker-num", 0.4 * f);
 }
 
 function buildSceneFigure(scene) {
@@ -1438,7 +1430,7 @@ function buildSceneFigure(scene) {
     const dist = Math.sqrt((m.x - o.x) * (m.x - o.x) + (m.y - o.y) * (m.y - o.y));
     if (dist > 0.55) planLine(g, m.x, m.y, o.x, o.y, "plan-leader");
 
-    drawTent(g, m.x, m.y, String(i + 1), f);
+    drawMarker(g, m.x, m.y, String(i + 1), f);
 
     svg.appendChild(g);
     items.push(g);
@@ -1566,7 +1558,7 @@ function scaledGroup(t) {
 // "Dış yüzey" figürü: adli tıp şeması tarzında ön görünüm, anatomik pozisyon.
 function buildExternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-30 0 " + (BODY.canvasW + 60) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-24 0 " + (BODY.canvasW + 48) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1706,7 +1698,7 @@ function buildExternalFigure(markers, caseData) {
 // göğüs kafesi, pelvis ve renk kodlu iç organlar.
 function buildInternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-30 0 " + (BODY.canvasW + 60) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-24 0 " + (BODY.canvasW + 48) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1921,7 +1913,7 @@ function buildMarker(m, layer, index) {
 
   const num = svgEl("text");
   num.setAttribute("x", m.x);
-  num.setAttribute("y", m.y + 1.9);
+  num.setAttribute("y", m.y + 2.1);
   num.setAttribute("text-anchor", "middle");
   num.setAttribute("class", "marker-num");
   num.textContent = String((index || 0) + 1);
@@ -1939,15 +1931,15 @@ function buildMarker(m, layer, index) {
   leader.setAttribute("opacity", 0.55);
   group.appendChild(leader);
 
-  const lines = wrapLabel(m.label, 26);
+  const lines = wrapLabel(m.label, 20);
   const label = svgEl("text");
   label.setAttribute("class", "marker-label");
   label.setAttribute("text-anchor", right ? "start" : "end");
-  const startY = m.y - ((lines.length - 1) * 7.5) / 2 + 2.2;
+  const startY = m.y - ((lines.length - 1) * 8) / 2 + 2.4;
   lines.forEach(function (ln, i) {
     const ts = svgEl("tspan");
     ts.setAttribute("x", lx);
-    ts.setAttribute("y", startY + i * 7.5);
+    ts.setAttribute("y", startY + i * 8);
     ts.textContent = ln;
     label.appendChild(ts);
   });
