@@ -23,6 +23,7 @@
   --font-display: "Oswald", "Arial Narrow", sans-serif;
   --font-type: "Courier Prime", "Courier New", monospace;
   --font-body: Georgia, "Times New Roman", serif;
+  --font-hand: "Caveat", "Segoe Script", cursive;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -825,6 +826,7 @@ body.view-game .footer {
 
 /* ---- Olay yeri krokisi ---- */
 .scene-figure {
+  position: relative;
   margin: 1rem 0 0;
   border: 1px solid var(--paper-edge);
   background: var(--paper-panel);
@@ -859,11 +861,62 @@ body.view-game .footer {
 }
 
 .scene-plan {
+  position: relative;
   border: 1px solid var(--line);
   background:
     radial-gradient(120% 90% at 50% 0%, rgba(255, 246, 222, 0.55), transparent 70%),
+    radial-gradient(circle 30px at 84% 16%, transparent 55%, rgba(122, 84, 44, 0.16) 62%, rgba(122, 84, 44, 0.05) 70%, transparent 74%),
+    radial-gradient(circle 18px at 12% 78%, transparent 40%, rgba(122, 84, 44, 0.09) 58%, transparent 72%),
+    linear-gradient(to bottom, transparent calc(52% - 1px), rgba(90, 60, 30, 0.07) 52%, transparent calc(52% + 1px)),
+    linear-gradient(to right, transparent calc(31% - 1px), rgba(90, 60, 30, 0.05) 31%, transparent calc(31% + 1px)),
     var(--paper);
   box-shadow: inset 0 0 18px rgba(90, 60, 30, 0.12);
+}
+
+.scene-plan::before,
+.scene-plan::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  width: 88px;
+  height: 24px;
+  background: rgba(216, 198, 156, 0.55);
+  border-left: 1px dashed rgba(90, 60, 30, 0.2);
+  border-right: 1px dashed rgba(90, 60, 30, 0.2);
+  box-shadow: 0 1px 3px rgba(45, 30, 14, 0.28);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.scene-plan::before {
+  left: -24px;
+  transform: rotate(-37deg);
+}
+
+.scene-plan::after {
+  right: -24px;
+  transform: rotate(35deg);
+}
+
+.plan-stamp {
+  position: absolute;
+  top: 3.1rem;
+  right: 1.15rem;
+  transform: rotate(-9deg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(143, 45, 36, 0.6);
+  border: 1.5px solid rgba(143, 45, 36, 0.55);
+  outline: 1.5px solid rgba(143, 45, 36, 0.4);
+  outline-offset: 2.5px;
+  border-radius: 4px;
+  padding: 0.16rem 0.55rem;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 3;
 }
 
 .plan-svg {
@@ -948,7 +1001,8 @@ body.view-game .footer {
 
 .plan-feature-label {
   fill: #4a3b28;
-  font-style: italic;
+  font-family: var(--font-hand);
+  font-weight: 500;
 }
 
 .plan-furniture {
@@ -1014,14 +1068,27 @@ body.view-game .footer {
   stroke-dasharray: 0.1 0.08;
 }
 
-.plan-marker-disc {
-  fill: var(--brass);
-  stroke: #33271a;
-  stroke-width: 0.045;
+.plan-tent {
+  fill: #e9c94f;
+  stroke: #6b5218;
+  stroke-width: 0.035;
+  stroke-linejoin: round;
 }
 
-.plan-marker-num {
+.plan-tent-side {
+  fill: #c8a63a;
+  stroke: #6b5218;
+  stroke-width: 0.03;
+  stroke-linejoin: round;
+}
+
+.plan-tent-shadow {
+  fill: rgba(45, 30, 14, 0.2);
+}
+
+.plan-tent-num {
   fill: #2a2016;
+  font-family: var(--font-hand);
   font-weight: 700;
 }
 
@@ -1033,11 +1100,17 @@ body.view-game .footer {
   opacity: 0.38;
 }
 
-.plan-item.hot .plan-marker-disc {
+.plan-item.hot .plan-tent {
   fill: var(--accent-bright);
+  stroke: #5f1414;
 }
 
-.plan-item.hot .plan-marker-num {
+.plan-item.hot .plan-tent-side {
+  fill: #8f2d24;
+  stroke: #5f1414;
+}
+
+.plan-item.hot .plan-tent-num {
   fill: #f6ead2;
 }
 
@@ -1073,13 +1146,13 @@ body.view-game .footer {
   justify-content: center;
   width: 1.4em;
   height: 1.4em;
-  border-radius: 50%;
-  background: var(--brass);
-  border: 1px solid rgba(51, 39, 26, 0.6);
+  border-radius: 0.3em 0.3em 0.15em 0.15em;
+  background: #e9c94f;
+  border: 1px solid rgba(107, 82, 24, 0.7);
   color: #2a2016;
-  font-family: var(--font-type);
+  font-family: var(--font-hand);
   font-weight: 700;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   transform: translateY(0.15em);
 }
 
@@ -1090,8 +1163,9 @@ body.view-game .footer {
 }
 
 .plan-legend__text {
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-family: var(--font-hand);
+  font-size: 1.12rem;
+  line-height: 1.25;
 }
 
 .plan-legend__sub {

@@ -1180,7 +1180,7 @@ function drawWalls(svg, plan) {
         const lx = horiz ? mid[0] : mid[0] + axis.out[0] * 0.5;
         const ly = horiz ? mid[1] + (axis.out[1] < 0 ? -0.5 : 0.72) : mid[1] + 0.1;
         const anchor = horiz ? "middle" : (axis.out[0] < 0 ? "end" : "start");
-        planText(svg, lx, ly, ft.label, "plan-feature-label", 0.3, anchor);
+        planText(svg, lx, ly, ft.label, "plan-feature-label", 0.42, anchor);
       }
     });
   });
@@ -1335,6 +1335,36 @@ function markerPos(o) {
   return { x: o.x + hw + 0.5, y: o.y - hh - 0.4 };
 }
 
+// Sarı kanıt çadırı (tent) işaretçisi
+function drawTent(g, x, y, num, f) {
+  const s = 0.62 * f;
+
+  const shadow = svgEl("ellipse");
+  shadow.setAttribute("cx", x + s * 0.1);
+  shadow.setAttribute("cy", y + s * 0.52);
+  shadow.setAttribute("rx", s * 0.66);
+  shadow.setAttribute("ry", s * 0.15);
+  shadow.setAttribute("class", "plan-tent-shadow");
+  g.appendChild(shadow);
+
+  const side = svgEl("path");
+  side.setAttribute("d", "M" + x + "," + (y - s * 0.55)
+    + " L" + (x + s * 0.46) + "," + (y + s * 0.5)
+    + " L" + (x + s * 0.68) + "," + (y + s * 0.36)
+    + " L" + (x + s * 0.18) + "," + (y - s * 0.62) + " Z");
+  side.setAttribute("class", "plan-tent-side");
+  g.appendChild(side);
+
+  const front = svgEl("path");
+  front.setAttribute("d", "M" + (x - s * 0.46) + "," + (y + s * 0.5)
+    + " L" + x + "," + (y - s * 0.55)
+    + " L" + (x + s * 0.46) + "," + (y + s * 0.5) + " Z");
+  front.setAttribute("class", "plan-tent");
+  g.appendChild(front);
+
+  planText(g, x, y + s * 0.36, num, "plan-tent-num", 0.62 * s);
+}
+
 function buildSceneFigure(scene) {
   const plan = scene.plan;
   const objects = scene.objects;
@@ -1349,8 +1379,11 @@ function buildSceneFigure(scene) {
 
   const planBox = h("div", "scene-plan");
   planBox.setAttribute("aria-label", "Olay yeri krokisi: " + plan.caption);
+  const stamp = h("div", "plan-stamp", "OLAY YERİ — GİZLİ");
+  stamp.setAttribute("aria-hidden", "true");
   const legend = h("ol", "plan-legend");
   fig.appendChild(planBox);
+  fig.appendChild(stamp);
   fig.appendChild(legend);
   fig.appendChild(h("p", "hint", "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
 
@@ -1358,6 +1391,19 @@ function buildSceneFigure(scene) {
   const padX = 1.9 * f, padTop = 1.8 * f, padBot = 2.1 * f;
   svg.setAttribute("viewBox", (-padX) + " " + (-padTop) + " " + (w + padX * 2) + " " + (d + padTop + padBot));
   svg.setAttribute("class", "plan-svg");
+
+  const defs = svgEl("defs");
+  const soft = svgEl("filter");
+  soft.setAttribute("id", "plan-soft");
+  soft.setAttribute("x", "-40%"); soft.setAttribute("y", "-40%");
+  soft.setAttribute("width", "180%"); soft.setAttribute("height", "180%");
+  const drop = svgEl("feDropShadow");
+  drop.setAttribute("dx", 0.04); drop.setAttribute("dy", 0.07);
+  drop.setAttribute("stdDeviation", 0.05);
+  drop.setAttribute("flood-color", "rgba(45, 30, 14, 0.38)");
+  soft.appendChild(drop);
+  defs.appendChild(soft);
+  svg.appendChild(defs);
 
   drawPlanChrome(svg, plan, f);
   if (plan.enclosed) drawWalls(svg, plan);
@@ -1383,15 +1429,16 @@ function buildSceneFigure(scene) {
       planRect(inner, 0, 0, o.w || 0.5, o.h || 0.5, "plan-furniture", 0.04);
       shape.appendChild(inner);
     }
+    if (o.form !== "patch" && o.form !== "body" && o.form !== "body-seat") {
+      shape.setAttribute("filter", "url(#plan-soft)");
+    }
     g.appendChild(shape);
 
     const m = markerPos(o);
     const dist = Math.sqrt((m.x - o.x) * (m.x - o.x) + (m.y - o.y) * (m.y - o.y));
     if (dist > 0.55) planLine(g, m.x, m.y, o.x, o.y, "plan-leader");
 
-    const mr = 0.3 * f;
-    planCircle(g, m.x, m.y, mr, "plan-marker-disc");
-    planText(g, m.x, m.y + mr * 0.38, String(i + 1), "plan-marker-num", 0.4 * f);
+    drawTent(g, m.x, m.y, String(i + 1), f);
 
     svg.appendChild(g);
     items.push(g);
