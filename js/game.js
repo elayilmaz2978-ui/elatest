@@ -808,21 +808,15 @@ function cardVerdict(area, c) {
   const fieldset = document.createElement("fieldset");
   fieldset.className = "evidence-pick";
   const legend = h("legend");
-  legend.appendChild(document.createTextNode("Kararını hangi kanıtlar destekliyor? "));
-  legend.appendChild(h("span", "evidence-pick__warn", "Yanlış seçim puan düşürür."));
+  legend.appendChild(document.createTextNode("Bulduğun kanıtları kendin yaz "));
+  legend.appendChild(h("span", "evidence-pick__warn", "Doğru kanıt puan, dosyada olmayan/yanlış kanıt puan düşürür. Her satıra bir kanıt."));
   fieldset.appendChild(legend);
-  const grid = h("div", "evidence-grid");
-  c.verdictEvidence.forEach(function (ev) {
-    const label = h("label", "evidence-pick__item");
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.name = "evidence";
-    box.value = ev.name;
-    label.appendChild(box);
-    label.appendChild(h("span", null, ev.name));
-    grid.appendChild(label);
-  });
-  fieldset.appendChild(grid);
+  const evInput = document.createElement("textarea");
+  evInput.className = "evidence-input";
+  evInput.name = "evidence";
+  evInput.rows = 4;
+  evInput.placeholder = "örn.\nmasadaki spor ayakkabı çamuru\nyarım bardak çay";
+  fieldset.appendChild(evInput);
   form.appendChild(fieldset);
 
   const submit = h("button", "btn", "Kararını ver");
@@ -844,7 +838,7 @@ function cardVerdict(area, c) {
     causeSelect: causeSelect,
     suspectSelect: suspectSelect,
     motiveSelect: motiveSelect,
-    evidenceGrid: grid
+    evidenceInput: evInput
   };
 
   card.appendChild(form);
@@ -857,9 +851,28 @@ function labelFor(forId, text) {
   return label;
 }
 
-function evidenceByName(c, name) {
-  const found = c.verdictEvidence.find(function (ev) { return ev.name === name; });
-  return found || { ok: false, why: "" };
+function trNorm(s) {
+  return (s || "").toLocaleLowerCase("tr-TR")
+    .replace(/[^a-z0-9çğıöşüâîû ]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Oyuncunun serbest satırını kanıt havuzuyla eşleştirir; en spesifik (en uzun)
+// anahtarı tutan girdiyi döndürür, yoksa null.
+function matchEvidence(c, line) {
+  const nl = trNorm(line);
+  if (!nl) return null;
+  let best = null, bestLen = 0;
+  c.verdictEvidence.forEach(function (ev) {
+    (ev.keys || []).forEach(function (k) {
+      const nk = trNorm(k);
+      if (nk && nl.indexOf(nk) !== -1 && nk.length > bestLen) {
+        best = ev; bestLen = nk.length;
+      }
+    });
+  });
+  return best;
 }
 
 function resolveVerdict() {
@@ -874,16 +887,32 @@ function resolveVerdict() {
   const suspectRight = suspectGuess === c.culprit;
   const motiveRight = motiveGuess === c.motiveCorrect;
 
-  const picks = Array.prototype.map.call(
-    verdictRefs.evidenceGrid.querySelectorAll("input:checked"),
-    function (input) { return input.value; }
-  );
-  const correctPicks = picks.filter(function (name) { return evidenceByName(c, name).ok; });
-  const wrongPicks = picks.filter(function (name) { return !evidenceByName(c, name).ok; });
+  const lines = verdictRefs.evidenceInput.value.split("\n")
+    .map(function (t) { return t.trim(); })
+    .filter(Boolean);
+
+  const matchedOk = [];
+  const reviewLines = [];
+  let wrongCount = 0;
+  lines.forEach(function (line) {
+    const ev = matchEvidence(c, line);
+    if (ev && ev.ok) {
+      if (matchedOk.indexOf(ev) === -1) matchedOk.push(ev);
+      reviewLines.push({ line: line, ok: true, why: ev.why });
+    } else if (ev) {
+      wrongCount++;
+      reviewLines.push({ line: line, ok: false, why: ev.why });
+    } else {
+      wrongCount++;
+      reviewLines.push({ line: line, ok: false, why: "Bu dosyada böyle bir kanıt kaydı yok." });
+    }
+  });
+
+  const correctCount = matchedOk.length;
   const totalCorrect = c.verdictEvidence.filter(function (ev) { return ev.ok; }).length;
   const evidenceScore = Math.max(
     0,
-    WEIGHTS.evidence * (correctPicks.length - wrongPicks.length) / totalCorrect
+    WEIGHTS.evidence * (correctCount - wrongCount) / totalCorrect
   );
 
   const score = (causeRight ? WEIGHTS.cause : 0)
@@ -927,10 +956,10 @@ function resolveVerdict() {
     (suspectRight ? WEIGHTS.suspect : 0) + "/" + WEIGHTS.suspect);
   addRow("Sebep", motiveGuess, c.motiveCorrect, motiveRight,
     (motiveRight ? WEIGHTS.motive : 0) + "/" + WEIGHTS.motive);
-  addRow("Kanıt seçimi",
-    picks.length ? correctPicks.length + " doğru, " + wrongPicks.length + " yanlış" : "Seçim yapılmadı",
+  addRow("Kanıt sunumu",
+    lines.length ? correctCount + " doğru, " + wrongCount + " yanlış" : "Kanıt yazılmadı",
     totalCorrect + " doğru kanıt vardı",
-    correctPicks.length === totalCorrect && wrongPicks.length === 0,
+    correctCount === totalCorrect && wrongCount === 0,
     formatPoints(evidenceScore) + "/" + WEIGHTS.evidence);
 
   const totalRow = h("tr", "row-total");
@@ -941,15 +970,14 @@ function resolveVerdict() {
   report.appendChild(totalRow);
   result.appendChild(report);
 
-  if (picks.length) {
+  if (reviewLines.length) {
     const review = h("ul", "evidence-review");
-    picks.forEach(function (name) {
-      const ev = evidenceByName(c, name);
-      const li = h("li", ev.ok ? "row-ok" : "row-bad");
-      li.appendChild(h("span", "evidence-review__mark", ev.ok ? "✓" : "✗"));
+    reviewLines.forEach(function (r) {
+      const li = h("li", r.ok ? "row-ok" : "row-bad");
+      li.appendChild(h("span", "evidence-review__mark", r.ok ? "✓" : "✗"));
       const body = h("span");
-      body.appendChild(h("strong", null, name + ": "));
-      body.appendChild(document.createTextNode(ev.why));
+      body.appendChild(h("strong", null, r.line + ": "));
+      body.appendChild(document.createTextNode(r.why));
       li.appendChild(body);
       review.appendChild(li);
     });
@@ -957,7 +985,7 @@ function resolveVerdict() {
   }
 
   const missed = c.verdictEvidence.filter(function (ev) {
-    return ev.ok && picks.indexOf(ev.name) === -1;
+    return ev.ok && matchedOk.indexOf(ev) === -1;
   });
   if (missed.length) {
     result.appendChild(h("p", "evidence-missed",

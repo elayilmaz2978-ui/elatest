@@ -25,8 +25,9 @@
 //   deathCauses + deathCauseCorrect  → ölüm nedeni seçenekleri
 //   motives + motiveCorrect          → katilin sebebi için seçenekler
 //   suspects                         → şüpheliler {id, name, initial, note}
-//   verdictEvidence                  → karar kanıt havuzu {name, ok, why}
+//   verdictEvidence                  → karar kanıt havuzu {name, ok, keys?, why}
 //      ok: kararı gerçekten destekliyor mu; why: sonuç raporunda gösterilen kısa gerekçe
+//      keys: oyuncunun serbest metnini eşleştirmek için normalize anahtar kelimeler
 //   culprit                          → doğru suçlu id'si
 //   solution                         → açıklama
 // ============================================================
@@ -316,14 +317,14 @@ const CASES = [
     ],
     culprit: "fikret",
     verdictEvidence: [
-      { name: "Yarım bardak çay", ok: true, why: "Dibindeki acı-buruş toz Datura tohumuydu; zehir çaya katıldı." },
-      { name: "Spor ayakkabı çamuru", ok: true, why: "42 numara, kıyı kili — pencereden giren Fikret'in izi." },
-      { name: "Boş kilitli kutu", ok: true, why: "İçindeki eksik belge listesi motife işaret ediyordu; kutuyu geceleri Fikret arıyordu." },
-      { name: "Arka pencere", ok: true, why: "Gevşek çile ve devrik sandalye katilin giriş yolunu gösteriyor." },
-      { name: "Bardak içi sıvı: 50 ml, laboratuvara", ok: false, why: "Örnek teslim tutanağı; belirleyici sonuç toksikoloji raporunda." },
-      { name: "Çamur kazınması: 2 örnek", ok: false, why: "Toplama işlemi; tek başına kimseyi işaret etmiyor." },
-      { name: "Kutu + kilit düzeneği: adli fotoğraf", ok: false, why: "Belgeleme işlemi; bulgu değil." },
-      { name: "Parmak izi taraması: sonuçsuz", ok: false, why: "Sonuçsuz tarama kararı desteklemez." }
+      { name: "Yarım bardak çay", ok: true, keys: ["çay", "bardak"], why: "Dibindeki acı-buruş toz Datura tohumuydu; zehir çaya katıldı." },
+      { name: "Spor ayakkabı çamuru", ok: true, keys: ["çamur", "ayakkabı", "spor", "kil"], why: "42 numara, kıyı kili — pencereden giren Fikret'in izi." },
+      { name: "Boş kilitli kutu", ok: true, keys: ["kutu", "belge"], why: "İçindeki eksik belge listesi motife işaret ediyordu; kutuyu geceleri Fikret arıyordu." },
+      { name: "Arka pencere", ok: true, keys: ["pencere", "sandalye", "çile"], why: "Gevşek çile ve devrik sandalye katilin giriş yolunu gösteriyor." },
+      { name: "Bardak içi sıvı: 50 ml, laboratuvara", ok: false, keys: ["50 ml", "laboratuvar", "numune", "sıvı"], why: "Örnek teslim tutanağı; belirleyici sonuç toksikoloji raporunda." },
+      { name: "Çamur kazınması: 2 örnek", ok: false, keys: ["kazınma", "kazıntı"], why: "Toplama işlemi; tek başına kimseyi işaret etmiyor." },
+      { name: "Kutu + kilit düzeneği: adli fotoğraf", ok: false, keys: ["fotoğraf", "kilit düzeneği"], why: "Belgeleme işlemi; bulgu değil." },
+      { name: "Parmak izi taraması: sonuçsuz", ok: false, keys: ["parmak"], why: "Sonuçsuz tarama kararı desteklemez." }
     ],
     solution: "Katil Fikret'ti. Arda, arşivden nadir belgelerin eksildiğini fark edip eksik "
       + "kayıt listesini kilitli kutuya koymuştu; belgeleri satan Fikret'ti. Haftalarca gece "
@@ -613,14 +614,14 @@ const CASES = [
     ],
     culprit: "kadir",
     verdictEvidence: [
-      { name: "Dikiz aynası açısı", ok: true, why: "Arka koltuğa dönük ayna uzun boylu birinin ayarı — Kadir'in boyuna uyuyor." },
-      { name: "Kapatılmamış benzin kapağı", ok: true, why: "İstasyonda kapanmıştı; sonradan açıp sahneyi kuran el Kadir'indi." },
-      { name: "Dünkü tarihli gazete", ok: true, why: "Ferman'ın iki gündür araca binmediğini gösterip zaman çizgisini kilitledi." },
-      { name: "Benzin kapağı çevresi DNA örneği", ok: true, why: "Kapağı son açan kişiden alınan örnek Kadir'e işaret ediyor." },
-      { name: "Araç içi iki koku", ok: false, why: "Yanıltıcı: tütün Yusuf'un kulübesinden, vanilya Selin'den." },
-      { name: "Koku örneği (tütün/vanilya): 2 aktif karbon tüpü", ok: false, why: "Yanıltıcı kokuların toplanması; kararı desteklemiyor." },
-      { name: "Gazete (fiziksel kanıt)", ok: false, why: "Teslim tutanağı; belirleyici olan gazetenin tarihiydi, kendisi değil." },
-      { name: "Ayna mekanizması fotoğrafı", ok: false, why: "Belgeleme işlemi; belirleyici olan aynanın açısıydı." }
+      { name: "Dikiz aynası açısı", ok: true, keys: ["ayna", "dikiz"], why: "Arka koltuğa dönük ayna uzun boylu birinin ayarı — Kadir'in boyuna uyuyor." },
+      { name: "Kapatılmamış benzin kapağı", ok: true, keys: ["benzin", "kapak"], why: "İstasyonda kapanmıştı; sonradan açıp sahneyi kuran el Kadir'indi." },
+      { name: "Dünkü tarihli gazete", ok: true, keys: ["gazete", "tarih"], why: "Ferman'ın iki gündür araca binmediğini gösterip zaman çizgisini kilitledi." },
+      { name: "Benzin kapağı çevresi DNA örneği", ok: true, keys: ["dna"], why: "Kapağı son açan kişiden alınan örnek Kadir'e işaret ediyor." },
+      { name: "Araç içi iki koku", ok: false, keys: ["koku", "tütün", "vanilya"], why: "Yanıltıcı: tütün Yusuf'un kulübesinden, vanilya Selin'den." },
+      { name: "Koku örneği (tütün/vanilya): 2 aktif karbon tüpü", ok: false, keys: ["karbon"], why: "Yanıltıcı kokuların toplanması; kararı desteklemiyor." },
+      { name: "Gazete (fiziksel kanıt)", ok: false, keys: ["fiziksel"], why: "Teslim tutanağı; belirleyici olan gazetenin tarihiydi, kendisi değil." },
+      { name: "Ayna mekanizması fotoğrafı", ok: false, keys: ["mekanizma"], why: "Belgeleme işlemi; belirleyici olan aynanın açısıydı." }
     ],
     solution: "Katil Kadir'di. Ferman, şirketteki naylon fatura düzenini görmüş ve cuma günü "
       + "savcılığa dilekçe verecekti; Feride'ye 'başıma bir şey gelirse defterlere bak' demişti. "
