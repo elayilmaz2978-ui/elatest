@@ -22,6 +22,11 @@
 //   autopsy.injuries.internal        → iskelet/iç organ bulguları {x,y,label,kind}
 //   interrogation                    → POLİSİN YAPTIĞI sorgu tutanağı
 //      {speaker, text, clue?, subject} → clue: ipucu saklayan satır; subject: o an sorgulanan şüphelinin id'si
+//      interrogation.pressure        → kademeli sorgu turları {subject, minClues, records:[...]}
+//         minClues: bu kadar ipucu işaretlenince tur açılır; records salt okunur ödül ifadesidir
+//   timeline                         → zaman çizelgesi bulmacası: KRONOLOJİK sırayla olay metinleri
+//   quiz                             → karar öncesi çapraz analiz soruları {q, options, correct}
+//   elimination                      → eleme masası {id, correct, options} (culprit için correct "elenemez" seçeneğidir)
 //   deathCauses + deathCauseCorrect  → ölüm nedeni seçenekleri
 //   motives + motiveCorrect          → katilin sebebi için seçenekler
 //   suspects                         → şüpheliler {id, name, initial, note}
@@ -304,6 +309,40 @@ const CASES = [
         { subject: "fikret", speaker: "Fikret Aksel", text: "Anahtar yalnız Arda'daydı; kapıdan gece giremezsiniz. Pencerenin çilesi aylardır gevşektir, yönetime yazdım; gelen giden olmadı.", clue: true },
         { subject: "fikret", speaker: "Hakim A. Karan", text: "Son soru: Arda'nın çekmecesini en son ne zaman açtınız?" },
         { subject: "fikret", speaker: "Fikret Aksel", text: "Hiç açmadım. Arda çekmecesine dokundurtmazdı. Neden soruyorsunuz; parmak izim çıkmadı ya?" }
+      ],
+      pressure: [
+        {
+          subject: "kaan", minClues: 3, records: [
+            { subject: "kaan", speaker: "Hakim A. Karan", text: "Kaan Bey, bir kez daha düşünün: o gece pencere tarafında hiç ışık ya da hareket gördünüz mü?" },
+            { subject: "kaan", speaker: "Bekçi Kaan Yurt", text: "Arka cepheye bakmadım devriyede; ön kapıya odaklandım. Ama şimdi hatırlıyorum: dokuz buçukta ses geldiğinde ışık bir yanıp bir söner gibi oldu.", clue: true },
+            { subject: "kaan", speaker: "Hakim A. Karan", text: "Arda Bey'in gece içeride kalması normal miydi?" },
+            { subject: "kaan", speaker: "Bekçi Kaan Yurt", text: "Normaldi; kapıyı içeriden kilitler, çalışırdı. O yüzden kimse şüphelenmedi." }
+          ]
+        },
+        {
+          subject: "nermin", minClues: 6, records: [
+            { subject: "nermin", speaker: "Hakim A. Karan", text: "Nermin Hanım, Fikret Bey'in elindeki bez torbayı biraz daha anlatın." },
+            { subject: "nermin", speaker: "Nermin Kaya", text: "Küçük, koyu bir torbaydı; içinde şişe gibi bir şey vardı. Sabah çöpe attığını gördüm; çöpçüden önce karıştırmak istedim ama bulamadım.", clue: true },
+            { subject: "nermin", speaker: "Hakim A. Karan", text: "Kutunun anahtarını Arda Bey'in üzerinde gördüğünüzden emin misiniz?" },
+            { subject: "nermin", speaker: "Nermin Kaya", text: "Yeleğinin cebindeydi, zincirle bağlıydı. Anahtar hep cebindeydi; polis buldu mu bilmem." }
+          ]
+        },
+        {
+          subject: "hale", minClues: 9, records: [
+            { subject: "hale", speaker: "Hakim A. Karan", text: "Hale Hanım, o akşamki müşteri dışında Fikret Bey'i ocağınızda hatırlıyor musunuz?" },
+            { subject: "hale", speaker: "Hale Demirci", text: "Gelir arada; hep aynı şeyi söyler: 'Arda Abi'ye götürüyorum.' O akşam da aynı cümleyi duyunca garipsemedim.", clue: true },
+            { subject: "hale", speaker: "Hakim A. Karan", text: "Çayı alan kişi sizce Arda Bey'i tanıyor muydu?" },
+            { subject: "hale", speaker: "Hale Demirci", text: "İnce belli bardak istedi, şekersiz dedi. Tanıyan biri. Ama Arda'nın çay içmediğini bilen biri miydi... işte onu bilemem." }
+          ]
+        },
+        {
+          subject: "fikret", minClues: 12, records: [
+            { subject: "fikret", speaker: "Hakim A. Karan", text: "Fikret Bey, Nermin Hanım'ın gördüğü bez torbayı hatırlıyor musunuz?" },
+            { subject: "fikret", speaker: "Fikret Aksel", text: "Torba mı? Ben... çöp atmış olabilirim. Ne olduğunu hatırlamıyorum.", clue: true },
+            { subject: "fikret", speaker: "Hakim A. Karan", text: "Son bir kez: perşembe gecesi kütüphaneye hiç girdiniz mi?" },
+            { subject: "fikret", speaker: "Fikret Aksel", text: "Girmedim. Kaç kez söyleyeceğim? Avukatımı istiyorum." }
+          ]
+        }
       ]
     },
     suspects: [
@@ -336,7 +375,80 @@ const CASES = [
       + "kutunun içeriğini kimse söylemeden 'eksik evrak listesi' deyivermesi ve kimse "
       + "sormadan ayakkabı numarasını savunması son halkaydı. Esra'nın 'biri tohum karışımı "
       + "önerdi' sözü de Fikret'e çıkıyordu. Kenan'ın çamur izi gerçekten sulamadan, Esra'nın "
-      + "ruj izi eski bir bardaktandı; ikisi de temize çıktı."
+      + "ruj izi eski bir bardaktandı; ikisi de temize çıktı.",
+    timeline: [
+      "Fikret arşivden nadir belgeleri satmaya başladı; Arda eksikleri fark edip listeyi kilitli kutuya koydu.",
+      "Fikret haftalarca geceleri pencereden girip kutuyu aradı; Arda 'duvardan sesler' duyduğunu söyledi.",
+      "Arda'nın uykusuzluğu ve kâbusları arttı; Dr. Esra papatya çayı önerdi, tohum karışımına karşı çıktı.",
+      "Salı sabahı Nermin temizlikteydi; Arda ona 'bu kutu benim sigortam' dedi.",
+      "Perşembe akşamüstü biri Hale'nin ocağından 'Arda Abi'ye' diye iki bardak çay aldı.",
+      "Perşembe 21:30 civarı Tolga barışmaya geldi, kapı açılmadı; pencerede eğilmiş bir gölge gördü ve içeriden tok bir ses geldi.",
+      "22:40'ta bekçi Kaan ışığı açık gördü, içeri girdi ve 112'yi aradı."
+    ],
+    quiz: [
+      {
+        q: "Katil, içeriden kilitli kütüphaneye nasıl girdi?",
+        options: ["Arka pencereden", "Yedek anahtarla", "İçeride saklanarak", "Ön kapıdan"],
+        correct: "Arka pencereden"
+      },
+      {
+        q: "Masadaki yarım bardak çay aslında neyin işaretiydi?",
+        options: ["Arda çay içmezdi; bardak ona ait değildi", "Arda'nın misafiri sevdiğinin", "Bekçinin ikram ettiğinin", "Arda'nın son dileğinin"],
+        correct: "Arda çay içmezdi; bardak ona ait değildi"
+      },
+      {
+        q: "Kilitli kutunun içinde ne vardı?",
+        options: ["Arşivden eksilen belgelerin listesi", "Arda'nın hasta günlüğü", "Bir miktar para", "Kutu her zaman boştu"],
+        correct: "Arşivden eksilen belgelerin listesi"
+      },
+      {
+        q: "Sorgulardaki hangi detay bilinçli bir yanıltmacaydı?",
+        options: ["Esra'nın bardaktaki ruj izi", "Pencere önündeki çamur", "Devrik sandalye", "Hale'den çay siparişi"],
+        correct: "Esra'nın bardaktaki ruj izi"
+      },
+      {
+        q: "Fikret'i ele veren en belirgin dil sürçmesi hangisiydi?",
+        options: ["Kimse söylemeden kutudaki 'eksik evrak listesi'nden bahsetmesi", "Arda'yı tanımadığını iddia etmesi", "Yanlış saatte çıktığını söylemesi", "Hale'nin ocağını inkâr etmesi"],
+        correct: "Kimse söylemeden kutudaki 'eksik evrak listesi'nden bahsetmesi"
+      }
+    ],
+    elimination: [
+      {
+        id: "kaan",
+        correct: "Cesedi bulan ve 112'yi arayan kişi; çay detayını fark edip soruşturmayı o başlattı.",
+        options: ["Cesedi bulan ve 112'yi arayan kişi; çay detayını fark edip soruşturmayı o başlattı.", "Arda'ya borcu vardı, miras için öldürdü.", "Ayakkabı numarası pencere önündeki izle uyuşuyor."]
+      },
+      {
+        id: "kenan",
+        correct: "Çizmesi 44 numara; pencere önündeki iz 42 numara spor ayakkabı.",
+        options: ["Çizmesi 44 numara; pencere önündeki iz 42 numara spor ayakkabı.", "O gece bahçede olduğu için içeri de girmiş olmalı.", "Kıyı kilini bahçeye kendisi döktü, izi de onundur."]
+      },
+      {
+        id: "esra",
+        correct: "Ruj izi günler önceki bardaktan; papatya dışında hiçbir şey önermedi, kâbusların sebebini bilmiyordu.",
+        options: ["Ruj izi günler önceki bardaktan; papatya dışında hiçbir şey önermedi, kâbusların sebebini bilmiyordu.", "Arda'nın gece yanında kaldı, çıkarken kapıyı kilitledi.", "Datura'yı ilaç diye reçete etti."]
+      },
+      {
+        id: "nermin",
+        correct: "O gece evdeydi; kocası ve komşusu şahit. Fikret'i yalnızca pencerede gördü.",
+        options: ["O gece evdeydi; kocası ve komşusu şahit. Fikret'i yalnızca pencerede gördü.", "Temizlikçi olduğu için arşivin anahtarına sahipti.", "Arda'nın azarına sinirlenip kutuyu o boşalttı."]
+      },
+      {
+        id: "hale",
+        correct: "Demliğine her akşam mühür vuruyor; çay temizdi, zehir sonradan katıldı.",
+        options: ["Demliğine her akşam mühür vuruyor; çay temizdi, zehir sonradan katıldı.", "Arda'nın çay sevdiğini bilmeden bardak gönderdi.", "O akşam çayı kütüphaneye kendisi götürdü."]
+      },
+      {
+        id: "tolga",
+        correct: "Ayakkabısı 43 numara; iz 42. O gece bahçeye basmadı, gölgeyi görünce kaçtı.",
+        options: ["Ayakkabısı 43 numara; iz 42. O gece bahçeye basmadı, gölgeyi görünce kaçtı.", "Borcu yoktu; miras kavgası uydurmaydı.", "Pencereden girip cesedi o halde bıraktı."]
+      },
+      {
+        id: "fikret",
+        correct: "Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.",
+        options: ["Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.", "Sigara içmediği için bahçede olamazdı.", "Karısı o gece evde olduğuna şahitlik etti."]
+      }
+    ]
   },
   {
     id: 2,
@@ -601,6 +713,40 @@ const CASES = [
         { subject: "kadir", speaker: "Kadir Alaz", text: "Var, herkesin var. Kış günü palto giymek suç mu? Boyum uzun diye eczaneye giden ben mi oluyorum?", clue: true },
         { subject: "kadir", speaker: "Hakim A. Karan", text: "Son soru: Ferman cuma günü dilekçeyi verseydi, şirketiniz ne duruma düşerdi?" },
         { subject: "kadir", speaker: "Kadir Alaz", text: "Hiçbir şey olmazdı; defterlerim temiz dedim size. Avukatımla konuşmadan başka soru cevaplamayacağım." }
+      ],
+      pressure: [
+        {
+          subject: "mert", minClues: 3, records: [
+            { subject: "mert", speaker: "Hakim A. Karan", text: "Mert Bey, Ferman'ın yakıt aldığı saati tam hatırlıyor musunuz? Kaydınız var mı?" },
+            { subject: "mert", speaker: "Mert Benzinci", text: "Kayıt sistemimizde var: on beş kırk iki. Ferman yalnızdı; pompaya arkasından yaklaşan da olmadı.", clue: true },
+            { subject: "mert", speaker: "Hakim A. Karan", text: "Koyu paltolu adamın su aldığı saat kaçtı?" },
+            { subject: "mert", speaker: "Mert Benzinci", text: "Ona da bakarız... on sekiz elli beş. Yani adam, otoparkta görüldüğü saatten hemen önce marketteydi.", clue: true }
+          ]
+        },
+        {
+          subject: "nazan", minClues: 6, records: [
+            { subject: "nazan", speaker: "Hakim A. Karan", text: "Nazan Hanım, o uzun adamın sesiyle ilgili bir şey daha: tanıdık geliyor muydu?" },
+            { subject: "nazan", speaker: "Eczacı Nazan", text: "Şimdi düşününce... buyurgan bir tonu vardı, patron gibi konuşuyordu. Sokaktan biri değildi.", clue: true },
+            { subject: "nazan", speaker: "Hakim A. Karan", text: "Adamın saati dışında dikkatinizi çeken bir aksesuar var mıydı?" },
+            { subject: "nazan", speaker: "Eczacı Nazan", text: "Yüzüğü yoktu; parmakları bakımlıydı. Paltonun yakası kalkıktı, çıkarken de düzeltmedi." }
+          ]
+        },
+        {
+          subject: "yusuf", minClues: 9, records: [
+            { subject: "yusuf", speaker: "Hakim A. Karan", text: "Yusuf Bey, gece otoparka araç girişi oldu mu hiç?" },
+            { subject: "yusuf", speaker: "Yusuf", text: "O saatte otopark boştu; gelen tek araç yoktu. Yaya bir tek o adamdı — yani yürüyerek geldi.", clue: true },
+            { subject: "yusuf", speaker: "Hakim A. Karan", text: "Sabah polisi aradığınız saat kaçtı? Başka kimi aradınız?" },
+            { subject: "yusuf", speaker: "Yusuf", text: "Altıyı on geçe aradım 155'i. Öncesinde Ferman'ın kapısını tıklattım, cevap yoktu. Başka kimseyi aramadım.", clue: true }
+          ]
+        },
+        {
+          subject: "kadir", minClues: 12, records: [
+            { subject: "kadir", speaker: "Hakim A. Karan", text: "Kadir Bey, garaj kamerasının kayıtlarını istedik. Perşembe sabahı kaç dakika göründüğünüzü tahmin edin." },
+            { subject: "kadir", speaker: "Kadir Alaz", text: "Beş dakika dedim ya. Kamera varsa çıkar. Neden uzatıyorsunuz?", clue: true },
+            { subject: "kadir", speaker: "Hakim A. Karan", text: "Ferman'ı dilekçeden vazgeçirmek için hiç konuştunuz mu?" },
+            { subject: "kadir", speaker: "Kadir Alaz", text: "Dilekçe olduğunu sizden duyuyorum. Avukatımla görüşmeden başka cevap yok." }
+          ]
+        }
       ]
     },
     suspects: [
@@ -632,6 +778,79 @@ const CASES = [
       + "açtı, motoru çalışır bıraktı. Nazan'a bir hafta önce reçetesiz ilaç isteyen 'uzun "
       + "boylu, paltolu' kişi de oydu. Motor detayını polisten önce bilmesi ve 'Yusuf aradı' "
       + "yalanı — Yusuf kimseyi aramamıştı — son halkaydı. Tütün kokusu Yusuf'un kulübesinden, "
-      + "vanilya Selin'den; ikisi de yanıltıcıydı."
+      + "vanilya Selin'den; ikisi de yanıltıcıydı.",
+    timeline: [
+      "Ferman şirketteki naylon fatura düzenini fark etti ve savcılığa dilekçe vermeye karar verdi.",
+      "Kadir, Ferman'a defterleri sorarak ne kadar bildiğini ölçtü; Ferman korkmaya başladı.",
+      "Uzun boylu, paltolu bir adam Nazan'dan reçetesiz flunitrazepam istedi; Nazan reddetti.",
+      "Perşembe sabahı Kadir garaja uğradı; torpidodaki uyku damlası şişesi renksiz bir şişeyle değiştirildi.",
+      "Perşembe öğleden sonra Selin, kardeşinin sanarak çayına damla damlattı; Ferman uyuklamaya başladı.",
+      "Perşembe 19:00 civarı uzun boylu adam aracın aynasını ayarladı, benzin kapağını açtı ve motoru çalışır bıraktı.",
+      "Sabaha karşı Yusuf aracı fark etti ve polisi aradı; Ferman sürücü koltuğunda ölü bulundu."
+    ],
+    quiz: [
+      {
+        q: "Zehir Ferman'ın vücuduna nasıl girdi?",
+        options: ["Çayına damlatılan uyku damlasıyla", "Benzin istasyonundaki kahveyle", "Enjeksiyonla", "Selin'in getirdiği yemekle"],
+        correct: "Çayına damlatılan uyku damlasıyla"
+      },
+      {
+        q: "Damlalık şişesinin değiştirildiğini kesin olarak ne gösterdi?",
+        options: ["Nazan'ın şişesi yeşilimsiydi; kullanılan şişe renksizdi", "Ferman'ın parmak izleri", "İstasyon kamerası kayıtları", "Yusuf'un ifadesi"],
+        correct: "Nazan'ın şişesi yeşilimsiydi; kullanılan şişe renksizdi"
+      },
+      {
+        q: "Dikiz aynasının açısı neyi kanıtladı?",
+        options: ["Aynayı uzun boylu birinin ayarladığını", "Ferman'ın arka koltuğa baktığını", "Aynanın kırık olduğunu", "Katilin kısa boylu olduğunu"],
+        correct: "Aynayı uzun boylu birinin ayarladığını"
+      },
+      {
+        q: "Araç içindeki tütün ve vanilya kokuları neydi?",
+        options: ["Yanıltmaca; ikisi de başka kişilerden geliyordu", "Katilin bıraktığı izler", "Ferman'ın kendi kokuları", "Motor arızasının işareti"],
+        correct: "Yanıltmaca; ikisi de başka kişilerden geliyordu"
+      },
+      {
+        q: "Kadir'i ele veren en belirgin açık neydi?",
+        options: ["Motorun çalıştığını bilmesi ve 'Yusuf aradı' demesi — Yusuf kimseyi aramamıştı", "Ferman'ı tanımadığını söylemesi", "Garaja yanlış araçla gelmesi", "Palto giydiğini inkâr etmesi"],
+        correct: "Motorun çalıştığını bilmesi ve 'Yusuf aradı' demesi — Yusuf kimseyi aramamıştı"
+      }
+    ],
+    elimination: [
+      {
+        id: "mert",
+        correct: "Benzin kapağını istasyonda kendisi kapattı; kayıtlar o saatten sonra pompaya araç yaklaşmadığını gösteriyor.",
+        options: ["Benzin kapağını istasyonda kendisi kapattı; kayıtlar o saatten sonra pompaya araç yaklaşmadığını gösteriyor.", "Ferman'a borcu vardı, yakıta ilaç kattı.", "Ferman'la istasyonda kavga etti."]
+      },
+      {
+        id: "selin",
+        correct: "Damlalığı kardeşinin kendi ilacı sanarak kullandı; şişe çoktan değiştirilmişti, kapıyı da kilitlemediğini açıkça anlattı.",
+        options: ["Damlalığı kardeşinin kendi ilacı sanarak kullandı; şişe çoktan değiştirilmişti, kapıyı da kilitlemediğini açıkça anlattı.", "Sigorta parası için kardeşini zehirledi.", "Gece araca dönüp motoru o çalıştırdı."]
+      },
+      {
+        id: "nazan",
+        correct: "Reçetesiz ilacı reddetti; kendi verdiği şişe yeşilimsiydi ve olayda kullanılmadı.",
+        options: ["Reçetesiz ilacı reddetti; kendi verdiği şişe yeşilimsiydi ve olayda kullanılmadı.", "Uzun boylu adama ilacı el altından sattı.", "Ferman'la gizli bir ilişkisi vardı."]
+      },
+      {
+        id: "yusuf",
+        correct: "Gece boyu kulübedeydi; tütün kokusu kulübesinden geldi, araca girmediğini ve yalnızca polisi aradığını tutanak doğruluyor.",
+        options: ["Gece boyu kulübedeydi; tütün kokusu kulübesinden geldi, araca girmediğini ve yalnızca polisi aradığını tutanak doğruluyor.", "Kamerayı kapatıp aracın yanına gitti.", "Ferman'dan alacağını tahsil etmek istedi."]
+      },
+      {
+        id: "feride",
+        correct: "Ferman'ı en son iki gün önce gördü; o gece evdeydi, annesi ve telefon kayıtları şahit.",
+        options: ["Ferman'ı en son iki gün önce gördü; o gece evdeydi, annesi ve telefon kayıtları şahit.", "Sigorta lehtarı olduğu için tek şüpheli odur.", "Araçta sigara içen kişiydi."]
+      },
+      {
+        id: "baran",
+        correct: "Sekizde yalnızca camdan bakıp uyandırmadı; Ferman'ın en yakın arkadaşıydı ve dilekçeyi destekliyordu.",
+        options: ["Sekizde yalnızca camdan bakıp uyandırmadı; Ferman'ın en yakın arkadaşıydı ve dilekçeyi destekliyordu.", "Naylon fatura düzeninin ortağıydı.", "Rakıya zehir kattı."]
+      },
+      {
+        id: "kadir",
+        correct: "Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.",
+        options: ["Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.", "Defterleri temizdi, motivesi yoktu.", "O akşam evdeydi, komşuları şahit."]
+      }
+    ]
   }
 ];

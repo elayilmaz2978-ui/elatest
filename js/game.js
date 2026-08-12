@@ -16,22 +16,22 @@ const MODES = [
     id: "classic",
     name: "Klasik Soruşturma",
     desc: "Tüm raporlar açık: olay yeri, kriminal, otopsi ve sorgular. Klasik deneyim.",
-    tag: "6 kart · tüm raporlar",
-    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "verdict"]
+    tag: "9 kart · tüm raporlar",
+    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
   },
   {
     id: "interrogation",
     name: "Sorgu Odası",
     desc: "Adli raporlar dosyaya girmedi; yalnız vaka özeti, tutanaklar ve sezgilerin var.",
-    tag: "3 kart · raporsuz",
-    cards: ["brief", "interrogation", "verdict"]
+    tag: "6 kart · raporsuz",
+    cards: ["brief", "interrogation", "timeline", "quiz", "elimination", "verdict"]
   },
   {
     id: "blind",
     name: "Karanlık Dosya",
     desc: "Sorgu yok, kriminal yok: yalnız olay yeri ve otopsiyle katili çıkar. Zorlu mod.",
-    tag: "4 kart · sorgusuz",
-    cards: ["brief", "scene", "autopsy", "verdict"]
+    tag: "7 kart · sorgusuz",
+    cards: ["brief", "scene", "autopsy", "timeline", "quiz", "elimination", "verdict"]
   }
 ];
 
@@ -41,6 +41,9 @@ const CARDS = {
   csi: { title: "Kriminal Rapor", short: "Kriminal" },
   autopsy: { title: "Otopsi Raporu", short: "Otopsi" },
   interrogation: { title: "Şüpheli Sorguları", short: "Sorgular" },
+  timeline: { title: "Zaman Çizelgesi", short: "Zaman" },
+  quiz: { title: "Çapraz Analiz", short: "Analiz" },
+  elimination: { title: "Eleme Masası", short: "Eleme" },
   verdict: { title: "Karar Dosyan", short: "Karar" }
 };
 
@@ -54,7 +57,17 @@ const state = {
   activeSuspect: null,
   resolved: false,
   resultNode: null,
-  drawerOpen: false
+  drawerOpen: false,
+  timeline: null,
+  timelineScore: null,
+  timelineCorrect: 0,
+  quizAnswers: {},
+  quizLocked: false,
+  quizScore: null,
+  quizCorrect: 0,
+  elimSolved: {},
+  elimOrders: null,
+  elimDone: false
 };
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -84,8 +97,10 @@ const el = {
   drawer: document.getElementById("drawer"),
   drawerBackdrop: document.getElementById("drawer-backdrop"),
   drawerClose: document.getElementById("drawer-close"),
+  drawerBody: document.querySelector(".drawer__body"),
   drawerList: document.getElementById("drawer-list"),
   drawerEmpty: document.getElementById("drawer-empty"),
+  drawerNotes: null,
   confirmOverlay: document.getElementById("confirm-overlay"),
   confirmTitle: document.getElementById("confirm-title"),
   confirmBody: document.getElementById("confirm-body"),
@@ -159,7 +174,8 @@ function totalScore(progress) {
   }, 0);
 }
 
-const MAX_TOTAL = CASES.length * 100;
+// Vaka başına 120 puan: karar 100 + zaman çizelgesi 10 + çapraz analiz 10.
+const MAX_TOTAL = CASES.length * 120;
 
 // Zor eşikler: en üst rütbe yalnızca kusursuz kariyerle (%100) açılır.
 const RANKS = [
@@ -226,7 +242,7 @@ function renderCareerSummary() {
 
     const no = h("span", "career-summary__no", "№" + pad(c.id));
     const title = h("span", "career-summary__title", c.title);
-    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/100");
+    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/120");
     const stamp = h("span", "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
 
     li.appendChild(no);
@@ -407,7 +423,7 @@ function renderCaseGrid() {
     card.appendChild(meta);
 
     if (rec) {
-      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/100"));
+      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/120"));
     }
 
     const open = h("button", "btn case-file__open", rec ? "Dosyayı yeniden aç" : "Dosyayı aç");
@@ -429,6 +445,16 @@ function openCase(caseId) {
   state.activeSuspect = null;
   state.resolved = false;
   state.resultNode = null;
+  state.timeline = null;
+  state.timelineScore = null;
+  state.timelineCorrect = 0;
+  state.quizAnswers = {};
+  state.quizLocked = false;
+  state.quizScore = null;
+  state.quizCorrect = 0;
+  state.elimSolved = {};
+  state.elimOrders = null;
+  state.elimDone = false;
   closeDrawer();
   showView("game");
   renderGame();
@@ -505,9 +531,25 @@ function goCard(i) {
   renderCardNav();
 }
 
+// Bazı kartlar tamamlanmadan ilerlenemez (zaman, analiz, eleme).
+function cardGateDone(key) {
+  if (key === "timeline") return state.timelineScore != null;
+  if (key === "quiz") return state.quizScore != null;
+  if (key === "elimination") return state.elimDone;
+  return true;
+}
+
+function gateHintFor(key) {
+  if (key === "timeline") return "Sıralamayı tamamla ve kontrol et.";
+  if (key === "quiz") return "Tüm soruları cevapla ve kilitle.";
+  if (key === "elimination") return "Tüm şüphelileri ele.";
+  return "";
+}
+
 function advanceCard() {
   const cards = activeMode().cards;
   if (state.cardIndex >= cards.length - 1) return;
+  if (!cardGateDone(cards[state.cardIndex])) return;
   state.cardIndex += 1;
   state.unlocked = Math.max(state.unlocked, state.cardIndex + 1);
   renderTabs();
@@ -519,10 +561,16 @@ function advanceCard() {
 function renderCardNav() {
   const cards = activeMode().cards;
   const isLast = state.cardIndex === cards.length - 1;
+  const key = cards[state.cardIndex];
+  const gated = !cardGateDone(key);
   el.cardPos.textContent = "KART " + pad(state.cardIndex + 1) + " / " + pad(cards.length);
   el.prevCard.disabled = state.cardIndex === 0;
-  el.nextCard.disabled = isLast;
-  el.nextCard.textContent = isLast ? "Son kart" : "Sonraki: " + CARDS[cards[state.cardIndex + 1]].short + " →";
+  el.nextCard.disabled = isLast || gated;
+  el.nextCard.textContent = isLast
+    ? "Son kart"
+    : (gated
+      ? "Önce: " + gateHintFor(key)
+      : "Sonraki: " + CARDS[cards[state.cardIndex + 1]].short + " →");
 }
 
 el.prevCard.addEventListener("click", function () { goCard(state.cardIndex - 1); });
@@ -556,7 +604,8 @@ function cardBrief(area, c) {
 
   card.appendChild(h("h4", "report__subhead", "Görevin"));
   const tasks = h("ol", "brief-tasks");
-  ["Ölüm nedenini belirle.", "Katili tespit et ve sebebini çöz.", "Kararını doğru kanıtlarla destekle."]
+  ["Ölüm nedenini belirle.", "Katili tespit et ve sebebini çöz.", "Kararını doğru kanıtlarla destekle.",
+   "Zaman çizelgesini kur, çapraz analizi geç ve eleme masasını temizle."]
     .forEach(function (t) { tasks.appendChild(h("li", null, t)); });
   card.appendChild(tasks);
 
@@ -720,11 +769,44 @@ function renderInterrogation(c) {
     interRefs.list.appendChild(line);
   });
 
+  renderPressureRound(interRefs.list, c, state.activeSuspect);
+
   if (!REDUCED) {
     interRefs.list.classList.remove("swap");
     void interRefs.list.offsetWidth;
     interRefs.list.classList.add("swap");
   }
+}
+
+// Kademeli sorgu: yeterli satır işaretlenince şüphelinin baskı turu açılır.
+function renderPressureRound(list, c, subject) {
+  const rounds = c.interrogation.pressure || [];
+  let round = null;
+  for (let i = 0; i < rounds.length; i++) {
+    if (rounds[i].subject === subject) { round = rounds[i]; break; }
+  }
+  if (!round) return;
+
+  if (state.marked.length < round.minClues) {
+    const locked = h("div", "pressure-locked");
+    locked.appendChild(h("span", "pressure-locked__tag", "BASKI TURU KİLİTLİ"));
+    locked.appendChild(h("span", "pressure-locked__hint",
+      "Açmak için " + (round.minClues - state.marked.length)
+      + " satır daha işaretle; şüpheli bunaldıkça konuşacak."));
+    list.appendChild(locked);
+    return;
+  }
+
+  const head = h("div", "pressure-head", "BASKI TURU — YENİ İFADE");
+  list.appendChild(head);
+  round.records.forEach(function (row) {
+    const line = h("div", "transcript-line pressure-line"
+      + (row.clue ? " has-clue" : "")
+      + (row.speaker.indexOf("Hakim") === 0 ? " is-question" : ""));
+    line.appendChild(h("span", "transcript-who", row.speaker));
+    line.appendChild(h("span", "transcript-text", row.text));
+    list.appendChild(line);
+  });
 }
 
 function toggleMark(i) {
@@ -738,6 +820,244 @@ function toggleMark(i) {
   renderInterrogation(currentCase());
   renderDrawer();
   updateNoteCount();
+}
+
+// ================= Kart: Zaman Çizelgesi =================
+
+function shuffleIndices(n) {
+  const arr = [];
+  for (let i = 0; i < n; i++) arr.push(i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+  let ordered = true;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] !== i) { ordered = false; break; }
+  }
+  if (ordered && arr.length > 1) {
+    const t = arr[0]; arr[0] = arr[1]; arr[1] = t;
+  }
+  return arr;
+}
+
+function cardTimeline(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Zaman Çizelgesi"));
+  card.appendChild(h("p", "hint",
+    "Olayları kronolojik sıraya diz: en erken olaya tıklayarak sağdaki sıraya yerleştir. "
+    + "Yanlış yerleştirdiğini tıklayıp geri alabilirsin. Sıra tamamlanınca kontrol et."));
+
+  if (!state.timeline) {
+    state.timeline = { pool: shuffleIndices(c.timeline.length), placed: [] };
+  }
+  const tl = state.timeline;
+  const locked = state.timelineScore != null;
+
+  const wrap = h("div", "timeline-board");
+
+  const poolBox = h("div", "timeline-col");
+  poolBox.appendChild(h("h4", "timeline-col__head", "Olaylar"));
+  if (!tl.pool.length) poolBox.appendChild(h("p", "hint", "Havuz boşaldı."));
+  tl.pool.forEach(function (idx) {
+    const chip = h("button", "timeline-chip");
+    chip.type = "button";
+    chip.textContent = c.timeline[idx];
+    chip.addEventListener("click", function () {
+      if (locked) return;
+      tl.pool.splice(tl.pool.indexOf(idx), 1);
+      tl.placed.push(idx);
+      renderCard();
+    });
+    poolBox.appendChild(chip);
+  });
+
+  const placedBox = h("div", "timeline-col");
+  placedBox.appendChild(h("h4", "timeline-col__head", "Sıralaman"));
+  if (!tl.placed.length) placedBox.appendChild(h("p", "hint", "Henüz olay yerleştirmedin."));
+  tl.placed.forEach(function (idx, pos) {
+    const item = h("button", "timeline-item");
+    item.type = "button";
+    if (locked && tl.results) item.classList.add(tl.results[pos] ? "ok" : "bad");
+    item.appendChild(h("span", "timeline-item__no", String(pos + 1)));
+    item.appendChild(h("span", "timeline-item__text", c.timeline[idx]));
+    if (!locked) {
+      item.title = "Geri almak için tıkla";
+      item.addEventListener("click", function () {
+        tl.placed.splice(pos, 1);
+        tl.pool.push(idx);
+        renderCard();
+      });
+    }
+    placedBox.appendChild(item);
+  });
+
+  wrap.appendChild(poolBox);
+  wrap.appendChild(placedBox);
+  card.appendChild(wrap);
+
+  if (!locked) {
+    const check = h("button", "btn", "Sıralamayı kontrol et");
+    check.type = "button";
+    check.disabled = tl.pool.length > 0;
+    check.addEventListener("click", function () {
+      tl.results = tl.placed.map(function (idx, pos) { return idx === pos; });
+      state.timelineCorrect = tl.results.filter(Boolean).length;
+      state.timelineScore = Math.round(10 * state.timelineCorrect / c.timeline.length * 10) / 10;
+      renderCard();
+      renderCardNav();
+    });
+    card.appendChild(check);
+  } else {
+    card.appendChild(h("p", "card-done",
+      state.timelineCorrect + "/" + c.timeline.length + " olay doğru sırada · +"
+      + formatPoints(state.timelineScore) + " puan"));
+    if (state.timelineCorrect < c.timeline.length) {
+      card.appendChild(h("p", "hint", "Doğru kronoloji:"));
+      const sol = h("ol", "timeline-solution");
+      c.timeline.forEach(function (t) { sol.appendChild(h("li", null, t)); });
+      card.appendChild(sol);
+    }
+  }
+
+  area.appendChild(card);
+}
+
+// ================= Kart: Çapraz Analiz =================
+
+function cardQuiz(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Çapraz Analiz"));
+  card.appendChild(h("p", "hint",
+    "Dosyayı ne kadar dikkatli okudun? Her sorunun tek doğru cevabı var. "
+    + "Tüm soruları cevaplamadan kilitlenmez; kilit sonrası değişiklik yapılamaz."));
+
+  const locked = state.quizScore != null;
+
+  function allAnswered() {
+    return c.quiz.every(function (qz, qi) { return !!state.quizAnswers[qi]; });
+  }
+
+  let lockBtn = null;
+
+  c.quiz.forEach(function (qz, qi) {
+    const block = h("div", "quiz-q");
+    block.appendChild(h("p", "quiz-q__text", (qi + 1) + ". " + qz.q));
+    qz.options.forEach(function (opt) {
+      let cls = "quiz-opt";
+      if (locked) {
+        if (opt === qz.correct) cls += " ok";
+        else if (state.quizAnswers[qi] === opt) cls += " bad";
+      }
+      const label = h("label", cls);
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "quiz-" + qi;
+      input.value = opt;
+      input.checked = state.quizAnswers[qi] === opt;
+      input.disabled = locked;
+      input.addEventListener("change", function () {
+        state.quizAnswers[qi] = opt;
+        if (lockBtn) lockBtn.disabled = !allAnswered();
+      });
+      label.appendChild(input);
+      label.appendChild(h("span", null, opt));
+      block.appendChild(label);
+    });
+    if (locked && state.quizAnswers[qi] !== qz.correct) {
+      block.appendChild(h("p", "quiz-q__answer", "Doğru cevap: " + qz.correct));
+    }
+    card.appendChild(block);
+  });
+
+  if (!locked) {
+    lockBtn = h("button", "btn", "Cevapları kilitle");
+    lockBtn.type = "button";
+    lockBtn.disabled = !allAnswered();
+    lockBtn.addEventListener("click", function () {
+      state.quizCorrect = c.quiz.filter(function (qz, qi) {
+        return state.quizAnswers[qi] === qz.correct;
+      }).length;
+      state.quizScore = Math.round(10 * state.quizCorrect / c.quiz.length * 10) / 10;
+      state.quizLocked = true;
+      renderCard();
+      renderCardNav();
+    });
+    card.appendChild(lockBtn);
+  } else {
+    card.appendChild(h("p", "card-done",
+      state.quizCorrect + "/" + c.quiz.length + " doğru · +" + formatPoints(state.quizScore) + " puan"));
+  }
+
+  area.appendChild(card);
+}
+
+// ================= Kart: Eleme Masası =================
+
+function cardElimination(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Eleme Masası"));
+  card.appendChild(h("p", "hint",
+    "Katil kararından önce masayı temizle: her şüpheli için doğru eleme gerekçesini seç. "
+    + "Gerekçe tutmazsa şüpheli elenmez, dosyaya yeniden bakıp tekrar denersin. "
+    + "Herkes elenmeden karar kartı açılmaz."));
+
+  if (!state.elimOrders) {
+    state.elimOrders = {};
+    c.elimination.forEach(function (entry) {
+      state.elimOrders[entry.id] = shuffleIndices(entry.options.length)
+        .map(function (i) { return entry.options[i]; });
+    });
+  }
+
+  const list = h("div", "elim-list");
+  c.elimination.forEach(function (entry) {
+    const suspect = c.suspects.find(function (s) { return s.id === entry.id; });
+    const solved = !!state.elimSolved[entry.id];
+
+    const row = h("div", "elim-row" + (solved ? " solved" : ""));
+    row.appendChild(h("p", "elim-row__name", suspect.name + " — " + suspect.note));
+
+    if (solved) {
+      row.appendChild(h("p", "elim-row__done", "✓ " + entry.correct));
+    } else {
+      const controls = h("div", "elim-row__controls");
+      const select = h("select");
+      state.elimOrders[entry.id].forEach(function (opt) {
+        select.appendChild(h("option", null, opt)).value = opt;
+      });
+      const msg = h("span", "elim-row__msg");
+      const btn = h("button", "btn btn--small", "Ele");
+      btn.type = "button";
+      btn.addEventListener("click", function () {
+        if (select.value === entry.correct) {
+          state.elimSolved[entry.id] = true;
+          if (Object.keys(state.elimSolved).length === c.elimination.length) {
+            state.elimDone = true;
+          }
+          renderCard();
+          renderCardNav();
+        } else {
+          msg.textContent = "Bu gerekçe tutmuyor; şüpheli elenemedi. Dosyaya yeniden bak.";
+          row.classList.remove("shake");
+          void row.offsetWidth;
+          row.classList.add("shake");
+        }
+      });
+      controls.appendChild(select);
+      controls.appendChild(btn);
+      row.appendChild(controls);
+      row.appendChild(msg);
+    }
+    list.appendChild(row);
+  });
+  card.appendChild(list);
+
+  if (state.elimDone) {
+    card.appendChild(h("p", "card-done", "Masa temiz: tüm şüpheliler elendi. Karar kartı açık."));
+  }
+
+  area.appendChild(card);
 }
 
 // ================= Kart: Karar =================
@@ -915,10 +1235,15 @@ function resolveVerdict() {
     WEIGHTS.evidence * (correctCount - wrongCount) / totalCorrect
   );
 
+  const timelinePts = state.timelineScore || 0;
+  const quizPts = state.quizScore || 0;
+
   const score = (causeRight ? WEIGHTS.cause : 0)
     + (suspectRight ? WEIGHTS.suspect : 0)
     + (motiveRight ? WEIGHTS.motive : 0)
-    + evidenceScore;
+    + evidenceScore
+    + timelinePts
+    + quizPts;
 
   state.resolved = true;
 
@@ -961,12 +1286,22 @@ function resolveVerdict() {
     totalCorrect + " doğru kanıt vardı",
     correctCount === totalCorrect && wrongCount === 0,
     formatPoints(evidenceScore) + "/" + WEIGHTS.evidence);
+  addRow("Zaman çizelgesi",
+    state.timelineCorrect + "/" + c.timeline.length + " olay doğru sırada",
+    "Kronolojik sıra",
+    state.timelineCorrect === c.timeline.length,
+    formatPoints(timelinePts) + "/10");
+  addRow("Çapraz analiz",
+    state.quizCorrect + "/" + c.quiz.length + " soru doğru",
+    "Tümü doğru",
+    state.quizCorrect === c.quiz.length,
+    formatPoints(quizPts) + "/10");
 
   const totalRow = h("tr", "row-total");
   const totalLabel = h("td", null, "TOPLAM");
   totalLabel.colSpan = 3;
   totalRow.appendChild(totalLabel);
-  totalRow.appendChild(h("td", null, formatPoints(score) + "/100"));
+  totalRow.appendChild(h("td", null, formatPoints(score) + "/120"));
   report.appendChild(totalRow);
   result.appendChild(report);
 
@@ -1038,10 +1373,35 @@ const CARD_RENDERERS = {
   csi: cardCsi,
   autopsy: cardAutopsy,
   interrogation: cardInterrogation,
+  timeline: cardTimeline,
+  quiz: cardQuiz,
+  elimination: cardElimination,
   verdict: cardVerdict
 };
 
 // ================= Not Defteri çekmecesi =================
+
+const NOTES_KEY = "elagency-notes";
+
+function loadNotes() {
+  try {
+    const data = JSON.parse(localStorage.getItem(NOTES_KEY));
+    return data && typeof data === "object" ? data : {};
+  } catch (err) {
+    return {};
+  }
+}
+
+function saveNote(caseId, text) {
+  try {
+    const notes = loadNotes();
+    if (text) notes[caseId] = text;
+    else delete notes[caseId];
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+  } catch (err) {
+    // depolama yoksa sessiz geç
+  }
+}
 
 function updateNoteCount() {
   el.noteCount.textContent = String(state.marked.length);
@@ -1070,6 +1430,25 @@ function renderDrawer() {
     el.drawerList.appendChild(li);
   });
   el.drawerEmpty.hidden = state.marked.length > 0;
+
+  if (el.drawerNotes) {
+    el.drawerNotes.remove();
+    el.drawerNotes = null;
+  }
+  if (c) {
+    const notes = h("div", "drawer-notes");
+    notes.appendChild(h("h4", "drawer-notes__head", "Kendi notların"));
+    const ta = document.createElement("textarea");
+    ta.className = "drawer-notes__input";
+    ta.rows = 5;
+    ta.placeholder = "Çıkarımlarını, saatleri, şüphelerini buraya yaz...";
+    ta.value = loadNotes()[c.id] || "";
+    ta.addEventListener("input", function () { saveNote(c.id, ta.value); });
+    notes.appendChild(ta);
+    notes.appendChild(h("p", "drawer-notes__hint", "Notlar bu tarayıcıda saklanır; dosyayı kapatsan da kalır."));
+    el.drawerBody.appendChild(notes);
+    el.drawerNotes = notes;
+  }
 }
 
 function openDrawer() {
@@ -1532,15 +1911,16 @@ const FIG = {
     + "C64.2,35.8 62.4,33 61.6,30.1 C59.8,27.8 58.8,24.6 58.8,20.8 C58.8,14.2 63.2,9.2 70,9.2 Z",
   neck: "M65.4,36.6 L64.7,45.2 C64.7,47.6 66.2,48.8 70,48.8 C73.8,48.8 75.3,47.6 75.3,45.2 "
     + "L74.6,36.6 C73.2,37.5 66.8,37.5 65.4,36.6 Z",
-  torso: "M63.6,47.9 C58.6,49.3 54.6,51.1 52.3,54.3 C50.7,56.7 50.3,59.9 50.9,62.9 "
-    + "C51.7,65.3 53.3,66.9 55.3,67.7 C54.3,72.1 53.7,78.1 53.9,84.1 "
-    + "C54.1,90.1 55.1,95.1 56.5,98.6 C57.7,103.1 58.3,107.1 58.1,111.1 "
-    + "C57.9,116.1 58.9,121.1 61.1,125.1 C63.1,128.6 66.1,130.6 70,130.9 "
-    + "C73.9,130.6 76.9,128.6 78.9,125.1 C81.1,121.1 82.1,116.1 81.9,111.1 "
-    + "C81.7,107.1 82.3,103.1 83.5,98.6 C84.9,95.1 85.9,90.1 86.1,84.1 "
-    + "C86.3,78.1 85.7,72.1 84.7,67.7 C86.7,66.9 88.3,65.3 89.1,62.9 "
-    + "C89.7,59.9 89.3,56.7 87.7,54.3 C85.4,51.1 81.4,49.3 76.4,47.9 "
-    + "C72.4,49.5 67.6,49.5 63.6,47.9 Z",
+  torso: "M70,47.6 C66,47.9 64.8,48.4 63.8,49.2 C60,50.4 55.4,52 52.6,55.2 "
+    + "C50.8,57.4 50.6,60.6 51.4,63.4 C52.2,66 53,67.4 53.4,69 "
+    + "C52.8,76 53.4,84 55,91 C56.2,96.4 57,99 57.4,101.6 "
+    + "C57.8,108 56.2,113 54.8,117.6 C53.8,121 53.8,124.6 55.2,127.4 "
+    + "C57,130.8 62,133 70,133.2 "
+    + "C78,133 83,130.8 84.8,127.4 C86.2,124.6 86.2,121 85.2,117.6 "
+    + "C83.8,113 82.2,108 82.6,101.6 C83,99 83.8,96.4 85,91 "
+    + "C86.6,84 87.2,76 86.6,69 C87,67.4 87.8,66 88.6,63.4 "
+    + "C89.4,60.6 89.2,57.4 87.4,55.2 C84.6,52 80,50.4 76.2,49.2 "
+    + "C75.2,48.4 74,47.9 70,47.6 Z",
   armL: "M52,54 C49.4,56.6 48.1,60.2 48.4,64.1 C48.6,68.6 48,73.6 47.2,78.6 "
     + "C46.6,82.6 46.3,86.1 46.6,89.6 C46.9,94.1 46.3,99.1 45.7,104.1 "
     + "C45.3,107.6 45.1,110.6 45.3,113.1 C44.5,114.6 44,116.6 44.3,118.9 "
@@ -1557,24 +1937,22 @@ const FIG = {
     + "C87.5,106.9 86.9,101.4 86.6,95.9 C86.3,91.4 86,87.9 86.2,84.4 "
     + "C86.4,79.4 85.9,72.9 85.1,67.4 C84.6,63.9 85.1,59.4 86.6,56.2 "
     + "C87,55.3 87.5,54.6 88,54 Z",
-  legL: "M61.2,125.2 C59.3,128.7 58.5,132.7 58.7,137.2 C58.9,145.2 59.7,153.2 60.7,160.2 "
-    + "C61.3,165.2 61.7,169.2 61.5,173.2 C61.3,178.2 60.5,184.2 59.8,190.2 "
-    + "C59.2,196.2 59,202.2 59.4,208.2 C59.6,211.4 59.9,214.2 60.1,216.7 "
-    + "C59.5,220.7 58.5,224.4 56.7,227 C55.3,229 53.5,230 53.7,231.1 "
-    + "C53.9,232.1 55.7,232.6 58.1,232.6 L65.7,232.6 C67.1,232.6 68,231.8 67.9,230.4 "
-    + "L67.3,221.2 C67.1,218.4 67,217 66.9,215.7 C66.7,212.2 66.6,208.2 66.7,203.2 "
-    + "C66.8,197.2 67.1,190.7 67.5,184.7 C67.8,179.7 68,175.7 67.9,172.2 "
-    + "C67.8,167.7 68,161.7 68.3,155.7 C68.6,148.7 68.8,141.2 68.7,135.2 "
-    + "C68.6,131.7 68.9,128.4 69.4,126.4 C66.6,129.2 63.7,128.2 61.2,125.2 Z",
-  legR: "M78.8,125.2 C80.7,128.7 81.5,132.7 81.3,137.2 C81.1,145.2 80.3,153.2 79.3,160.2 "
-    + "C78.7,165.2 78.3,169.2 78.5,173.2 C78.7,178.2 79.5,184.2 80.2,190.2 "
-    + "C80.8,196.2 81,202.2 80.6,208.2 C80.4,211.4 80.1,214.2 79.9,216.7 "
-    + "C80.5,220.7 81.5,224.4 83.3,227 C84.7,229 86.5,230 86.3,231.1 "
-    + "C86.1,232.1 84.3,232.6 81.9,232.6 L74.3,232.6 C72.9,232.6 72,231.8 72.1,230.4 "
-    + "L72.7,221.2 C72.9,218.4 73,217 73.1,215.7 C73.3,212.2 73.4,208.2 73.3,203.2 "
-    + "C73.2,197.2 72.9,190.7 72.5,184.7 C72.2,179.7 72,175.7 72.1,172.2 "
-    + "C72.2,167.7 72,161.7 71.7,155.7 C71.4,148.7 71.2,141.2 71.3,135.2 "
-    + "C71.4,131.7 71.1,128.4 70.6,126.4 C73.4,129.2 76.3,128.2 78.8,125.2 Z"
+  legL: "M55.6,126.4 C57.4,131 58.6,138 59.2,146 C59.8,154 59.6,163 59,171 "
+    + "C58.6,176 58.8,181 59.4,187 C60,195 60.4,203 60.6,210 "
+    + "C60.7,215 61,219 61.6,222.4 C60.6,226 58.4,229.4 55.4,231.6 "
+    + "C53.8,232.8 53.2,234.2 54.2,235.2 L65.8,235.4 "
+    + "C67.2,235.4 67.8,234.4 67.6,233 C67.2,230 66.8,226.6 66.4,223.4 "
+    + "C66,219 66,215 66.2,210 C66.6,203 67.2,195 67.8,187.6 "
+    + "C68.2,181 68.4,176 68,171.4 C67.6,163 68,154 68.8,146.4 "
+    + "C69.4,139.4 69.8,134 69.6,130.6 C66,132.4 60.6,130.4 55.6,126.4 Z",
+  legR: "M84.4,126.4 C82.6,131 81.4,138 80.8,146 C80.2,154 80.4,163 81,171 "
+    + "C81.4,176 81.2,181 80.6,187 C80,195 79.6,203 79.4,210 "
+    + "C79.3,215 79,219 78.4,222.4 C79.4,226 81.6,229.4 84.6,231.6 "
+    + "C86.2,232.8 86.8,234.2 85.8,235.2 L74.2,235.4 "
+    + "C72.8,235.4 72.2,234.4 72.4,233 C72.8,230 73.2,226.6 73.6,223.4 "
+    + "C74,219 74,215 73.8,210 C73.4,203 72.8,195 72.2,187.6 "
+    + "C71.8,181 71.6,176 72,171.4 C72.4,163 72,154 71.2,146.4 "
+    + "C70.6,139.4 70.2,134 70.4,130.6 C74,132.4 79.4,130.4 84.4,126.4 Z"
 };
 
 function scaledGroup(t) {
@@ -1586,7 +1964,7 @@ function scaledGroup(t) {
 // "Dış yüzey" figürü: adli tıp şeması tarzında ön görünüm, anatomik pozisyon.
 function buildExternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-24 0 " + (BODY.canvasW + 48) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-18 0 " + (BODY.canvasW + 36) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1726,7 +2104,7 @@ function buildExternalFigure(markers, caseData) {
 // göğüs kafesi, pelvis ve renk kodlu iç organlar.
 function buildInternalFigure(markers, caseData) {
   const svg = svgEl("svg");
-  svg.setAttribute("viewBox", "-24 0 " + (BODY.canvasW + 48) + " " + BODY.canvasH);
+  svg.setAttribute("viewBox", "-18 0 " + (BODY.canvasW + 36) + " " + BODY.canvasH);
   svg.setAttribute("class", "anatomy-svg");
   const t = bodyScale(caseData).t;
 
@@ -1959,7 +2337,7 @@ function buildMarker(m, layer, index) {
   leader.setAttribute("opacity", 0.55);
   group.appendChild(leader);
 
-  const lines = wrapLabel(m.label, 20);
+  const lines = wrapLabel(m.label, 17);
   const label = svgEl("text");
   label.setAttribute("class", "marker-label");
   label.setAttribute("text-anchor", right ? "start" : "end");
