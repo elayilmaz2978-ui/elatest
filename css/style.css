@@ -553,6 +553,10 @@ body {
   stroke-width: 0.04;
 }
 
+.plan-compass--needle {
+  stroke-width: 0.05;
+}
+
 .plan-compass--head {
   fill: var(--accent);
   stroke: none;

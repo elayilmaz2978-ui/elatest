@@ -247,11 +247,11 @@ const CASES = [
       },
       objects: [
         { form: "car", x: 3.5, y: 6.2, w: 1.9, h: 4.7, mx: 2.95, my: 8.15, label: "Araç", label2: "motor çalışır, ışıklar sönük" },
-        { form: "body-seat", x: 3.05, y: 5.05, mx: 5.3, my: 4.4, label: "Ferman (ceset)", label2: "sürücü koltuğunda yığılmış" },
-        { form: "paper", x: 4.0, y: 5.05, w: 0.5, h: 0.38, mx: 5.3, my: 5.3, label: "Dünkü gazete", label2: "yolcu koltuğunda açık" },
-        { form: "mirror", x: 3.5, y: 4.45, w: 0.34, h: 0.16, mx: 5.3, my: 6.2, label: "Dikiz aynası", label2: "arka koltuğa dönük" },
-        { form: "blanket", x: 3.5, y: 7.35, w: 1.3, h: 0.65, mx: 5.3, my: 7.3, label: "Battaniye", label2: "arka koltukta sarılı" },
-        { form: "cap", x: 4.62, y: 7.7, mx: 5.3, my: 8.2, label: "Benzin kapağı", label2: "kapatılmamış" }
+        { form: "body-seat", x: 3.05, y: 5.05, mx: 5.45, my: 4.15, label: "Ferman (ceset)", label2: "sürücü koltuğunda yığılmış" },
+        { form: "paper", x: 4.0, y: 5.05, w: 0.5, h: 0.38, mx: 5.45, my: 5.25, label: "Dünkü gazete", label2: "yolcu koltuğunda açık" },
+        { form: "mirror", x: 3.5, y: 4.45, w: 0.34, h: 0.16, mx: 5.45, my: 6.35, label: "Dikiz aynası", label2: "arka koltuğa dönük" },
+        { form: "blanket", x: 3.5, y: 7.35, w: 1.3, h: 0.65, mx: 5.45, my: 7.45, label: "Battaniye", label2: "arka koltukta sarılı" },
+        { form: "cap", x: 4.62, y: 7.7, mx: 5.45, my: 8.55, label: "Benzin kapağı", label2: "kapatılmamış" }
       ],
       // Açık otopark: zemin + park çizgileri; duvar yok.
       modelSpace: { width: 14, depth: 16, wallH: 0, enclosed: false,
