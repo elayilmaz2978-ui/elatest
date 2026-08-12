@@ -22,7 +22,10 @@
 //   interrogation                    → POLİSİN YAPTIĞI sorgu tutanağı
 //      {speaker, text, clue?, subject} → clue: ipucu saklayan satır; subject: o an sorgulanan şüphelinin id'si
 //   deathCauses + deathCauseCorrect  → ölüm nedeni seçenekleri
+//   motives + motiveCorrect          → katilin sebebi için seçenekler
 //   suspects                         → şüpheliler {id, name, initial, note}
+//   verdictEvidence                  → karar kanıt havuzu {name, ok, why}
+//      ok: kararı gerçekten destekliyor mu; why: sonuç raporunda gösterilen kısa gerekçe
 //   culprit                          → doğru suçlu id'si
 //   solution                         → açıklama
 // ============================================================
@@ -137,6 +140,13 @@ const CASES = [
       "Etil alkol zehirlenmesi"
     ],
     deathCauseCorrect: "Atropin (Datura) zehirlenmesi",
+    motives: [
+      "Arşivden çaldığı nadir belgelerin ortaya çıkmasını engellemek",
+      "Miras kavgası",
+      "Kütüphane binasını sattırmak",
+      "Eski bir husumet"
+    ],
+    motiveCorrect: "Arşivden çaldığı nadir belgelerin ortaya çıkmasını engellemek",
     interrogation: {
       officer: "Sorgu Hakimi A. Karan, Emniyet Müdürlüğü",
       date: "26 Ekim, 14:00",
@@ -211,6 +221,16 @@ const CASES = [
       { id: "fikret", name: "Fikret Aksel", initial: "F", note: "Yardımcı arşiv uzmanı" }
     ],
     culprit: "fikret",
+    verdictEvidence: [
+      { name: "Yarım bardak çay", ok: true, why: "Dibindeki acı-buruş toz Datura tohumuydu; zehir çaya katıldı." },
+      { name: "Spor ayakkabı çamuru", ok: true, why: "42 numara, kıyı kili — pencereden giren Fikret'in izi." },
+      { name: "Boş kilitli kutu", ok: true, why: "İçindeki eksik belge listesi motife işaret ediyordu; kutuyu geceleri Fikret arıyordu." },
+      { name: "Arka pencere", ok: true, why: "Gevşek çile ve devrik sandalye katilin giriş yolunu gösteriyor." },
+      { name: "Bardak içi sıvı: 50 ml, laboratuvara", ok: false, why: "Örnek teslim tutanağı; belirleyici sonuç toksikoloji raporunda." },
+      { name: "Çamur kazınması: 2 örnek", ok: false, why: "Toplama işlemi; tek başına kimseyi işaret etmiyor." },
+      { name: "Kutu + kilit düzeneği: adli fotoğraf", ok: false, why: "Belgeleme işlemi; bulgu değil." },
+      { name: "Parmak izi taraması: sonuçsuz", ok: false, why: "Sonuçsuz tarama kararı desteklemez." }
+    ],
     solution: "Katil Fikret'ti. Arda, arşivden nadir belgelerin eksildiğini fark edip eksik "
       + "kayıt listesini kilitli kutuya koymuştu; belgeleri satan Fikret'ti. Haftalarca gece "
       + "pencereden girip kutuyu aradı — Arda'nın duyduğu 'duvardan sesler' buydu ve düşük doz "
@@ -237,12 +257,11 @@ const CASES = [
         + "bir battaniye sarılı durumda.",
       plan: {
         caption: "Şehir otoparkı — arka bölge",
-        w: 12, d: 13, enclosed: false,
+        w: 8.5, d: 11, enclosed: false,
         features: [
-          { kind: "line", x1: 2.2, y1: 0.6, x2: 2.2, y2: 12.4 },
-          { kind: "line", x1: 4.8, y1: 0.6, x2: 4.8, y2: 12.4 },
-          { kind: "line", x1: 7.4, y1: 0.6, x2: 7.4, y2: 12.4 },
-          { kind: "line", x1: 10.0, y1: 0.6, x2: 10.0, y2: 12.4 }
+          { kind: "line", x1: 2.2, y1: 0.6, x2: 2.2, y2: 10.4 },
+          { kind: "line", x1: 4.8, y1: 0.6, x2: 4.8, y2: 10.4 },
+          { kind: "line", x1: 7.4, y1: 0.6, x2: 7.4, y2: 10.4 }
         ]
       },
       objects: [
@@ -323,6 +342,13 @@ const CASES = [
       "Yüksek doz kafein"
     ],
     deathCauseCorrect: "Flunitrazepam (sedatif-hipnotik) zehirlenmesi",
+    motives: [
+      "Naylon fatura düzeninin savcılığa bildirilmesini engellemek",
+      "Sigorta parası",
+      "Şirket hisselerini ele geçirmek",
+      "Kıskançlık"
+    ],
+    motiveCorrect: "Naylon fatura düzeninin savcılığa bildirilmesini engellemek",
     interrogation: {
       officer: "Sorgu Hakimi A. Karan, Emniyet Müdürlüğü",
       date: "Vaka günü 13:30",
@@ -401,6 +427,16 @@ const CASES = [
       { id: "kadir", name: "Kadir Alaz", initial: "K", note: "Şirket sahibi, patron" }
     ],
     culprit: "kadir",
+    verdictEvidence: [
+      { name: "Dikiz aynası açısı", ok: true, why: "Arka koltuğa dönük ayna uzun boylu birinin ayarı — Kadir'in boyuna uyuyor." },
+      { name: "Kapatılmamış benzin kapağı", ok: true, why: "İstasyonda kapanmıştı; sonradan açıp sahneyi kuran el Kadir'indi." },
+      { name: "Dünkü tarihli gazete", ok: true, why: "Ferman'ın iki gündür araca binmediğini gösterip zaman çizgisini kilitledi." },
+      { name: "Benzin kapağı çevresi DNA örneği", ok: true, why: "Kapağı son açan kişiden alınan örnek Kadir'e işaret ediyor." },
+      { name: "Araç içi iki koku", ok: false, why: "Yanıltıcı: tütün Yusuf'un kulübesinden, vanilya Selin'den." },
+      { name: "Koku örneği (tütün/vanilya): 2 aktif karbon tüpü", ok: false, why: "Yanıltıcı kokuların toplanması; kararı desteklemiyor." },
+      { name: "Gazete (fiziksel kanıt)", ok: false, why: "Teslim tutanağı; belirleyici olan gazetenin tarihiydi, kendisi değil." },
+      { name: "Ayna mekanizması fotoğrafı", ok: false, why: "Belgeleme işlemi; belirleyici olan aynanın açısıydı." }
+    ],
     solution: "Katil Kadir'di. Ferman, şirketteki naylon fatura düzenini görmüş ve cuma günü "
       + "savcılığa dilekçe verecekti; Feride'ye 'başıma bir şey gelirse defterlere bak' demişti. "
       + "Kadir perşembe sabahı garaja uğrayıp uyku damlası şişesini, flunitrazepam dolu renksiz "

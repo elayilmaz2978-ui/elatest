@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
@@ -19,6 +19,7 @@
     <h1 class="brand"><span class="brand__ela">ELA</span><span class="brand__dot">·</span>AGENCY</h1>
     <p class="tagline">Karanlık vakalar. Keskin zekâ. Tek sen.</p>
     <p class="file-chip">DOSYA №<span id="case-no">01</span> · GİZLİ</p>
+    <p class="rank-chip">RÜTBE: <span id="rank-name">ÇAYLAK</span> · <span id="rank-score">0</span> PUAN</p>
   </header>
 
   <main class="stage" id="stage">
@@ -98,11 +99,18 @@
 
     <section class="panel verdict reveal">
       <h3 class="section-head">Karar Dosyan</h3>
+      <div id="career-summary" class="career-summary hidden"></div>
       <form id="verdict-form" class="verdict-form">
         <label for="cause-select">Ölüm nedeni neydi?</label>
         <select id="cause-select" name="cause"></select>
         <label for="suspect-select">Katil kim?</label>
         <select id="suspect-select" name="suspect"></select>
+        <label for="motive-select">Katil neden yaptı?</label>
+        <select id="motive-select" name="motive"></select>
+        <fieldset class="evidence-pick">
+          <legend>Kararını hangi kanıtlar destekliyor? <span class="evidence-pick__warn">Yanlış seçim puan düşürür.</span></legend>
+          <div id="evidence-grid" class="evidence-grid"></div>
+        </fieldset>
         <button type="submit" class="btn">Kararını ver</button>
       </form>
       <p id="result" class="result" aria-live="polite"></p>
@@ -112,9 +120,21 @@
 
   <footer class="footer reveal">
     <p>© 2026 ELA AGENCY — Bu bir kurgu. Gerçek suçları polise bırak.</p>
+    <button id="reset-progress" class="footer-reset" type="button">İlerlemeyi sıfırla</button>
   </footer>
 
-  <script src="js/cases.js?v=8"></script>
-  <script src="js/game.js?v=8"></script>
+  <div id="confirm-overlay" class="confirm-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="confirm-box">
+      <p id="confirm-title" class="confirm-box__title"></p>
+      <p id="confirm-body" class="confirm-box__body"></p>
+      <div class="confirm-box__actions">
+        <button id="confirm-yes" class="btn" type="button"></button>
+        <button id="confirm-no" class="btn btn--ghost" type="button">Vazgeç</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/cases.js?v=9"></script>
+  <script src="js/game.js?v=9"></script>
 </body>
 </html>

@@ -44,10 +44,180 @@ const el = {
   clueEmpty: document.getElementById("clue-empty"),
   causeSelect: document.getElementById("cause-select"),
   suspectSelect: document.getElementById("suspect-select"),
+  motiveSelect: document.getElementById("motive-select"),
+  evidenceGrid: document.getElementById("evidence-grid"),
+  careerSummary: document.getElementById("career-summary"),
   form: document.getElementById("verdict-form"),
   result: document.getElementById("result"),
-  nextBtn: document.getElementById("next-case")
+  nextBtn: document.getElementById("next-case"),
+  confirmOverlay: document.getElementById("confirm-overlay"),
+  confirmTitle: document.getElementById("confirm-title"),
+  confirmBody: document.getElementById("confirm-body"),
+  confirmYes: document.getElementById("confirm-yes"),
+  confirmNo: document.getElementById("confirm-no"),
+  rankName: document.getElementById("rank-name"),
+  rankScore: document.getElementById("rank-score"),
+  resetBtn: document.getElementById("reset-progress")
 };
+
+// ================= Kalıcı ilerleme (localStorage) =================
+
+const STORAGE_KEY = "elagency-progress";
+
+function loadProgress() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return data && data.cases ? data : { cases: {} };
+  } catch (err) {
+    return { cases: {} };
+  }
+}
+
+function saveProgress(progress) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  } catch (err) {
+    // depolama yoksa sessiz geç
+  }
+}
+
+function totalScore(progress) {
+  return CASES.reduce(function (sum, c) {
+    const rec = progress.cases[c.id];
+    return sum + (rec ? rec.score : 0);
+  }, 0);
+}
+
+const MAX_TOTAL = CASES.length * 100;
+
+// Zor eşikler: en üst rütbe yalnızca kusursuz kariyerle (%100) açılır.
+const RANKS = [
+  { min: 100, name: "Baş Dedektif" },
+  { min: 90, name: "Usta Dedektif" },
+  { min: 75, name: "Kıdemli Dedektif" },
+  { min: 60, name: "Dedektif" },
+  { min: 40, name: "Dedektif Yardımcısı" },
+  { min: 0, name: "Çaylak" }
+];
+
+function rankFor(percent) {
+  for (let i = 0; i < RANKS.length; i++) {
+    if (percent >= RANKS[i].min) return RANKS[i].name;
+  }
+  return RANKS[0].name;
+}
+
+function formatPoints(n) {
+  return String(Math.round(n * 10) / 10).replace(".", ",");
+}
+
+function renderRankBadge() {
+  const progress = loadProgress();
+  const total = totalScore(progress);
+  const percent = MAX_TOTAL > 0 ? (total / MAX_TOTAL) * 100 : 0;
+  el.rankName.textContent = rankFor(percent).toLocaleUpperCase("tr");
+  el.rankScore.textContent = formatPoints(total);
+}
+
+function stampTextFor(rec) {
+  if (rec.solved) return "DOSYA KAPANDI";
+  if (rec.partial) return "KISMEN ÇÖZÜLDÜ";
+  return "DOSYA AÇIK KALDI";
+}
+
+function renderCareerSummary() {
+  const progress = loadProgress();
+  const solved = CASES.filter(function (c) { return progress.cases[c.id]; });
+
+  el.careerSummary.innerHTML = "";
+  if (!solved.length) {
+    el.careerSummary.classList.add("hidden");
+    return;
+  }
+
+  const head = document.createElement("h4");
+  head.className = "career-summary__head";
+  head.textContent = "Kariyer Dosyan";
+  el.careerSummary.appendChild(head);
+
+  const list = document.createElement("ul");
+  list.className = "career-summary__list";
+  solved.forEach(function (c) {
+    const rec = progress.cases[c.id];
+    const li = document.createElement("li");
+
+    const no = document.createElement("span");
+    no.className = "career-summary__no";
+    no.textContent = "№" + String(c.id).padStart(2, "0");
+
+    const title = document.createElement("span");
+    title.className = "career-summary__title";
+    title.textContent = c.title;
+
+    const score = document.createElement("span");
+    score.className = "career-summary__score";
+    score.textContent = formatPoints(rec.score) + "/100";
+
+    const stamp = document.createElement("span");
+    stamp.className = "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad"));
+    stamp.textContent = stampTextFor(rec);
+
+    li.appendChild(no);
+    li.appendChild(title);
+    li.appendChild(score);
+    li.appendChild(stamp);
+    list.appendChild(li);
+  });
+  el.careerSummary.appendChild(list);
+
+  const total = totalScore(progress);
+  const foot = document.createElement("p");
+  foot.className = "career-summary__total";
+  foot.textContent = "Toplam " + formatPoints(total) + "/" + MAX_TOTAL + " puan · Rütbe: "
+    + rankFor((total / MAX_TOTAL) * 100);
+  if (total < MAX_TOTAL) {
+    foot.textContent += " · Baş Dedektif'e " + formatPoints(MAX_TOTAL - total) + " puan kaldı";
+  }
+  el.careerSummary.appendChild(foot);
+
+  el.careerSummary.classList.remove("hidden");
+}
+
+// ================= Onay penceresi =================
+
+const confirmState = { action: null };
+
+function openConfirm(title, body, yesLabel, action) {
+  el.confirmTitle.textContent = title;
+  el.confirmBody.textContent = body;
+  el.confirmYes.textContent = yesLabel;
+  confirmState.action = action;
+  el.confirmOverlay.classList.remove("hidden");
+  el.confirmYes.focus();
+}
+
+function closeConfirm() {
+  el.confirmOverlay.classList.add("hidden");
+  confirmState.action = null;
+}
+
+el.confirmYes.addEventListener("click", function () {
+  const action = confirmState.action;
+  closeConfirm();
+  if (action) action();
+});
+
+el.confirmNo.addEventListener("click", closeConfirm);
+
+el.confirmOverlay.addEventListener("click", function (e) {
+  if (e.target === el.confirmOverlay) closeConfirm();
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && !el.confirmOverlay.classList.contains("hidden")) {
+    closeConfirm();
+  }
+});
 
 // ================= Görsel katman yardımcıları =================
 
@@ -139,10 +309,12 @@ function loadCase(index) {
   renderClues();
   fillSelects();
 
-  el.result.textContent = "";
+  el.result.innerHTML = "";
   el.result.className = "result";
   el.nextBtn.classList.add("hidden");
+  el.nextBtn.textContent = "Sıradaki vaka";
   el.form.classList.remove("hidden");
+  renderCareerSummary();
 
   armReveals();
   updateProgress();
@@ -1283,6 +1455,9 @@ function renderClues() {
 
 // ================= Karar formu =================
 
+// Puan ağırlıkları: vaka başına toplam 100.
+const WEIGHTS = { suspect: 40, cause: 25, motive: 20, evidence: 15 };
+
 function fillSelects() {
   el.causeSelect.innerHTML = "";
   current().deathCauses.forEach(function (cause) {
@@ -1299,70 +1474,232 @@ function fillSelects() {
     opt.textContent = s.name;
     el.suspectSelect.appendChild(opt);
   });
+
+  el.motiveSelect.innerHTML = "";
+  current().motives.forEach(function (motive) {
+    const opt = document.createElement("option");
+    opt.value = motive;
+    opt.textContent = motive;
+    el.motiveSelect.appendChild(opt);
+  });
+
+  renderEvidencePicker();
+}
+
+function renderEvidencePicker() {
+  el.evidenceGrid.innerHTML = "";
+  current().verdictEvidence.forEach(function (ev) {
+    const label = document.createElement("label");
+    label.className = "evidence-pick__item";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.name = "evidence";
+    box.value = ev.name;
+    const text = document.createElement("span");
+    text.textContent = ev.name;
+    label.appendChild(box);
+    label.appendChild(text);
+    el.evidenceGrid.appendChild(label);
+  });
 }
 
 function current() {
   return state.currentCase;
 }
 
+function evidenceByName(name) {
+  const found = current().verdictEvidence.find(function (ev) { return ev.name === name; });
+  return found || { ok: false, why: "" };
+}
+
 el.form.addEventListener("submit", function (e) {
   e.preventDefault();
   if (state.resolved) return;
+  openConfirm(
+    "Kararından emin misin?",
+    "Dosya mühürlenecek ve geri açılmayacak.",
+    "Evet, mühürle",
+    resolveVerdict
+  );
+});
+
+function resolveVerdict() {
+  if (state.resolved) return;
+  const c = current();
 
   const causeGuess = el.causeSelect.value;
-  const causeRight = causeGuess === current().deathCauseCorrect;
   const suspectGuess = el.suspectSelect.value;
-  const suspectRight = suspectGuess === current().culprit;
+  const motiveGuess = el.motiveSelect.value;
+
+  const causeRight = causeGuess === c.deathCauseCorrect;
+  const suspectRight = suspectGuess === c.culprit;
+  const motiveRight = motiveGuess === c.motiveCorrect;
+
+  const picks = Array.prototype.map.call(
+    el.evidenceGrid.querySelectorAll("input:checked"),
+    function (input) { return input.value; }
+  );
+  const correctPicks = picks.filter(function (name) { return evidenceByName(name).ok; });
+  const wrongPicks = picks.filter(function (name) { return !evidenceByName(name).ok; });
+  const totalCorrect = c.verdictEvidence.filter(function (ev) { return ev.ok; }).length;
+  const evidenceScore = Math.max(
+    0,
+    WEIGHTS.evidence * (correctPicks.length - wrongPicks.length) / totalCorrect
+  );
+
+  const score = (causeRight ? WEIGHTS.cause : 0)
+    + (suspectRight ? WEIGHTS.suspect : 0)
+    + (motiveRight ? WEIGHTS.motive : 0)
+    + evidenceScore;
 
   state.resolved = true;
   el.form.classList.add("hidden");
-  el.nextBtn.classList.remove("hidden");
+  setupNextButton();
 
-  const culprit = current().suspects.find(function (s) {
-    return s.id === current().culprit;
-  });
+  const culprit = c.suspects.find(function (s) { return s.id === c.culprit; });
+  const solved = causeRight && suspectRight;
+  const partial = causeRight || suspectRight;
 
-  // İşaretlenen satırlardan kaçı gerçekten ipucuymuş?
-  const records = current().interrogation.records;
-  const clueHits = state.marked.filter(function (i) { return records[i].clue; }).length;
-  const totalClues = records.filter(function (r) { return r.clue; }).length;
-  const markedCount = state.marked.length;
-
-  let msg = "İşaretlediğin " + markedCount + " satırdan " + clueHits
-    + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
-
-  let verdict;
-  if (causeRight && suspectRight) {
-    el.result.className = "result correct";
-    verdict = "Mükemmel! Hem ölüm nedenini ("
-      + causeGuess + ") hem katili (" + culprit.name
-      + ") buldun. " + current().solution;
-  } else if (causeRight && !suspectRight) {
-    el.result.className = "result partial";
-    verdict = "Ölüm nedeni doğru (" + causeGuess
-      + ") ama sanık yanlış. Gerçek katil " + culprit.name
-      + " idi. " + current().solution;
-  } else if (suspectRight && !causeRight) {
-    el.result.className = "result partial";
-    verdict = "Katili buldun (" + culprit.name
-      + ") ama ölüm nedeni yanlış. Doğrusu: " + current().deathCauseCorrect
-      + ". " + current().solution;
-  } else {
-    el.result.className = "result wrong";
-    verdict = "İkisinde de yanıldın. Doğru ölüm nedeni: "
-      + current().deathCauseCorrect + "; katil: " + culprit.name
-      + ". " + current().solution;
-  }
-  el.result.textContent = msg + verdict;
+  el.result.innerHTML = "";
+  el.result.className = "result " + (solved ? "correct" : (partial ? "partial" : "wrong"));
 
   // Karar mührü
   const stamp = document.createElement("span");
-  const solved = causeRight && suspectRight;
-  const partial = causeRight || suspectRight;
   stamp.className = "stamp-verdict " + (solved ? "ok" : (partial ? "mid" : "bad"));
   stamp.textContent = solved ? "DOSYA KAPANDI" : (partial ? "KISMEN ÇÖZÜLDÜ" : "DOSYA AÇIK KALDI");
-  el.result.insertAdjacentElement("beforebegin", stamp);
-});
+  el.result.appendChild(stamp);
+
+  // Karşılaştırmalı karar raporu
+  const report = document.createElement("table");
+  report.className = "verdict-report";
+  const thead = document.createElement("tr");
+  ["", "Senin kararın", "Doğrusu", "Puan"].forEach(function (h) {
+    const th = document.createElement("th");
+    th.textContent = h;
+    thead.appendChild(th);
+  });
+  report.appendChild(thead);
+
+  function suspectName(id) {
+    const s = c.suspects.find(function (x) { return x.id === id; });
+    return s ? s.name : id;
+  }
+
+  function addRow(label, guess, correct, ok, points) {
+    const tr = document.createElement("tr");
+    tr.className = ok ? "row-ok" : "row-bad";
+    [label + (ok ? " ✓" : " ✗"), guess, correct, points].forEach(function (cell) {
+      const td = document.createElement("td");
+      td.textContent = cell;
+      tr.appendChild(td);
+    });
+    report.appendChild(tr);
+  }
+
+  addRow("Ölüm nedeni", causeGuess, c.deathCauseCorrect, causeRight,
+    (causeRight ? WEIGHTS.cause : 0) + "/" + WEIGHTS.cause);
+  addRow("Katil", suspectName(suspectGuess), culprit.name, suspectRight,
+    (suspectRight ? WEIGHTS.suspect : 0) + "/" + WEIGHTS.suspect);
+  addRow("Sebep", motiveGuess, c.motiveCorrect, motiveRight,
+    (motiveRight ? WEIGHTS.motive : 0) + "/" + WEIGHTS.motive);
+  addRow("Kanıt seçimi",
+    picks.length ? correctPicks.length + " doğru, " + wrongPicks.length + " yanlış" : "Seçim yapılmadı",
+    totalCorrect + " doğru kanıt vardı",
+    correctPicks.length === totalCorrect && wrongPicks.length === 0,
+    formatPoints(evidenceScore) + "/" + WEIGHTS.evidence);
+
+  const totalRow = document.createElement("tr");
+  totalRow.className = "row-total";
+  const totalLabel = document.createElement("td");
+  totalLabel.colSpan = 3;
+  totalLabel.textContent = "TOPLAM";
+  const totalValue = document.createElement("td");
+  totalValue.textContent = formatPoints(score) + "/100";
+  totalRow.appendChild(totalLabel);
+  totalRow.appendChild(totalValue);
+  report.appendChild(totalRow);
+
+  el.result.appendChild(report);
+
+  // Seçilen kanıtların değerlendirmesi
+  if (picks.length) {
+    const review = document.createElement("ul");
+    review.className = "evidence-review";
+    picks.forEach(function (name) {
+      const ev = evidenceByName(name);
+      const li = document.createElement("li");
+      li.className = ev.ok ? "row-ok" : "row-bad";
+      const mark = document.createElement("span");
+      mark.className = "evidence-review__mark";
+      mark.textContent = ev.ok ? "✓" : "✗";
+      const body = document.createElement("span");
+      const strong = document.createElement("strong");
+      strong.textContent = name + ": ";
+      body.appendChild(strong);
+      body.appendChild(document.createTextNode(ev.why));
+      li.appendChild(mark);
+      li.appendChild(body);
+      review.appendChild(li);
+    });
+    el.result.appendChild(review);
+  }
+
+  const missed = c.verdictEvidence.filter(function (ev) {
+    return ev.ok && picks.indexOf(ev.name) === -1;
+  });
+  if (missed.length) {
+    const missedP = document.createElement("p");
+    missedP.className = "evidence-missed";
+    missedP.textContent = "Kaçırdığın doğru kanıtlar: "
+      + missed.map(function (ev) { return ev.name; }).join(", ");
+    el.result.appendChild(missedP);
+  }
+
+  // İşaretlenen satırlardan kaçı gerçekten ipucuymuş?
+  const records = c.interrogation.records;
+  const clueHits = state.marked.filter(function (i) { return records[i].clue; }).length;
+  const totalClues = records.filter(function (r) { return r.clue; }).length;
+
+  const msg = document.createElement("p");
+  msg.className = "result__text";
+  let text = "İşaretlediğin " + state.marked.length + " satırdan " + clueHits
+    + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
+  if (solved) {
+    text += "Mükemmel! Hem ölüm nedenini (" + causeGuess + ") hem katili ("
+      + culprit.name + ") buldun. " + c.solution;
+  } else if (causeRight) {
+    text += "Ölüm nedeni doğru (" + causeGuess + ") ama sanık yanlış. Gerçek katil "
+      + culprit.name + " idi. " + c.solution;
+  } else if (suspectRight) {
+    text += "Katili buldun (" + culprit.name + ") ama ölüm nedeni yanlış. Doğrusu: "
+      + c.deathCauseCorrect + ". " + c.solution;
+  } else {
+    text += "İkisinde de yanıldın. Doğru ölüm nedeni: " + c.deathCauseCorrect
+      + "; katil: " + culprit.name + ". " + c.solution;
+  }
+  msg.textContent = text;
+  el.result.appendChild(msg);
+
+  // Kalıcı kayda işle (aynı vakanın en iyi skoru saklanır)
+  const progress = loadProgress();
+  const prev = progress.cases[c.id];
+  const rec = {
+    score: Math.round(score * 10) / 10,
+    solved: solved,
+    partial: partial,
+    at: Date.now()
+  };
+  progress.cases[c.id] = prev && prev.score >= rec.score ? prev : rec;
+  saveProgress(progress);
+  renderRankBadge();
+  renderCareerSummary();
+}
+
+function setupNextButton() {
+  const isLast = state.caseIndex % CASES.length === CASES.length - 1;
+  el.nextBtn.textContent = isLast ? "Kariyer özeti" : "Sıradaki vaka";
+  el.nextBtn.classList.remove("hidden");
+}
 
 function scrollTopInstant() {
   const prev = document.documentElement.style.scrollBehavior;
@@ -1372,6 +1709,15 @@ function scrollTopInstant() {
 }
 
 el.nextBtn.addEventListener("click", function () {
+  // Son vaka çözüldüyse kariyer özetine götür.
+  if (state.caseIndex % CASES.length === CASES.length - 1) {
+    renderCareerSummary();
+    el.careerSummary.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
+    el.careerSummary.classList.remove("career-summary--flash");
+    void el.careerSummary.offsetWidth;
+    el.careerSummary.classList.add("career-summary--flash");
+    return;
+  }
   state.caseIndex += 1;
   if (REDUCED) {
     loadCase(state.caseIndex);
@@ -1386,6 +1732,24 @@ el.nextBtn.addEventListener("click", function () {
   }, 290);
 });
 
+el.resetBtn.addEventListener("click", function () {
+  openConfirm(
+    "İlerlemen silinecek",
+    "Tüm puanların ve rütben sıfırlanacak. Emin misin?",
+    "Evet, sıfırla",
+    function () {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (err) {
+        // depolama yoksa sessiz geç
+      }
+      renderRankBadge();
+      renderCareerSummary();
+    }
+  );
+});
+
 loadCase(0);
 typeTagline();
 updateProgress();
+renderRankBadge();
