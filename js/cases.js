@@ -113,9 +113,9 @@ const CASES = [
           { x: 66, y: 40, kind: "dry", label: "Ağız/boğaz mukozası kuruluğu" }
         ],
         internal: [
-          { x: 70, y: 100, kind: "stomach", label: "Mide: 180 ml sıvı + siyah tohumlar (bitki artığı)" },
-          { x: 62, y: 66, kind: "heart", label: "Kalp: ritim bozukluğu (aritmi) izi" },
-          { x: 70, y: 126, kind: "bladder", label: "Mesane dolu, böbrek olağan" }
+          { x: 78, y: 96, kind: "stomach", label: "Mide: 180 ml sıvı + siyah tohumlar (bitki artığı)" },
+          { x: 70, y: 73, kind: "heart", label: "Kalp: ritim bozukluğu (aritmi) izi" },
+          { x: 70, y: 129, kind: "bladder", label: "Mesane dolu, böbrek olağan" }
         ]
       },
       toxicology: [
@@ -302,8 +302,8 @@ const CASES = [
           { x: 70, y: 85, kind: "cold", label: "Vücut ısısı düşük, kuru-açık ten" }
         ],
         internal: [
-          { x: 70, y: 100, kind: "stomach", label: "Mide boş; ilaç emilimi dışında iz yok" },
-          { x: 78, y: 74, kind: "liver", label: "Karaciğer: yüksek ilaç konsantrasyonu" }
+          { x: 78, y: 96, kind: "stomach", label: "Mide boş; ilaç emilimi dışında iz yok" },
+          { x: 63, y: 94, kind: "liver", label: "Karaciğer: yüksek ilaç konsantrasyonu" }
         ]
       },
       toxicology: [

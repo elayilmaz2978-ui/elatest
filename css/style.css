@@ -443,83 +443,293 @@ body {
   color: var(--ink);
 }
 
-/* ---- Olay yeri krokisi (SVG) ---- */
+/* ---- Olay yeri krokisi ---- */
+.scene-figure {
+  margin: 1rem 0 0;
+  border: 1px solid var(--paper-edge);
+  background: var(--paper-panel);
+  box-shadow: var(--shadow-card);
+  padding: 0.9rem 1rem 1rem;
+}
+
+.scene-figure__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.scene-figure__title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.scene-figure__meta {
+  font-family: var(--font-type);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
 .scene-plan {
-  margin-top: 0.8rem;
   border: 1px solid var(--line);
-  background: var(--paper-deep);
-  padding: 0.5rem;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 246, 222, 0.55), transparent 70%),
+    var(--paper);
+  box-shadow: inset 0 0 18px rgba(90, 60, 30, 0.12);
 }
 
-.plan-shape {
-  fill: var(--paper-panel);
-  stroke: var(--ink-soft);
-  stroke-width: 0.5;
-  stroke-dasharray: 1, 0.8;
-}
-
-.plan-label {
-  fill: var(--ink-soft);
-  font-size: 3px;
-  font-family: var(--font-body);
-}
-
-/* ---- Olay yeri "fotoğrafı" ---- */
-.scene-photo {
-  position: relative;
-  margin-top: 1rem;
-  border: 10px solid #a98d5f;
-  outline: 1px solid rgba(90, 60, 30, 0.4);
-  box-shadow: inset 0 0 24px rgba(40, 25, 10, 0.35), 0 8px 20px rgba(45, 30, 14, 0.25);
-  background: #cbb58a;
-  overflow: hidden;
-}
-
-.scene-svg {
+.plan-svg {
   width: 100%;
   height: auto;
   display: block;
-  filter: sepia(0.35) contrast(1.02);
-  transition: transform 1.4s ease;
+  animation: plan-in 0.5s ease both;
 }
 
-.scene-photo:hover .scene-svg {
-  transform: scale(1.035);
+.plan-svg text {
+  font-family: var(--font-type);
 }
 
-.scene-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: #fff6e2;
-  opacity: 0;
-  pointer-events: none;
+/* çizim öğeleri */
+.plan-grid {
+  stroke: rgba(107, 90, 69, 0.16);
+  stroke-width: 0.02;
 }
 
-.scene-photo.flash::after {
-  animation: photo-flash 0.85s ease-out both;
+.plan-boundary {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 0.05;
+  stroke-dasharray: 0.32 0.2;
 }
 
-.scene-object {
-  stroke: rgba(58, 46, 34, 0.55);
-  stroke-width: 0.5;
+.plan-line {
+  stroke: rgba(107, 90, 69, 0.55);
+  stroke-width: 0.07;
+  stroke-dasharray: 0.5 0.3;
 }
 
-.scene-label {
-  font-size: 2.4px;
-  fill: #3a2e22;
-  font-family: Georgia, serif;
+.plan-wall {
+  stroke: #33271a;
+  stroke-width: 0.16;
+  stroke-linecap: square;
+}
+
+.plan-window {
+  stroke: #4a6fa5;
+  stroke-width: 0.06;
+}
+
+.plan-door {
+  stroke: var(--ink-soft);
+  stroke-width: 0.05;
+  fill: none;
+}
+
+.plan-door--arc {
+  stroke-width: 0.03;
+  stroke-dasharray: 0.12 0.09;
+}
+
+.plan-dim {
+  stroke: #8a7a5c;
+  stroke-width: 0.03;
+}
+
+.plan-dim-text {
+  fill: var(--ink-soft);
+}
+
+.plan-compass {
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-width: 0.04;
+}
+
+.plan-compass--head {
+  fill: var(--accent);
+  stroke: none;
+}
+
+.plan-compass-text {
+  fill: var(--ink);
+  font-weight: 700;
+}
+
+.plan-feature-label {
+  fill: #4a3b28;
   font-style: italic;
-  letter-spacing: 0.02em;
-  paint-order: stroke;
-  stroke: rgba(233, 220, 191, 0.8);
-  stroke-width: 0.6px;
-  stroke-linejoin: round;
 }
 
-.scene-label--sub {
-  font-size: 2px;
-  fill: #6b5a45;
+/* mobilya / nesne çizimleri */
+.plan-furniture {
+  fill: #e6d5ae;
+  stroke: #4a3b28;
+  stroke-width: 0.05;
+}
+
+.plan-furniture--desk {
+  fill: #dcc79b;
+}
+
+.plan-furniture--shelf {
+  fill: #d3bc8d;
+}
+
+.plan-furniture--car {
+  fill: #b9beb4;
+  stroke: #3f4238;
+}
+
+.plan-furniture--paper {
+  fill: #f2e8cf;
+}
+
+.plan-furniture--back {
+  fill: #b49a6d;
+}
+
+.plan-detail {
+  fill: none;
+  stroke: rgba(107, 90, 69, 0.8);
+  stroke-width: 0.03;
+}
+
+.plan-detail--dashed {
+  stroke-dasharray: 0.12 0.09;
+}
+
+.plan-body {
+  fill: rgba(143, 45, 36, 0.1);
+  stroke: var(--accent);
+  stroke-width: 0.05;
+  stroke-dasharray: 0.15 0.1;
+}
+
+.plan-patch {
+  fill: rgba(107, 79, 48, 0.16);
+  stroke: #6b4f30;
+  stroke-width: 0.04;
+  stroke-dasharray: 0.18 0.1;
+}
+
+.plan-small {
+  fill: #f2e8cf;
+  stroke: #4a3b28;
+  stroke-width: 0.04;
+}
+
+/* kanıt rozetleri + bağlantı çizgileri */
+.plan-leader {
+  stroke: rgba(107, 90, 69, 0.75);
+  stroke-width: 0.03;
+  stroke-dasharray: 0.1 0.08;
+}
+
+.plan-marker-disc {
+  fill: var(--brass);
+  stroke: #33271a;
+  stroke-width: 0.045;
+}
+
+.plan-marker-num {
+  fill: #2a2016;
+  font-weight: 700;
+}
+
+/* vurgu (hover/odak) */
+.plan-item {
+  cursor: help;
+}
+
+.plan-svg.has-hot .plan-item:not(.hot) {
+  opacity: 0.38;
+}
+
+.plan-item.hot .plan-marker-disc {
+  fill: var(--accent-bright);
+}
+
+.plan-item.hot .plan-marker-num {
+  fill: #f6ead2;
+}
+
+/* lejant */
+.plan-legend {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.3rem 0.9rem;
+}
+
+.plan-legend li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: baseline;
+  padding: 0.28rem 0.5rem;
+  border: 1px dashed transparent;
+  cursor: help;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.plan-legend li:hover,
+.plan-legend li.hot,
+.plan-legend li:focus-visible {
+  background: rgba(201, 168, 106, 0.28);
+  border-color: var(--line);
+}
+
+.plan-legend__num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4em;
+  height: 1.4em;
+  border-radius: 50%;
+  background: var(--brass);
+  border: 1px solid rgba(51, 39, 26, 0.6);
+  color: #2a2016;
+  font-family: var(--font-type);
+  font-weight: 700;
+  font-size: 0.72rem;
+  transform: translateY(0.15em);
+}
+
+.plan-legend li.hot .plan-legend__num,
+.plan-legend li:hover .plan-legend__num {
+  background: var(--accent-bright);
+  color: #f6ead2;
+}
+
+.plan-legend__text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.plan-legend__sub {
+  color: var(--ink-soft);
+}
+
+@keyframes plan-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-svg {
+    animation: none;
+  }
 }
 
 /* ---- Sorgu tutanağı ---- */
@@ -768,9 +978,8 @@ body {
 }
 
 .organ {
-  fill-opacity: 0.55;
+  fill-opacity: 0.6;
   stroke-width: 1;
-  stroke-dasharray: 3 2;
   stroke-opacity: 0.85;
 }
 
@@ -804,6 +1013,56 @@ body {
   stroke: #a08a3a;
 }
 
+.organ--trachea {
+  fill: #d9c8a8;
+  stroke: #8a6f47;
+}
+
+.organ--kidney {
+  fill: #b5714f;
+  stroke: #7f4a2e;
+}
+
+/* İç figür: soluk beden silüeti */
+.silhouette {
+  fill: rgba(213, 191, 149, 0.32);
+  stroke: #8a6f47;
+  stroke-width: 0.9;
+  stroke-dasharray: 2.5 2;
+}
+
+/* Yüz hatları (dış figür) */
+.face-line {
+  fill: none;
+  stroke: #8a6f47;
+  stroke-width: 0.7;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.eye-shape {
+  fill: #efe0bd;
+  stroke: #6b5a45;
+  stroke-width: 0.6;
+}
+
+.pupil {
+  fill: #3a2e22;
+}
+
+/* Organ ayrıntı çizgileri (fissür, kıvrım, damar hizası) */
+.detail-line {
+  fill: none;
+  stroke: #6b5a45;
+  stroke-width: 0.8;
+  stroke-linecap: round;
+  opacity: 0.5;
+}
+
+.detail-line--dash {
+  stroke-dasharray: 2 1.6;
+}
+
 .bone-path {
   fill: none;
   stroke: #6b5a45;
@@ -814,6 +1073,21 @@ body {
 .bone-path.light {
   stroke-width: 1.5;
   opacity: 0.65;
+}
+
+/* Omur, eklem ve küçük kemik parçaları */
+.bone-seg {
+  fill: #e8dcc0;
+  stroke: #6b5a45;
+  stroke-width: 0.8;
+}
+
+/* Pelvis kanatları */
+.bone-wing {
+  fill: rgba(232, 220, 192, 0.4);
+  stroke: #6b5a45;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
 }
 
 .marker-num {
@@ -1270,15 +1544,6 @@ body {
   }
   100% {
     transform: translate(0, 0);
-  }
-}
-
-@keyframes photo-flash {
-  0% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
   }
 }
 

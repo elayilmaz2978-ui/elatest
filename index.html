@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=7">
+  <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
@@ -31,7 +31,16 @@
     <section id="scene" class="report reveal">
       <h3 class="section-head">Olay Yeri</h3>
       <p id="scene-summary" class="report__body"></p>
-      <div id="scene-photo" class="scene-photo" role="img" aria-label="Olay yeri fotoğrafı"></div>
+      <figure class="scene-figure">
+        <figcaption class="scene-figure__head">
+          <span class="scene-figure__title">Olay Yeri Krokisi</span>
+          <span id="scene-plan-meta" class="scene-figure__meta"></span>
+        </figcaption>
+        <div id="scene-plan" class="scene-plan"></div>
+        <ol id="plan-legend" class="plan-legend"></ol>
+        <p class="hint">Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır.</p>
+      </figure>
+      <h4 class="report__subhead">Olay yerinde toplananlar</h4>
       <ul id="scene-evidence" class="evidence-list"></ul>
     </section>
 
@@ -105,7 +114,7 @@
     <p>© 2026 ELA AGENCY — Bu bir kurgu. Gerçek suçları polise bırak.</p>
   </footer>
 
-  <script src="js/cases.js?v=7"></script>
-  <script src="js/game.js?v=7"></script>
+  <script src="js/cases.js?v=8"></script>
+  <script src="js/game.js?v=8"></script>
 </body>
 </html>
