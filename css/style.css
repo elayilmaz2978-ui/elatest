@@ -10,9 +10,9 @@
   --paper-deep: #d9c69f;     /* daha koyu kâğıt */
   --paper-panel: #f4ead2;    /* rapor kartı zemini */
   --paper-edge: #c9b285;     /* kart kenarı */
-  --accent: #7a4a28;         /* kahve (noir dokunuş) */
-  --accent-bright: #a56d3d;  /* parlak kahve */
-  --blood: #4a2f1a;          /* koyu kahve */
+  --accent: #915c33;         /* kahve (noir dokunuş) */
+  --accent-bright: #b9814e;  /* parlak kahve */
+  --blood: #5c3c20;          /* koyu kahve */
   --line: #b49a6d;           /* eski mürekkep çizgisi */
   --brass: #c9a86a;          /* pirinç/eski altın vurgu */
   --noir: #16120e;           /* koyu başlık zemini */
@@ -24,6 +24,7 @@
   --font-type: "Courier Prime", "Courier New", monospace;
   --font-body: Georgia, "Times New Roman", serif;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  --aged: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23a)' opacity='0.05'/%3E%3Ccircle cx='52' cy='70' r='30' fill='%238a6f47' opacity='0.06'/%3E%3Ccircle cx='190' cy='180' r='42' fill='%237a5a35' opacity='0.05'/%3E%3Ccircle cx='150' cy='40' r='20' fill='%238a6f47' opacity='0.06'/%3E%3Ccircle cx='30' cy='210' r='26' fill='%237a5a35' opacity='0.05'/%3E%3Cellipse cx='222' cy='92' rx='30' ry='18' fill='%238a6f47' opacity='0.05'/%3E%3C/svg%3E");
 }
 
 * {
@@ -46,15 +47,16 @@ body {
   flex-direction: column;
   overflow-x: clip;
   background:
+    var(--aged),
     radial-gradient(1100px 480px at 50% -120px, rgba(255, 241, 205, 0.55), transparent 65%),
-    radial-gradient(800px 420px at 88% 24%, rgba(122, 74, 40, 0.05), transparent 60%),
+    radial-gradient(800px 420px at 88% 24%, rgba(145, 92, 51, 0.05), transparent 60%),
     radial-gradient(700px 420px at 8% 68%, rgba(107, 90, 69, 0.08), transparent 60%),
     var(--paper);
   background-attachment: fixed;
 }
 
 ::selection {
-  background: rgba(122, 74, 40, 0.85);
+  background: rgba(145, 92, 51, 0.85);
   color: #f6ead2;
 }
 
@@ -119,7 +121,7 @@ body {
   height: 100%;
   width: 0;
   background: linear-gradient(90deg, var(--accent), var(--accent-bright));
-  box-shadow: 0 0 8px rgba(165, 109, 61, 0.75);
+  box-shadow: 0 0 8px rgba(185, 129, 78, 0.75);
   transition: width 0.35s ease;
 }
 
@@ -219,8 +221,8 @@ body.view-game .footer {
 
 .rank-chip {
   color: var(--accent-bright);
-  border: 1px solid rgba(165, 109, 61, 0.55);
-  background: rgba(165, 109, 61, 0.08);
+  border: 1px solid rgba(185, 129, 78, 0.55);
+  background: rgba(185, 129, 78, 0.08);
 }
 
 .stat-chip {
@@ -314,10 +316,10 @@ body.view-game .footer {
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
+  background: var(--aged), linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1rem 1.1rem 1.05rem;
   cursor: pointer;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), inset 0 0 26px rgba(145, 92, 51, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -329,7 +331,7 @@ body.view-game .footer {
 
 .mode-card.selected {
   border-left-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(122, 74, 40, 0.3), var(--shadow-card);
+  box-shadow: 0 0 0 2px rgba(145, 92, 51, 0.3), var(--shadow-card);
 }
 
 .mode-card.selected::after {
@@ -385,9 +387,9 @@ body.view-game .footer {
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--accent);
   border-radius: 14px 2px 14px 14px;
-  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
+  background: var(--aged), linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1.2rem 1.2rem 1.3rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), inset 0 0 30px rgba(145, 92, 51, 0.09);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -525,7 +527,7 @@ body.view-game .footer {
 .game-head__notes:hover {
   color: #f6ead2;
   border-color: var(--accent-bright);
-  background: rgba(165, 109, 61, 0.2);
+  background: rgba(185, 129, 78, 0.2);
 }
 
 .game-head__file {
@@ -558,9 +560,9 @@ body.view-game .footer {
   font-size: 0.64rem;
   letter-spacing: 0.18em;
   color: var(--accent-bright);
-  border: 1px solid rgba(165, 109, 61, 0.55);
+  border: 1px solid rgba(185, 129, 78, 0.55);
   border-radius: 999px;
-  background: rgba(165, 109, 61, 0.12);
+  background: rgba(185, 129, 78, 0.12);
   padding: 0.3rem 0.7rem 0.24rem;
 }
 
@@ -597,10 +599,10 @@ body.view-game .footer {
 }
 
 .card-tab.active {
-  background: rgba(122, 74, 40, 0.92);
+  background: rgba(145, 92, 51, 0.92);
   border-color: var(--blood);
   color: #f6ead2;
-  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
+  box-shadow: 0 4px 12px rgba(145, 92, 51, 0.35);
 }
 
 .card-tab:disabled {
@@ -645,9 +647,9 @@ body.view-game .footer {
   border: 1px solid var(--paper-edge);
   border-left: 4px solid var(--accent);
   border-radius: 14px 2px 14px 14px;
-  background: linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
+  background: var(--aged), linear-gradient(180deg, rgba(244, 234, 210, 0.92) 0%, rgba(238, 224, 193, 0.92) 100%);
   padding: 1.5rem 1.5rem 1.8rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), inset 0 0 34px rgba(145, 92, 51, 0.09);
 }
 
 .card::before {
@@ -834,8 +836,9 @@ body.view-game .footer {
   position: relative;
   margin: 1rem 0 0;
   border: 1px solid var(--paper-edge);
-  background: var(--paper-panel);
-  box-shadow: var(--shadow-card);
+  border-radius: 12px;
+  background: var(--aged), var(--paper-panel);
+  box-shadow: var(--shadow-card), inset 0 0 26px rgba(145, 92, 51, 0.07);
   padding: 0.9rem 1rem 1rem;
 }
 
@@ -913,9 +916,9 @@ body.view-game .footer {
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(122, 74, 40, 0.6);
-  border: 1.5px solid rgba(122, 74, 40, 0.55);
-  outline: 1.5px solid rgba(122, 74, 40, 0.4);
+  color: rgba(145, 92, 51, 0.6);
+  border: 1.5px solid rgba(145, 92, 51, 0.55);
+  outline: 1.5px solid rgba(145, 92, 51, 0.4);
   outline-offset: 2.5px;
   border-radius: 4px;
   padding: 0.16rem 0.55rem;
@@ -1048,7 +1051,7 @@ body.view-game .footer {
 }
 
 .plan-body {
-  fill: rgba(122, 74, 40, 0.1);
+  fill: rgba(145, 92, 51, 0.1);
   stroke: var(--accent);
   stroke-width: 0.05;
   stroke-dasharray: 0.15 0.1;
@@ -1095,7 +1098,7 @@ body.view-game .footer {
 
 .plan-item.hot .plan-marker {
   fill: var(--accent-bright);
-  stroke: #4a2f1a;
+  stroke: #5c3c20;
 }
 
 .plan-item.hot .plan-marker-num {
@@ -1147,7 +1150,7 @@ body.view-game .footer {
 .plan-legend li.hot .plan-legend__num,
 .plan-legend li:hover .plan-legend__num {
   background: var(--accent-bright);
-  border-color: #4a2f1a;
+  border-color: #5c3c20;
   color: #f6ead2;
 }
 
@@ -1199,10 +1202,10 @@ body.view-game .footer {
 }
 
 .suspect-chip.active {
-  background: rgba(122, 74, 40, 0.92);
+  background: rgba(145, 92, 51, 0.92);
   border-color: var(--blood);
   color: #f6ead2;
-  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
+  box-shadow: 0 4px 12px rgba(145, 92, 51, 0.35);
 }
 
 .suspect-chip__initial {
@@ -1212,7 +1215,7 @@ body.view-game .footer {
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #6b4423, var(--blood));
+  background: radial-gradient(circle at 35% 30%, #7d5630, var(--blood));
   color: #f3e6c8;
   font-family: var(--font-display);
   font-weight: 600;
@@ -1433,8 +1436,8 @@ body.view-game .footer {
 }
 
 .organ--heart {
-  fill: #a4552f;
-  stroke: #6e3a1f;
+  fill: #b06a3e;
+  stroke: #8a5230;
 }
 
 .organ--liver {
@@ -1624,26 +1627,26 @@ body.view-game .footer {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  background: linear-gradient(180deg, rgba(143, 90, 48, 0.9), rgba(122, 74, 40, 0.9));
+  background: linear-gradient(180deg, rgba(185, 129, 78, 0.9), rgba(145, 92, 51, 0.9));
   color: #f6ead2;
   border: none;
   border-bottom: 3px solid var(--blood);
   border-radius: 12px;
   padding: 0.7rem 1.6rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(122, 74, 40, 0.35);
+  box-shadow: 0 4px 12px rgba(145, 92, 51, 0.35);
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background 0.18s ease;
 }
 
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(122, 74, 40, 0.4);
+  box-shadow: 0 8px 18px rgba(145, 92, 51, 0.4);
   filter: brightness(1.06);
 }
 
 .btn:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 2px 6px rgba(122, 74, 40, 0.35);
+  box-shadow: 0 2px 6px rgba(145, 92, 51, 0.35);
 }
 
 .btn:disabled {
@@ -1653,7 +1656,7 @@ body.view-game .footer {
 }
 
 .btn--ghost {
-  background: rgba(122, 74, 40, 0.06);
+  background: rgba(145, 92, 51, 0.06);
   color: var(--accent);
   border: 1px solid var(--accent);
   border-bottom-width: 3px;
@@ -1662,7 +1665,7 @@ body.view-game .footer {
 }
 
 .btn--ghost:hover:not(:disabled) {
-  background: rgba(122, 74, 40, 0.08);
+  background: rgba(145, 92, 51, 0.08);
   box-shadow: none;
 }
 
@@ -1689,7 +1692,7 @@ body.view-game .footer {
   min-width: 200px;
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4a28' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
+  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23915c33' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1707,7 +1710,7 @@ body.view-game .footer {
 .verdict-form select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(122, 74, 40, 0.18);
+  box-shadow: 0 0 0 3px rgba(145, 92, 51, 0.18);
 }
 
 .evidence-pick {
@@ -1866,7 +1869,7 @@ body.view-game .footer {
 
 .verdict-report tr.row-bad td:nth-child(2) {
   text-decoration: line-through;
-  text-decoration-color: rgba(74, 47, 26, 0.5);
+  text-decoration-color: rgba(92, 60, 32, 0.5);
 }
 
 .verdict-report tr.row-total td {
@@ -1939,7 +1942,7 @@ body.view-game .footer {
   width: min(380px, 92vw);
   display: flex;
   flex-direction: column;
-  background: var(--paper-panel);
+  background: var(--aged), var(--paper-panel);
   border-left: 4px solid var(--accent);
   box-shadow: -12px 0 30px rgba(45, 30, 14, 0.3);
   transform: translateX(105%);
@@ -2042,7 +2045,8 @@ body.view-game .footer {
 /* ---- Kariyer özeti ---- */
 .career-summary {
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  background: var(--aged), rgba(255, 255, 255, 0.35);
   padding: 0.9rem 1rem;
 }
 
@@ -2452,7 +2456,7 @@ body.view-game .footer {
 
 .timeline-item.bad {
   border-color: var(--blood);
-  background: rgba(74, 47, 26, 0.07);
+  background: rgba(92, 60, 32, 0.07);
   cursor: default;
 }
 
@@ -2524,7 +2528,7 @@ body.view-game .footer {
 
 .quiz-opt.bad {
   border-color: var(--blood);
-  background: rgba(74, 47, 26, 0.08);
+  background: rgba(92, 60, 32, 0.08);
 }
 
 .quiz-q__answer {
@@ -2574,7 +2578,7 @@ body.view-game .footer {
   min-width: 220px;
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a4a28' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
+  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23915c33' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -2686,7 +2690,7 @@ body.view-game .footer {
 .drawer-notes__input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(122, 74, 40, 0.15);
+  box-shadow: 0 0 0 3px rgba(145, 92, 51, 0.15);
 }
 
 .drawer-notes__hint {
