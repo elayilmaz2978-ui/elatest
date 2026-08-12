@@ -4,28 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ELAGENCYLER — Son Görev</title>
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
+  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
   <header class="topbar">
-    <h1 class="brand">ELA·AGENCY</h1>
+    <div class="stamp" style="--rot: 8deg" aria-hidden="true">GİZLİ</div>
+    <h1 class="brand"><span class="brand__ela">ELA</span><span class="brand__dot">·</span>AGENCY</h1>
     <p class="tagline">Karanlık vakalar. Keskin zekâ. Tek sen.</p>
+    <p class="file-chip">DOSYA №<span id="case-no">01</span> · GİZLİ</p>
   </header>
 
-  <main class="stage">
-    <section id="case" class="case">
+  <main class="stage" id="stage">
+    <section id="case" class="case reveal">
+      <p class="case__kicker">Vaka Dosyası</p>
       <h2 id="case-title" class="case__title">—</h2>
       <p id="case-story" class="case__story"></p>
     </section>
 
-    <section id="scene" class="report">
+    <section id="scene" class="report reveal">
       <h3 class="section-head">Olay Yeri</h3>
       <p id="scene-summary" class="report__body"></p>
       <div id="scene-photo" class="scene-photo" role="img" aria-label="Olay yeri fotoğrafı"></div>
       <ul id="scene-evidence" class="evidence-list"></ul>
     </section>
 
-    <section id="csi" class="report">
+    <section id="csi" class="report reveal">
       <h3 class="section-head">Olay Yeri İnceleme Raporu</h3>
       <p id="csi-examiner" class="report__meta"></p>
       <p id="csi-finding" class="report__body"></p>
@@ -33,7 +43,7 @@
       <ul id="csi-items" class="evidence-list"></ul>
     </section>
 
-    <section id="autopsy" class="report">
+    <section id="autopsy" class="report reveal">
       <h3 class="section-head">Otopsi Raporu</h3>
       <p id="autopsy-patholog" class="report__meta"></p>
       <h4 class="report__subhead">Dış Muayene</h4>
@@ -57,7 +67,7 @@
       <p id="autopsy-cause" class="report__body"></p>
     </section>
 
-    <section id="transcript" class="report">
+    <section id="transcript" class="report reveal">
       <h3 class="section-head">Şüpheli Sorguları</h3>
       <p id="transcript-meta" class="report__meta"></p>
       <div id="session-tabs" class="session-tabs" role="tablist"></div>
@@ -66,18 +76,18 @@
       <div id="transcript-list" class="transcript"></div>
     </section>
 
-    <section class="suspects">
+    <section class="panel reveal">
       <h3 class="section-head">Şüpheliler</h3>
       <div id="suspect-grid" class="suspect-grid"></div>
     </section>
 
-    <section class="clues">
+    <section class="panel reveal">
       <h3 class="section-head">İşaretlediklerim</h3>
       <ul id="clue-list" class="clue-list"></ul>
       <p id="clue-empty" class="hint">Tutanaktan satır işaretledikçe buraya düşecek.</p>
     </section>
 
-    <section class="verdict">
+    <section class="panel verdict reveal">
       <h3 class="section-head">Karar Dosyan</h3>
       <form id="verdict-form" class="verdict-form">
         <label for="cause-select">Ölüm nedeni neydi?</label>
@@ -91,11 +101,11 @@
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer reveal">
     <p>© 2026 ELA AGENCY — Bu bir kurgu. Gerçek suçları polise bırak.</p>
   </footer>
 
-  <script src="js/cases.js?v=5"></script>
-  <script src="js/game.js?v=5"></script>
+  <script src="js/cases.js?v=6"></script>
+  <script src="js/game.js?v=6"></script>
 </body>
 </html>

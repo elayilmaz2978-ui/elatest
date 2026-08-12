@@ -9,7 +9,14 @@ const state = {
   resolved: false
 };
 
+const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
 const el = {
+  stage: document.getElementById("stage"),
+  caseNo: document.getElementById("case-no"),
+  progressBar: document.getElementById("progress-bar"),
+  tagline: document.querySelector(".tagline"),
+  verdictBox: document.querySelector(".verdict"),
   title: document.getElementById("case-title"),
   story: document.getElementById("case-story"),
   sceneSummary: document.getElementById("scene-summary"),
@@ -40,12 +47,83 @@ const el = {
   nextBtn: document.getElementById("next-case")
 };
 
+// ================= Görsel katman yardımcıları =================
+
+// Scroll ile beliren bölümler: her vaka yüklenişinde yeniden kurulur.
+const revealObserver = ("IntersectionObserver" in window) ? new IntersectionObserver(function (entries) {
+  entries.forEach(function (en) {
+    if (en.isIntersecting) {
+      en.target.classList.add("in");
+      revealObserver.unobserve(en.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }) : null;
+
+function armReveals() {
+  const items = document.querySelectorAll(".reveal");
+  if (!revealObserver || REDUCED) {
+    items.forEach(function (r) { r.classList.add("in"); });
+    return;
+  }
+  items.forEach(function (r) {
+    r.classList.remove("in");
+    revealObserver.observe(r);
+  });
+}
+
+// Liste öğelerini tek tek içeri süzer (--i ile kademeli gecikme).
+function stagger(container) {
+  if (!container || REDUCED) return;
+  const kids = container.children;
+  for (let i = 0; i < kids.length; i++) {
+    kids[i].style.setProperty("--i", i);
+  }
+  container.classList.remove("stagger");
+  void container.offsetWidth;
+  container.classList.add("stagger");
+  clearTimeout(container._staggerTimer);
+  container._staggerTimer = setTimeout(function () {
+    container.classList.remove("stagger");
+  }, 700 + kids.length * 80);
+}
+
+// Üstte dosya ilerleme çubuğu
+function updateProgress() {
+  const doc = document.documentElement;
+  const max = doc.scrollHeight - doc.clientHeight;
+  el.progressBar.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + "%";
+}
+window.addEventListener("scroll", updateProgress, { passive: true });
+window.addEventListener("resize", updateProgress);
+
+// Başlık sloganını daktilo efektiyle yazar
+function typeTagline() {
+  if (REDUCED || !el.tagline) return;
+  const full = el.tagline.textContent;
+  el.tagline.textContent = "";
+  el.tagline.classList.add("typing");
+  let i = 0;
+  (function tick() {
+    el.tagline.textContent = full.slice(0, i);
+    if (i >= full.length) {
+      setTimeout(function () { el.tagline.classList.remove("typing"); }, 1400);
+      return;
+    }
+    i++;
+    setTimeout(tick, 40 + Math.random() * 45);
+  })();
+}
+
 function loadCase(index) {
   const current = CASES[index % CASES.length];
   state.currentCase = current;
   state.marked = [];
   state.activeSuspect = null;
   state.resolved = false;
+
+  el.caseNo.textContent = String(current.id).padStart(2, "0");
+  const oldStamp = el.verdictBox.querySelector(".stamp-verdict");
+  if (oldStamp) oldStamp.remove();
 
   el.title.textContent = current.title;
   el.story.textContent = current.story;
@@ -63,6 +141,9 @@ function loadCase(index) {
   el.result.className = "result";
   el.nextBtn.classList.add("hidden");
   el.form.classList.remove("hidden");
+
+  armReveals();
+  updateProgress();
 }
 
 // ================= Olay yeri =================
@@ -80,6 +161,7 @@ function renderScene(caseData) {
     li.appendChild(document.createTextNode(" — " + ev.desc));
     el.sceneEvidence.appendChild(li);
   });
+  stagger(el.sceneEvidence);
 }
 
 // Sahneyi SVG ile çizer: sepya "eski fotoğraf" karesi.
@@ -159,6 +241,11 @@ function renderScenePhoto(objects) {
   });
 
   el.scenePhoto.appendChild(svg);
+
+  // "Fotoğraf flaşı" efekti
+  el.scenePhoto.classList.remove("flash");
+  void el.scenePhoto.offsetWidth;
+  if (!REDUCED) el.scenePhoto.classList.add("flash");
 }
 
 // ================= CSI raporu =================
@@ -173,6 +260,7 @@ function renderCsi(caseData) {
     li.textContent = itemText;
     el.csiItems.appendChild(li);
   });
+  stagger(el.csiItems);
 }
 
 // ================= Otopsi raporu =================
@@ -207,6 +295,7 @@ function renderToxTable(rows) {
     });
     el.toxTable.appendChild(tr);
   });
+  stagger(el.toxTable);
 }
 
 // ================= Anatomi figürleri =================
@@ -668,7 +757,7 @@ function renderTabs(caseData) {
 
 function selectSuspect(id) {
   state.activeSuspect = id;
-  renderTranscript(state.currentCase);
+  renderTranscript(state.currentCase, true);
   applyCardSelection();
 }
 
@@ -683,7 +772,7 @@ function applyCardSelection() {
   }
 }
 
-function renderTranscript(caseData) {
+function renderTranscript(caseData, animate) {
   const rec = caseData.interrogation;
   el.transcriptMeta.textContent = rec.officer + "  •  " + rec.date;
 
@@ -725,6 +814,12 @@ function renderTranscript(caseData) {
 
     el.transcriptList.appendChild(line);
   });
+
+  if (animate && !REDUCED) {
+    el.transcriptList.classList.remove("swap");
+    void el.transcriptList.offsetWidth;
+    el.transcriptList.classList.add("swap");
+  }
 }
 
 function toggleMark(i) {
@@ -770,6 +865,7 @@ function renderSuspects() {
 
     el.suspectGrid.appendChild(card);
   });
+  stagger(el.suspectGrid);
 }
 
 // ================= İşaretlediklerim =================
@@ -865,11 +961,38 @@ el.form.addEventListener("submit", function (e) {
       + ". " + current().solution;
   }
   el.result.textContent = msg + verdict;
+
+  // Karar mührü
+  const stamp = document.createElement("span");
+  const solved = causeRight && suspectRight;
+  const partial = causeRight || suspectRight;
+  stamp.className = "stamp-verdict " + (solved ? "ok" : (partial ? "mid" : "bad"));
+  stamp.textContent = solved ? "DOSYA KAPANDI" : (partial ? "KISMEN ÇÖZÜLDÜ" : "DOSYA AÇIK KALDI");
+  el.result.insertAdjacentElement("beforebegin", stamp);
 });
+
+function scrollTopInstant() {
+  const prev = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, 0);
+  document.documentElement.style.scrollBehavior = prev;
+}
 
 el.nextBtn.addEventListener("click", function () {
   state.caseIndex += 1;
-  loadCase(state.caseIndex);
+  if (REDUCED) {
+    loadCase(state.caseIndex);
+    scrollTopInstant();
+    return;
+  }
+  el.stage.classList.add("stage--out");
+  setTimeout(function () {
+    loadCase(state.caseIndex);
+    scrollTopInstant();
+    el.stage.classList.remove("stage--out");
+  }, 290);
 });
 
 loadCase(0);
+typeTagline();
+updateProgress();
