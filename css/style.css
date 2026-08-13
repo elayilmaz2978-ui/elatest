@@ -3098,7 +3098,7 @@ body.view-game .footer {
 
 /* A — daktilo */
 .intro__phase--type {
-  animation: intro-phase-io 2.2s ease 0s forwards;
+  animation: intro-phase-io 2.5s ease 0s forwards;
 }
 
 .intro__line {
@@ -3118,7 +3118,7 @@ body.view-game .footer {
 .intro__line--2 {
   font-size: clamp(0.9rem, 2.6vw, 1.2rem);
   color: var(--brass);
-  animation: intro-type-2 0.85s steps(23, end) 1.2s forwards;
+  animation: intro-type-2 0.7s steps(23, end) 1.25s forwards;
 }
 
 @keyframes intro-type-1 {
@@ -3131,7 +3131,7 @@ body.view-game .footer {
 
 /* B — mühür */
 .intro__phase--stamp {
-  animation: intro-phase-io 1.5s ease 2.1s forwards;
+  animation: intro-phase-io 1.5s ease 2.4s forwards;
 }
 
 .intro__stamp {
@@ -3146,7 +3146,7 @@ body.view-game .footer {
   padding: 0.7rem 1.4rem;
   transform: rotate(-7deg);
   opacity: 0;
-  animation: intro-slam 0.5s cubic-bezier(0.25, 1.6, 0.4, 1) 2.25s forwards;
+  animation: intro-slam 0.5s cubic-bezier(0.25, 1.6, 0.4, 1) 2.55s forwards;
 }
 
 @keyframes intro-slam {
@@ -3167,7 +3167,7 @@ body.view-game .footer {
 
 /* C — klasör */
 .intro__phase--folder {
-  animation: intro-phase-in 0.5s ease 3.5s forwards;
+  animation: intro-phase-in 0.5s ease 3.8s forwards;
 }
 
 .intro__folder {
@@ -3211,7 +3211,7 @@ body.view-game .footer {
   z-index: 3;
   opacity: 0;
   transform: translateY(10px);
-  animation: intro-paper 0.9s ease 4s forwards;
+  animation: intro-paper 0.9s ease 4.3s forwards;
 }
 
 .intro__folder-front {
@@ -3222,7 +3222,7 @@ body.view-game .footer {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
   transform-origin: bottom center;
   z-index: 4;
-  animation: intro-flap 0.9s cubic-bezier(0.6, 0, 0.3, 1) 3.7s forwards;
+  animation: intro-flap 0.9s cubic-bezier(0.6, 0, 0.3, 1) 3.9s forwards;
 }
 
 .intro__folder-front::after {
