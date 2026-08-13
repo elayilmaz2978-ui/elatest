@@ -49,6 +49,37 @@ const CARDS = {
 
 const ROLES = ["Olay Yeri", "Kriminal", "Adli Tıp", "Sorgu"];
 
+// Kart -> uzmanlık eşlemesi; eşlemesi olmayan kartlar (brief, timeline, quiz,
+// elimination, verdict) her dedektife açıktır.
+const ROLE_CARD = { scene: "Olay Yeri", csi: "Kriminal", autopsy: "Adli Tıp", interrogation: "Sorgu" };
+
+// i. oyuncunun uzmanlıkları: roller dağıtılarak paylaştırılır, 4. oyuncudan
+// sonrası "serbest"tir (tüm kartları görür).
+function rolesOf(i, n) {
+  if (!n || n <= 1) return ROLES.slice();
+  if (i >= ROLES.length) return ROLES.slice();
+  const out = [];
+  for (let j = 0; j < ROLES.length; j++) {
+    if (j % n === i) out.push(ROLES[j]);
+  }
+  return out.length ? out : [ROLES[i % ROLES.length]];
+}
+
+// Rol filtresi yalnız çevrimiçi ekip oyununda etkin.
+function roleFilterActive() {
+  return !!(state.net && state.teamCount > 1);
+}
+
+function visibleCards() {
+  const cards = activeMode().cards;
+  if (!roleFilterActive()) return cards;
+  const roles = rolesOf(state.mySlot, state.teamCount);
+  return cards.filter(function (k) {
+    const r = ROLE_CARD[k];
+    return !r || roles.indexOf(r) !== -1;
+  });
+}
+
 const state = {
   view: "lobby",
   modeId: "classic",
@@ -60,6 +91,7 @@ const state = {
   players: [],
   teamCount: 1,
   activePlayer: 0,
+  mySlot: 0,
   teamConfirm: [],
   activeSuspect: null,
   resolved: false,
@@ -372,7 +404,7 @@ function updateProgressBar() {
     el.progressBar.style.width = "0%";
     return;
   }
-  const total = activeMode().cards.length;
+  const total = visibleCards().length;
   el.progressBar.style.width = (Math.min(state.unlocked, total) / total) * 100 + "%";
 }
 
@@ -394,7 +426,9 @@ function isTeam() {
 }
 
 function roleName(i) {
-  return ROLES[i % ROLES.length];
+  const n = state.teamCount || 1;
+  if (n > ROLES.length && i >= ROLES.length) return "Serbest";
+  return rolesOf(i, n).join(" + ");
 }
 
 function syncPlayers() {
@@ -488,15 +522,19 @@ function renderTeamBar() {
   el.teamBar.innerHTML = "";
   if (!isTeam()) return;
   state.players.forEach(function (p, i) {
-    const chip = h("button", "team-chip" + (i === state.activePlayer ? " active" : ""));
+    const mine = i === state.mySlot;
+    const chip = h("button", "team-chip" + (mine ? " active" : ""));
     chip.type = "button";
     chip.appendChild(h("strong", null, p.name));
-    chip.appendChild(h("em", null, p.role));
-    chip.title = "İşaretleri bu dedektife yaz";
+    chip.appendChild(h("em", null, p.role + (mine ? " · SEN" : "")));
+    chip.title = roleFilterActive()
+      ? "Bu cihaz " + p.name + " olarak oynar; kartların buna göre görünür"
+      : "İşaretleri bu dedektife yaz";
     chip.addEventListener("click", function () {
+      state.mySlot = i;
       state.activePlayer = i;
       netSend({ t: "active", i: i });
-      renderTeamBar();
+      renderGame();
     });
     el.teamBar.appendChild(chip);
   });
@@ -568,8 +606,9 @@ function sendSnapshot() {
   netSend({
     t: "snapshot",
     state: {
-      modeId: state.modeId, caseId: state.caseId, cardIndex: state.cardIndex,
-      unlocked: state.unlocked, marked: state.marked, markedBy: state.markedBy,
+      modeId: state.modeId, caseId: state.caseId,
+      cardKey: visibleCards()[state.cardIndex],
+      marked: state.marked, markedBy: state.markedBy,
       teamCount: state.teamCount, teamNames: state.teamNames, players: state.players,
       activePlayer: state.activePlayer, teamConfirm: state.teamConfirm
     }
@@ -581,7 +620,14 @@ function applySnapshot(s) {
   state.modeId = s.modeId; state.teamCount = s.teamCount; state.teamNames = s.teamNames;
   state.players = s.players; state.activePlayer = s.activePlayer; state.teamConfirm = s.teamConfirm;
   state.marked = s.marked || []; state.markedBy = s.markedBy || {};
-  if (s.caseId != null) { state.caseId = s.caseId; state.cardIndex = s.cardIndex; state.unlocked = s.unlocked; showView("game"); renderGame(); }
+  if (s.caseId != null) {
+    state.caseId = s.caseId;
+    const cards = visibleCards();
+    const idx = cards.indexOf(s.cardKey);
+    state.cardIndex = idx >= 0 ? idx : 0;
+    state.unlocked = idx >= 0 ? Math.max(state.unlocked, idx + 1) : state.unlocked;
+    showView("game"); renderGame();
+  }
   applyingRemote = false;
 }
 
@@ -600,8 +646,16 @@ function netApply(m) {
   } else if (m.t === "case") {
     openCase(m.id);
   } else if (m.t === "card") {
-    state.unlocked = Math.max(state.unlocked, m.unlocked || 0);
-    goCard(m.i);
+    const cards = visibleCards();
+    const idx = cards.indexOf(m.key);
+    if (idx !== -1) {
+      state.unlocked = Math.max(state.unlocked, idx + 1);
+      state.cardIndex = idx;
+      renderTabs();
+      renderCard();
+      renderCardNav();
+      updateProgressBar();
+    }
   } else if (m.t === "verdict") {
     if (verdictRefs) {
       verdictRefs.causeSelect.value = m.cause;
@@ -746,7 +800,7 @@ function renderGame() {
 }
 
 function renderTabs() {
-  const cards = activeMode().cards;
+  const cards = visibleCards();
   el.cardTabs.innerHTML = "";
   cards.forEach(function (key, i) {
     const btn = h("button", "card-tab");
@@ -770,10 +824,10 @@ function renderTabs() {
 }
 
 function goCard(i) {
-  const cards = activeMode().cards;
+  const cards = visibleCards();
   if (i < 0 || i >= cards.length || i >= state.unlocked) return;
   state.cardIndex = i;
-  netSend({ t: "card", i: i, unlocked: state.unlocked });
+  netSend({ t: "card", key: cards[i] });
   renderTabs();
   renderCard();
   renderCardNav();
@@ -795,11 +849,12 @@ function gateHintFor(key) {
 }
 
 function advanceCard() {
-  const cards = activeMode().cards;
+  const cards = visibleCards();
   if (state.cardIndex >= cards.length - 1) return;
   if (!cardGateDone(cards[state.cardIndex])) return;
   state.cardIndex += 1;
   state.unlocked = Math.max(state.unlocked, state.cardIndex + 1);
+  netSend({ t: "card", key: cards[state.cardIndex] });
   renderTabs();
   renderCard();
   renderCardNav();
@@ -807,7 +862,7 @@ function advanceCard() {
 }
 
 function renderCardNav() {
-  const cards = activeMode().cards;
+  const cards = visibleCards();
   const isLast = state.cardIndex === cards.length - 1;
   const key = cards[state.cardIndex];
   const gated = !cardGateDone(key);
@@ -826,7 +881,7 @@ el.nextCard.addEventListener("click", advanceCard);
 
 function renderCard() {
   const c = currentCase();
-  const key = activeMode().cards[state.cardIndex];
+  const key = visibleCards()[state.cardIndex];
   el.cardArea.innerHTML = "";
   CARD_RENDERERS[key](el.cardArea, c);
   if (!REDUCED) {
@@ -1062,8 +1117,8 @@ function toggleMark(i) {
   const idx = state.marked.indexOf(i);
   if (idx === -1) {
     state.marked.push(i);
-    state.markedBy[i] = state.activePlayer;
-    netSend({ t: "mark", i: i, by: state.activePlayer });
+    state.markedBy[i] = state.mySlot;
+    netSend({ t: "mark", i: i, by: state.mySlot });
   } else {
     state.marked.splice(idx, 1);
     delete state.markedBy[i];
