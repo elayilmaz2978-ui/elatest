@@ -39,6 +39,7 @@ const CARDS = {
   brief: { title: "Vaka Dosyası", short: "Dosya" },
   scene: { title: "Olay Yeri", short: "Olay Yeri" },
   csi: { title: "Kriminal Rapor", short: "Kriminal" },
+  lab: { title: "Kriminal Laboratuvar", short: "Lab" },
   autopsy: { title: "Otopsi Raporu", short: "Otopsi" },
   interrogation: { title: "Şüpheli Sorguları", short: "Sorgular" },
   timeline: { title: "Zaman Çizelgesi", short: "Zaman" },
