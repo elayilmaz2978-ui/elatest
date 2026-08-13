@@ -142,6 +142,68 @@ const state = {
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// ================= Ses (WebAudio sentezi — dosya gerektirmez) =================
+const SOUND_KEY = "elagency-sound";
+const sound = {
+  ctx: null,
+  enabled: (function () {
+    try { return localStorage.getItem(SOUND_KEY) !== "0"; } catch (e) { return true; }
+  })(),
+  ensure: function () {
+    if (!this.enabled) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+    }
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  },
+  tone: function (freq, dur, type, gain, when) {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime + (when || 0);
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || "sine";
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain || 0.08, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+  noise: function (dur, freq, gain, when) {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime + (when || 0);
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.value = freq || 800;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain || 0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(ctx.destination);
+    src.start(t);
+  },
+  click: function () { this.noise(0.05, 2400, 0.05); },
+  paper: function () { this.noise(0.2, 950, 0.06); },
+  good: function () { this.tone(660, 0.12, "triangle", 0.06); this.tone(880, 0.18, "triangle", 0.06, 0.09); },
+  bad: function () { this.tone(170, 0.22, "sawtooth", 0.045); },
+  stamp: function () { this.tone(85, 0.2, "sine", 0.16); this.noise(0.12, 320, 0.12); },
+  toggle: function () {
+    this.enabled = !this.enabled;
+    try { localStorage.setItem(SOUND_KEY, this.enabled ? "1" : "0"); } catch (e) {}
+    if (this.enabled) this.click();
+  }
+};
+
 const el = {
   progressBar: document.getElementById("progress-bar"),
   tagline: document.querySelector(".tagline"),
@@ -243,6 +305,196 @@ function saveProgress(progress) {
   }
 }
 
+// ================= Dosya kaydı (yarım kalan vakayı sürdür) =================
+
+const SAVE_KEY = "elagency-save";
+
+function saveCaseState() {
+  if (state.caseId == null || state.resolved || state.net) return;
+  const cards = visibleCards();
+  const data = {
+    caseId: state.caseId,
+    modeId: state.modeId,
+    cardKey: cards[state.cardIndex] || null,
+    unlocked: state.unlocked,
+    marked: state.marked,
+    markedBy: state.markedBy,
+    activeSuspect: state.activeSuspect,
+    teamCount: state.teamCount,
+    teamNames: state.teamNames,
+    timeline: state.timeline,
+    timelineScore: state.timelineScore,
+    timelineCorrect: state.timelineCorrect,
+    quizAnswers: state.quizAnswers,
+    quizLocked: state.quizLocked,
+    quizScore: state.quizScore,
+    quizCorrect: state.quizCorrect,
+    elimSolved: state.elimSolved,
+    elimOrders: state.elimOrders,
+    elimDrafts: state.elimDrafts,
+    elimDone: state.elimDone,
+    scenePicks: state.scenePicks,
+    sceneSealed: state.sceneSealed,
+    sceneScore: state.sceneScore,
+    confrontAnswers: state.confrontAnswers,
+    confrontDone: state.confrontDone,
+    at: Date.now()
+  };
+  try {
+    const saves = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
+    saves[state.caseId] = data;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+  } catch (err) {}
+}
+
+function loadCaseSave(caseId) {
+  try {
+    const saves = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
+    const s = saves[caseId];
+    return s && s.caseId === caseId ? s : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function clearCaseSave(caseId) {
+  try {
+    const saves = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
+    delete saves[caseId];
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saves));
+  } catch (err) {}
+}
+
+function applyCaseSave(s) {
+  state.modeId = s.modeId || state.modeId;
+  state.marked = s.marked || [];
+  state.markedBy = s.markedBy || {};
+  state.activeSuspect = s.activeSuspect || null;
+  state.teamCount = s.teamCount || 1;
+  state.teamNames = s.teamNames || [];
+  state.timeline = s.timeline || null;
+  state.timelineScore = s.timelineScore != null ? s.timelineScore : null;
+  state.timelineCorrect = s.timelineCorrect || 0;
+  state.quizAnswers = s.quizAnswers || {};
+  state.quizLocked = !!s.quizLocked;
+  state.quizScore = s.quizScore != null ? s.quizScore : null;
+  state.quizCorrect = s.quizCorrect || 0;
+  state.elimSolved = s.elimSolved || {};
+  state.elimOrders = s.elimOrders || null;
+  state.elimDrafts = s.elimDrafts || {};
+  state.elimDone = !!s.elimDone;
+  state.scenePicks = s.scenePicks || {};
+  state.sceneSealed = !!s.sceneSealed;
+  state.sceneScore = s.sceneScore != null ? s.sceneScore : null;
+  state.confrontAnswers = s.confrontAnswers || {};
+  state.confrontDone = !!s.confrontDone;
+  syncPlayers();
+  const cards = visibleCards();
+  const idx = s.cardKey ? cards.indexOf(s.cardKey) : 0;
+  state.cardIndex = idx >= 0 ? idx : 0;
+  state.unlocked = Math.max(s.unlocked || 1, state.cardIndex + 1);
+}
+
+// ================= Şüpheli portreleri (noir, tohumdan üretilir) =================
+
+function hashId(str) {
+  let x = 7;
+  for (let i = 0; i < str.length; i++) x = (x * 31 + str.charCodeAt(i)) >>> 0;
+  return x;
+}
+
+function portraitSvg(id) {
+  const seed = hashId(id);
+  const svg = svgEl("svg");
+  svg.setAttribute("viewBox", "0 0 40 40");
+  svg.setAttribute("class", "portrait");
+  svg.setAttribute("aria-hidden", "true");
+
+  const bg = svgEl("circle");
+  bg.setAttribute("cx", 20); bg.setAttribute("cy", 20); bg.setAttribute("r", 19);
+  bg.setAttribute("class", "portrait-bg");
+  svg.appendChild(bg);
+
+  const skin = ["#d8c29a", "#cbb58a", "#e0cba4", "#c9ad82"][(seed >> 6) % 4];
+  const dark = ["#3a2e22", "#4a3b28", "#2e241a", "#5a4a38"][(seed >> 4) % 4];
+
+  const shoulders = svgEl("path");
+  shoulders.setAttribute("d", "M5,40 C7,31 13,27.5 20,27.5 C27,27.5 33,31 35,40 Z");
+  shoulders.setAttribute("fill", dark);
+  svg.appendChild(shoulders);
+
+  const collar = (seed >> 2) % 3;
+  if (collar === 1) {
+    const c = svgEl("path");
+    c.setAttribute("d", "M16,29 L20,34 L24,29 L22,28 L20,30.5 L18,28 Z");
+    c.setAttribute("fill", "#e8dcc0");
+    svg.appendChild(c);
+  } else if (collar === 2) {
+    const c = svgEl("rect");
+    c.setAttribute("x", 14); c.setAttribute("y", 28.4);
+    c.setAttribute("width", 12); c.setAttribute("height", 2.2);
+    c.setAttribute("fill", "#8f2d24"); c.setAttribute("opacity", "0.85");
+    svg.appendChild(c);
+  }
+
+  const head = svgEl("ellipse");
+  head.setAttribute("cx", 20); head.setAttribute("cy", 17);
+  head.setAttribute("rx", 6.6); head.setAttribute("ry", 7.6);
+  head.setAttribute("fill", skin);
+  svg.appendChild(head);
+
+  const hair = seed % 4;
+  if (hair === 1) {
+    const p = svgEl("path");
+    p.setAttribute("d", "M13.4,15 C13.8,10.4 16.6,8.6 20,8.6 C23.4,8.6 26.2,10.4 26.6,15 C24.4,12.6 15.6,12.6 13.4,15 Z");
+    p.setAttribute("fill", dark);
+    svg.appendChild(p);
+  } else if (hair === 2) {
+    const p = svgEl("path");
+    p.setAttribute("d", "M12.6,14.2 C12.6,9 16,6.8 20,6.8 C24,6.8 27.4,9 27.4,14.2 L27.4,15.4 L12.6,15.4 Z");
+    p.setAttribute("fill", dark);
+    svg.appendChild(p);
+    const brim = svgEl("rect");
+    brim.setAttribute("x", 10.5); brim.setAttribute("y", 13.6);
+    brim.setAttribute("width", 19); brim.setAttribute("height", 1.8);
+    brim.setAttribute("rx", 0.9); brim.setAttribute("fill", dark);
+    svg.appendChild(brim);
+  } else if (hair === 3) {
+    const p = svgEl("path");
+    p.setAttribute("d", "M13.2,16 C12.8,10 16,7.4 20,7.4 C24,7.4 27.2,10 26.8,16 C26.8,11.8 24,10.2 20,10.2 C16,10.2 13.2,11.8 13.2,16 Z");
+    p.setAttribute("fill", dark);
+    svg.appendChild(p);
+  }
+
+  const eyeY = 16.6;
+  [[17.4], [22.6]].forEach(function (e) {
+    const dot = svgEl("circle");
+    dot.setAttribute("cx", e[0]); dot.setAttribute("cy", eyeY);
+    dot.setAttribute("r", 0.75); dot.setAttribute("fill", "#2a2016");
+    svg.appendChild(dot);
+  });
+
+  if ((seed >> 8) % 3 === 1) {
+    [[17.4], [22.6]].forEach(function (e) {
+      const r = svgEl("circle");
+      r.setAttribute("cx", e[0]); r.setAttribute("cy", eyeY);
+      r.setAttribute("r", 1.9); r.setAttribute("fill", "none");
+      r.setAttribute("stroke", "#2a2016"); r.setAttribute("stroke-width", "0.5");
+      svg.appendChild(r);
+    });
+  }
+  if ((seed >> 9) % 4 === 1) {
+    const m = svgEl("path");
+    m.setAttribute("d", "M17.6,21.4 C19,22.2 21,22.2 22.4,21.4");
+    m.setAttribute("fill", "none");
+    m.setAttribute("stroke", dark); m.setAttribute("stroke-width", "1.1");
+    m.setAttribute("stroke-linecap", "round");
+    svg.appendChild(m);
+  }
+
+  return svg;
+}
+
 function totalScore(progress) {
   return CASES.reduce(function (sum, c) {
     const rec = progress.cases[c.id];
@@ -269,6 +521,32 @@ function rankFor(percent) {
     if (percent >= RANKS[i].min) return RANKS[i].name;
   }
   return RANKS[0].name;
+}
+
+// ================= Başarımlar =================
+
+const ACHIEVEMENTS = [
+  { id: "first-close", name: "İlk Dosya Kapandı", desc: "İlk dosyanı çözdün." },
+  { id: "perfect", name: "Kusursuz Karar", desc: "Neden, katil, sebep ve kanıt sunumunu tek seferde tuttur." },
+  { id: "bloodhound", name: "Tazı Gözü", desc: "Bir dosyadaki tüm ipuçlarını işaretleyip hiç yanlış satır seçme." },
+  { id: "dark-path", name: "Karanlık Yol", desc: "Karanlık Dosya modunda bir vaka çöz." },
+  { id: "trilogy", name: "Arşiv Şefi", desc: "Arşivdeki tüm dosyaları kapat." }
+];
+
+function grantAchievements(progress, c, info) {
+  progress.achievements = progress.achievements || {};
+  function grant(id) {
+    if (!progress.achievements[id]) progress.achievements[id] = Date.now();
+  }
+  if (info.solved) grant("first-close");
+  if (info.verdictPerfect) grant("perfect");
+  if (info.allClues) grant("bloodhound");
+  if (info.solved && info.modeId === "blind") grant("dark-path");
+  const allSolved = CASES.every(function (x) {
+    const r = progress.cases[x.id];
+    return r && r.solved;
+  });
+  if (allSolved) grant("trilogy");
 }
 
 function formatPoints(n) {
@@ -329,6 +607,18 @@ function renderCareerSummary() {
     list.appendChild(li);
   });
   el.careerSummary.appendChild(list);
+
+  const ach = progress.achievements || {};
+  const unlockedAch = ACHIEVEMENTS.filter(function (a) { return ach[a.id]; });
+  if (unlockedAch.length) {
+    const box = h("div", "ach-row");
+    unlockedAch.forEach(function (a) {
+      const chip = h("span", "ach-chip", a.name);
+      chip.title = a.desc;
+      box.appendChild(chip);
+    });
+    el.careerSummary.appendChild(box);
+  }
 
   const total = totalScore(progress);
   const foot = h("p", "career-summary__total");
@@ -791,13 +1081,20 @@ function renderCaseGrid() {
   const progress = loadProgress();
   const m = activeMode();
 
-  CASES.forEach(function (c) {
+  CASES.forEach(function (c, ci) {
     const rec = progress.cases[c.id];
     const card = h("article", "case-file");
+    const prev = ci > 0 ? progress.cases[CASES[ci - 1].id] : null;
+    const locked = ci > 0 && !(prev && prev.solved);
+    if (locked) card.classList.add("case-file--locked");
 
     const top = h("div", "case-file__top");
     top.appendChild(h("span", "case-file__no", "DOSYA №" + pad(c.id)));
-    if (rec) {
+    if (locked) {
+      const lock = h("span", "mini-stamp bad", "KİLİTLİ");
+      lock.style.setProperty("--rot", "-5deg");
+      top.appendChild(lock);
+    } else if (rec) {
       const stamp = h("span", "mini-stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
       stamp.style.setProperty("--rot", (c.id % 2 === 0 ? -4 : 5) + "deg");
       top.appendChild(stamp);
@@ -817,10 +1114,31 @@ function renderCaseGrid() {
       card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/130"));
     }
 
-    const open = h("button", "btn case-file__open", rec ? "Dosyayı yeniden aç" : "Dosyayı aç");
-    open.type = "button";
-    open.addEventListener("click", function () { openCase(c.id); });
-    card.appendChild(open);
+    if (locked) {
+      const open = h("button", "btn case-file__open", "Kilitli — önce DOSYA №" + pad(CASES[ci - 1].id) + " çözülsün");
+      open.type = "button";
+      open.disabled = true;
+      card.appendChild(open);
+    } else {
+      const save = loadCaseSave(c.id);
+      const open = h("button", "btn case-file__open", save ? "Devam et" : (rec ? "Dosyayı yeniden aç" : "Dosyayı aç"));
+      open.type = "button";
+      open.addEventListener("click", function () { openCase(c.id, !!save); });
+      card.appendChild(open);
+      if (save) {
+        const restart = h("button", "btn btn--ghost case-file__restart", "Baştan başla");
+        restart.type = "button";
+        restart.addEventListener("click", function () {
+          openConfirm(
+            "Dosya baştan açılsın mı?",
+            "Kayıtlı ilerleme silinecek.",
+            "Evet, baştan",
+            function () { openCase(c.id, false); }
+          );
+        });
+        card.appendChild(restart);
+      }
+    }
 
     el.caseGrid.appendChild(card);
   });
@@ -828,7 +1146,7 @@ function renderCaseGrid() {
 
 // ================= Oyun kabuğu =================
 
-function openCase(caseId) {
+function openCase(caseId, resume) {
   state.caseId = caseId;
   state.cardIndex = 0;
   state.unlocked = 1;
@@ -869,6 +1187,12 @@ function openCase(caseId) {
   state.labScore = null;
   state.confrontAnswers = {};
   state.confrontDone = false;
+  if (resume) {
+    const s = loadCaseSave(caseId);
+    if (s) applyCaseSave(s);
+  } else {
+    clearCaseSave(caseId);
+  }
   closeDrawer();
   showView("game");
   renderGame();
@@ -877,6 +1201,7 @@ function openCase(caseId) {
 }
 
 function goLobby() {
+  saveCaseState();
   state.caseId = null;
   closeDrawer();
   showView("lobby");
@@ -996,11 +1321,18 @@ function renderCardNav() {
 el.prevCard.addEventListener("click", function () { goCard(state.cardIndex - 1); });
 el.nextCard.addEventListener("click", advanceCard);
 
+let lastCardKey = null;
+
 function renderCard() {
   const c = currentCase();
   const key = visibleCards()[state.cardIndex];
   el.cardArea.innerHTML = "";
   CARD_RENDERERS[key](el.cardArea, c);
+  if (key !== lastCardKey) {
+    sound.paper();
+    lastCardKey = key;
+  }
+  saveCaseState();
   if (!REDUCED) {
     el.cardArea.classList.remove("card-in");
     void el.cardArea.offsetWidth;
@@ -1092,6 +1424,7 @@ function cardScene(area, c) {
         });
         state.sceneSealed = true;
         state.sceneScore = Math.max(0, Math.round(10 * (hits - wrong) / totalReal * 10) / 10);
+        if (wrong === 0 && hits === totalReal) sound.good(); else sound.bad();
         renderCard();
         renderCardNav();
       });
@@ -1245,10 +1578,11 @@ function renderInterrogation(c) {
   c.suspects.forEach(function (s) {
     const chip = h("button", "suspect-chip" + (s.id === state.activeSuspect ? " active" : ""));
     chip.type = "button";
-    chip.appendChild(h("span", "suspect-chip__initial", s.initial));
+    chip.appendChild(portraitSvg(s.id));
     chip.appendChild(h("span", "suspect-chip__name", s.name));
     chip.addEventListener("click", function () {
       state.activeSuspect = s.id;
+      sound.click();
       renderInterrogation(c);
     });
     interRefs.chips.appendChild(chip);
@@ -1320,6 +1654,7 @@ function toggleMark(i) {
     state.markedBy[i] = state.mySlot;
     netSend({ t: "mark", i: i, by: state.mySlot });
     unlockEchoesFor(i);
+    sound.click();
   } else {
     state.marked.splice(idx, 1);
     delete state.markedBy[i];
@@ -1442,6 +1777,7 @@ function cardTimeline(area, c) {
       tl.results = tl.placed.map(function (idx, pos) { return idx === pos; });
       state.timelineCorrect = tl.results.filter(Boolean).length;
       state.timelineScore = Math.round(10 * state.timelineCorrect / c.timeline.length * 10) / 10;
+      if (state.timelineCorrect === c.timeline.length) sound.good(); else sound.bad();
       renderCard();
       renderCardNav();
     });
@@ -1518,6 +1854,7 @@ function cardQuiz(area, c) {
       }).length;
       state.quizScore = Math.round(10 * state.quizCorrect / c.quiz.length * 10) / 10;
       state.quizLocked = true;
+      if (state.quizCorrect === c.quiz.length) sound.good(); else sound.bad();
       renderCard();
       renderCardNav();
     });
@@ -1578,13 +1915,16 @@ function cardElimination(area, c) {
       function tryEliminate() {
         if (elimMatch(entry, input.value)) {
           state.elimSolved[entry.id] = true;
+          sound.click();
           if (Object.keys(state.elimSolved).length === c.elimination.length
             && (!c.confrontation || !c.confrontation.length || state.confrontDone)) {
             state.elimDone = true;
+            sound.good();
           }
           renderCard();
           renderCardNav();
         } else {
+          sound.bad();
           msg.textContent = "Bu gerekçe tutmuyor; şüpheli elenemedi. Dosyadaki somut bir gerçeğe bak.";
           row.classList.remove("shake");
           void row.offsetWidth;
@@ -1622,9 +1962,11 @@ function cardElimination(area, c) {
         b.type = "button";
         b.addEventListener("click", function () {
           state.confrontAnswers[si] = pair[1];
+          sound.click();
           if (Object.keys(state.confrontAnswers).length === c.confrontation.length) {
             state.confrontDone = true;
             state.elimDone = true;
+            sound.good();
           }
           renderCard();
           renderCardNav();
@@ -1998,7 +2340,17 @@ function resolveVerdict() {
     at: Date.now()
   };
   progress.cases[c.id] = prev && prev.score >= rec.score ? prev : rec;
+  grantAchievements(progress, c, {
+    solved: solved,
+    verdictPerfect: causeRight && suspectRight && motiveRight
+      && matchedOk.length === totalCorrect && wrongCount === 0,
+    allClues: totalClues > 0 && clueHits === totalClues && state.marked.length === totalClues,
+    modeId: state.modeId
+  });
   saveProgress(progress);
+  clearCaseSave(c.id);
+  sound.stamp();
+  setTimeout(function () { if (solved) sound.good(); else sound.bad(); }, 350);
   renderRankBadge();
 
   verdictRefs = null;
@@ -3089,3 +3441,16 @@ el.resetBtn.addEventListener("click", function () {
 
 renderLobby();
 typeTagline();
+
+// Ses aç/kapa düğmesi (footer'a eklenir)
+(function () {
+  const foot = document.querySelector(".footer");
+  if (!foot) return;
+  const btn = h("button", "footer-reset", sound.enabled ? "Ses: Açık" : "Ses: Kapalı");
+  btn.type = "button";
+  btn.addEventListener("click", function () {
+    sound.toggle();
+    btn.textContent = sound.enabled ? "Ses: Açık" : "Ses: Kapalı";
+  });
+  foot.appendChild(btn);
+})();
