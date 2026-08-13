@@ -1,8 +1,6 @@
 services:
   - type: web
     name: elagencyler
-    runtime: ruby
+    runtime: docker
     plan: free
-    buildCommand: bundle install
-    startCommand: ruby server.rb
     healthCheckPath: /
