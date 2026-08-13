@@ -6,7 +6,7 @@ require "digest/sha1"
 require "base64"
 require "json"
 
-PORT = (ARGV[0] || 8000).to_i
+PORT = (ENV["PORT"] || ARGV[0] || 8000).to_i
 ROOT = File.expand_path(File.dirname(__FILE__))
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
