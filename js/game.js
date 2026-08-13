@@ -16,8 +16,8 @@ const MODES = [
     id: "classic",
     name: "Klasik Soruşturma",
     desc: "Tüm raporlar açık: olay yeri, kriminal, otopsi ve sorgular. Klasik deneyim.",
-    tag: "10 kart · tüm raporlar",
-    cards: ["brief", "scene", "csi", "lab", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
+    tag: "9 kart · tüm raporlar",
+    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
   },
   {
     id: "interrogation",
@@ -39,7 +39,6 @@ const CARDS = {
   brief: { title: "Vaka Dosyası", short: "Dosya" },
   scene: { title: "Olay Yeri", short: "Olay Yeri" },
   csi: { title: "Kriminal Rapor", short: "Kriminal" },
-  lab: { title: "Kriminal Laboratuvar", short: "Lab" },
   autopsy: { title: "Otopsi Raporu", short: "Otopsi" },
   interrogation: { title: "Şüpheli Sorguları", short: "Sorgular" },
   timeline: { title: "Zaman Çizelgesi", short: "Zaman" },
@@ -52,7 +51,7 @@ const ROLES = ["Olay Yeri", "Kriminal", "Adli Tıp", "Sorgu"];
 
 // Kart -> uzmanlık eşlemesi; eşlemesi olmayan kartlar (brief, timeline, quiz,
 // elimination, verdict) her dedektife açıktır.
-const ROLE_CARD = { scene: "Olay Yeri", csi: "Kriminal", lab: "Kriminal", autopsy: "Adli Tıp", interrogation: "Sorgu" };
+const ROLE_CARD = { scene: "Olay Yeri", csi: "Kriminal", autopsy: "Adli Tıp", interrogation: "Sorgu" };
 
 // Vaka sırasına göre rol dönüşü: 2. vakada roller bir kayar.
 function caseShift() {
@@ -242,9 +241,9 @@ function totalScore(progress) {
   }, 0);
 }
 
-// Vaka başına 140 puan: karar 100 + zaman çizelgesi 10 + çapraz analiz 10
-// + kanıt toplama 10 + laboratuvar 10.
-const MAX_TOTAL = CASES.length * 140;
+// Vaka başına 130 puan: karar 100 + zaman çizelgesi 10 + çapraz analiz 10
+// + kanıt toplama 10.
+const MAX_TOTAL = CASES.length * 130;
 
 // Zor eşikler: en üst rütbe yalnızca kusursuz kariyerle (%100) açılır.
 const RANKS = [
@@ -311,7 +310,7 @@ function renderCareerSummary() {
 
     const no = h("span", "career-summary__no", "№" + pad(c.id));
     const title = h("span", "career-summary__title", c.title);
-    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/140");
+    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/130");
     const stamp = h("span", "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
 
     li.appendChild(no);
@@ -802,7 +801,7 @@ function renderCaseGrid() {
     card.appendChild(meta);
 
     if (rec) {
-      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/140"));
+      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/130"));
     }
 
     const open = h("button", "btn case-file__open", rec ? "Dosyayı yeniden aç" : "Dosyayı aç");
@@ -938,7 +937,6 @@ function goCard(i) {
 // Bazı kartlar tamamlanmadan ilerlenemez (zaman, analiz, eleme).
 function cardGateDone(key) {
   if (key === "scene") return state.sceneSealed;
-  if (key === "lab") return state.labDone;
   if (key === "timeline") return state.timelineScore != null;
   if (key === "quiz") return state.quizScore != null;
   if (key === "elimination") return state.elimDone;
@@ -947,7 +945,6 @@ function cardGateDone(key) {
 
 function gateHintFor(key) {
   if (key === "scene") return "Kanıtları topla ve mühürle.";
-  if (key === "lab") return "Tüm örnekleri doğru analizle eşleştir.";
   if (key === "timeline") return "Sıralamayı tamamla ve kontrol et.";
   if (key === "quiz") return "Tüm soruları cevapla ve kilitle.";
   if (key === "elimination") return "Tüm şüphelileri ele ve yüzleşmeyi tamamla.";
@@ -1134,80 +1131,6 @@ function cardCsi(area, c) {
 
   area.appendChild(card);
   stagger(list);
-}
-
-// ================= Kart: Kriminal Laboratuvar =================
-
-function cardLab(area, c) {
-  const card = h("section", "card");
-  card.appendChild(sectionHead("Kriminal Laboratuvar"));
-  card.appendChild(h("p", "hint",
-    "Toplanan örnekleri doğru analiz sonucuyla eşleştir. İlk denemede doğrulanan her örnek "
-    + "tam puan getirir; tüm örnekler doğrulanmadan kart kapanmaz."));
-
-  if (!state.labOrders) {
-    state.labOrders = {};
-    c.lab.forEach(function (row, ri) {
-      state.labOrders[ri] = shuffleIndices(row.options.length)
-        .map(function (i) { return row.options[i]; });
-    });
-  }
-
-  const list = h("div", "lab-list");
-  c.lab.forEach(function (row, ri) {
-    const solved = !!state.labSolved[ri];
-    const rdiv = h("div", "lab-row" + (solved ? " solved" : ""));
-    rdiv.appendChild(h("p", "lab-row__name", "Örnek " + (ri + 1) + ": " + row.sample));
-
-    if (solved) {
-      rdiv.appendChild(h("p", "lab-row__done", "✓ " + row.correct));
-      rdiv.appendChild(h("p", "lab-row__note", row.note));
-    } else {
-      const controls = h("div", "lab-row__controls");
-      const select = h("select");
-      state.labOrders[ri].forEach(function (opt) {
-        select.appendChild(h("option", null, opt)).value = opt;
-      });
-      const msg = h("span", "lab-row__msg");
-      const btn = h("button", "btn btn--small", "Doğrula");
-      btn.type = "button";
-      btn.addEventListener("click", function () {
-        state.labTried[ri] = true;
-        if (select.value === row.correct) {
-          state.labSolved[ri] = true;
-          if (!state.labMissed[ri]) state.labFirstTry[ri] = true;
-          const total = c.lab.length;
-          if (Object.keys(state.labSolved).length === total) {
-            state.labDone = true;
-            const firstTryCount = Object.keys(state.labFirstTry).length;
-            state.labScore = Math.round(10 * firstTryCount / total * 10) / 10;
-          }
-          renderCard();
-          renderCardNav();
-        } else {
-          state.labMissed[ri] = true;
-          delete state.labFirstTry[ri];
-          msg.textContent = "Analiz bu sonuçla uyuşmuyor; örneğe yeniden bak.";
-          rdiv.classList.remove("shake");
-          void rdiv.offsetWidth;
-          rdiv.classList.add("shake");
-        }
-      });
-      controls.appendChild(select);
-      controls.appendChild(btn);
-      rdiv.appendChild(controls);
-      rdiv.appendChild(msg);
-    }
-    list.appendChild(rdiv);
-  });
-  card.appendChild(list);
-
-  if (state.labDone) {
-    card.appendChild(h("p", "card-done",
-      "Laboratuvar tamam: +" + formatPoints(state.labScore) + " puan"));
-  }
-
-  area.appendChild(card);
 }
 
 // ================= Kart: Otopsi =================
@@ -1876,7 +1799,6 @@ function resolveVerdict() {
   const timelinePts = state.timelineScore || 0;
   const quizPts = state.quizScore || 0;
   const scenePts = state.sceneScore || 0;
-  const labPts = state.labScore || 0;
 
   const score = (causeRight ? WEIGHTS.cause : 0)
     + (suspectRight ? WEIGHTS.suspect : 0)
@@ -1884,8 +1806,7 @@ function resolveVerdict() {
     + evidenceScore
     + timelinePts
     + quizPts
-    + scenePts
-    + labPts;
+    + scenePts;
 
   state.resolved = true;
 
@@ -1943,17 +1864,12 @@ function resolveVerdict() {
     "Gerçek kanıtları toplamak",
     scenePts === 10,
     formatPoints(scenePts) + "/10");
-  addRow("Laboratuvar",
-    state.labDone ? "Tüm örnekler doğrulandı" : "Tamamlanmadı",
-    "İlk denemede tümü doğru",
-    labPts === 10,
-    formatPoints(labPts) + "/10");
 
   const totalRow = h("tr", "row-total");
   const totalLabel = h("td", null, "TOPLAM");
   totalLabel.colSpan = 3;
   totalRow.appendChild(totalLabel);
-  totalRow.appendChild(h("td", null, formatPoints(score) + "/140"));
+  totalRow.appendChild(h("td", null, formatPoints(score) + "/130"));
   report.appendChild(totalRow);
   result.appendChild(report);
 
@@ -2044,7 +1960,6 @@ const CARD_RENDERERS = {
   brief: cardBrief,
   scene: cardScene,
   csi: cardCsi,
-  lab: cardLab,
   autopsy: cardAutopsy,
   interrogation: cardInterrogation,
   timeline: cardTimeline,
