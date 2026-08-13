@@ -11,11 +11,15 @@
 //      features: { kind: "window"|"door", wall: "K"|"G"|"D"|"B", from, to, swing?, label? }
 //                { kind: "line", x1, y1, x2, y2 }  → saha çizgisi (örn. park yeri)
 //   scene.objects                    → krokide çizilen öğeler; x,y = merkez (metre)
-//      { form, x, y, w?, h?, rot?, mx?, my?, label, label2? }
+//      { form, x, y, w?, h?, rot?, mx?, my?, label, label2?, real? }
 //      form: "desk"|"shelf"|"chair"|"chair-fallen"|"car"|"body-seat"|"body"|
 //            "cup"|"patch"|"box"|"paper"|"blanket"|"cap"|"mirror"
 //      mx, my: numara rozetinin konumunu elle belirler (opsiyonel)
+//      real: kanıt toplama bulmacasında bu öğe gerçek kanıt mı (true), yanıltıcı mı (false);
+//            bayraksız öğeler toplanamaz (ceset, araç...)
 //   scene.evidence                   → olay yerinde toplanan kanıtlar {name, desc}
+//   scene.notes / csi.notes / autopsy.notes / interrogation.notes
+//                                    → uzmanlığa özel gizli notlar (yalnız o rolün cihazında görünür)
 //   csi                              → Olay Yeri İnceleme Raporu
 //   autopsy                          → Otopsi: dış/iç muayene
 //   autopsy.injuries.external        → dış yüzey bulguları {x,y,label,kind}
@@ -27,6 +31,8 @@
 //   timeline                         → zaman çizelgesi bulmacası: KRONOLOJİK sırayla olay metinleri
 //   quiz                             → karar öncesi çapraz analiz soruları {q, options, correct}
 //   elimination                      → eleme masası {id, correct, options} (culprit için correct "elenemez" seçeneğidir)
+//   lab                              → kriminal laboratuvar bulmacası {sample, options, correct, note}
+//   confrontation                    → eleme sonrası yüzleşme turu {statement, answer, why}
 //   deathCauses + deathCauseCorrect  → ölüm nedeni seçenekleri
 //   motives + motiveCorrect          → katilin sebebi için seçenekler
 //   suspects                         → şüpheliler {id, name, initial, note}
@@ -68,12 +74,12 @@ const CASES = [
       },
       objects: [
         { form: "body-seat", x: 3.35, y: 4.15, mx: 4.45, my: 4.35, label: "Arda Yalın (ceset)", label2: "koltukta, başı öne düşmüş" },
-        { form: "desk", x: 2.9, y: 3.2, w: 1.7, h: 0.85, mx: 2.3, my: 2.95, label: "Çalışma masası" },
-        { form: "cup", x: 2.45, y: 3.35, label: "Yarım bardak çay", label2: "dibinde çökmüş toz" },
-        { form: "box", x: 3.4, y: 3.0, w: 0.42, h: 0.3, label: "Boş kilitli kutu", label2: "çekmecede" },
-        { form: "patch", x: 3.0, y: 1.05, w: 1.4, h: 1.6, label: "Çamur izleri", label2: "42 numara, kıyı kili" },
-        { form: "chair-fallen", x: 4.9, y: 1.35, rot: 70, label: "Devrik sandalye" },
-        { form: "shelf", x: 0.28, y: 2.2, w: 0.5, h: 2.4, label: "Kitaplık (arşiv)" }
+        { form: "desk", x: 2.9, y: 3.2, w: 1.7, h: 0.85, mx: 2.3, my: 2.95, label: "Çalışma masası", real: false },
+        { form: "cup", x: 2.45, y: 3.35, label: "Yarım bardak çay", label2: "dibinde çökmüş toz", real: true },
+        { form: "box", x: 3.4, y: 3.0, w: 0.42, h: 0.3, label: "Boş kilitli kutu", label2: "çekmecede", real: true },
+        { form: "patch", x: 3.0, y: 1.05, w: 1.4, h: 1.6, label: "Çamur izleri", label2: "42 numara, kıyı kili", real: true },
+        { form: "chair-fallen", x: 4.9, y: 1.35, rot: 70, label: "Devrik sandalye", real: true },
+        { form: "shelf", x: 0.28, y: 2.2, w: 0.5, h: 2.4, label: "Kitaplık (arşiv)", real: false }
       ],
       // 3D gezinti: metre cinsinden ölçülü yerleşim.
       // Kütüphane 6x5 m (scene.summary). Kuzey duvarı z=0, güney kapı z=5.
@@ -95,6 +101,11 @@ const CASES = [
         { name: "Spor ayakkabı çamuru", desc: "42 numara spor ayakkabı; toprak analizi kıyı bölgesine özgü kil." },
         { name: "Boş kilitli kutu", desc: "İçi titizlikle boşaltılmış, parmak izi yok." },
         { name: "Arka pencere", desc: "Pencere çilesi gevşek; önünde devrik sandalye ve toprak bulaşığı." }
+      ],
+      notes: [
+        "Çamur izleri pencereden masaya düz bir hatta gidip dönüyor — içeri giren kişi oyalanmadan çaya yöneldi.",
+        "Devrik sandalyenin çevresinde çamur izi yok; sandalye kaçış sırasında aceleyle devrildi.",
+        "Pencere çilesi haftalar önce gevşetilmiş — içeri giren kişi bu zayıflığı önceden biliyordu."
       ]
     },
     csi: {
@@ -118,6 +129,11 @@ const CASES = [
         "Kutu + kilit düzeneği: adli fotoğraf, zorlama izi yok",
         "Datura öbeği: bitki ve tohum kesesi örneği",
         "Parmak izi taraması: sonuçsuz"
+      ],
+      notes: [
+        "Kutunun kilidi ince bir uçla zorlanmadan açılmış — katilin ya anahtarı vardı ya da kilit açmakta usta.",
+        "Bardaktaki çay Hale'nin ocağından; zehir demliğe değil, bardağa sonradan katıldı.",
+        "Ruj izi oksitlenmiş, günler öncesine ait — çay lekesinin tazeliğiyle uyuşmuyor."
       ]
     },
     autopsy: {
@@ -153,7 +169,12 @@ const CASES = [
       ],
       causeNote: "Bulgular antikolinerjik (atropin) sendrom ile uyumlu: midriyazis, kuru-sıcak "
         + "cilt, flushing ve gastrik tohumlar. Ölüm, yüksek doz atropin etkisiyle gelişen "
-        + "kalp ritim bozukluğu ve solunum durmasına bağlıdır."
+        + "kalp ritim bozukluğu ve solunum durmasına bağlıdır.",
+      notes: [
+        "Midedeki siyah tohumlar Datura ile birebir uyumlu; zehir yemekle değil, sıvıyla — çayla — alınmış.",
+        "Kâbuslar ve dalgınlık iki haftadır sürüyordu: katil düşük dozlarla önceden alıştırma yapmış.",
+        "Kalp sağlıklıydı; ritim bozukluğu zehrin sonucu, doğal bir kriz değil."
+      ]
     },
     deathCauses: [
       "Atropin (Datura) zehirlenmesi",
@@ -343,6 +364,11 @@ const CASES = [
             { subject: "fikret", speaker: "Fikret Aksel", text: "Girmedim. Kaç kez söyleyeceğim? Avukatımı istiyorum." }
           ]
         }
+      ],
+      notes: [
+        "Fikret, kimse söylemeden 'eksik evrak listesi' dedi — kutunun içeriğini katilden başkası bilmiyordu.",
+        "Nermin, Fikret'i iki gece pencereye eğilirken gördü; elinde koyu bir bez torba vardı.",
+        "Hale'den ekstra çayı alan kişi 'Arda Abi'ye götürüyorum' dedi — Fikret'in her zamanki cümlesi."
       ]
     },
     suspects: [
@@ -410,6 +436,21 @@ const CASES = [
         q: "Fikret'i ele veren en belirgin dil sürçmesi hangisiydi?",
         options: ["Kimse söylemeden kutudaki 'eksik evrak listesi'nden bahsetmesi", "Arda'yı tanımadığını iddia etmesi", "Yanlış saatte çıktığını söylemesi", "Hale'nin ocağını inkâr etmesi"],
         correct: "Kimse söylemeden kutudaki 'eksik evrak listesi'nden bahsetmesi"
+      },
+      {
+        q: "Olay yeri uzmanına göre çamur izlerinin yönü neyi gösteriyor?",
+        options: ["İçeri giren kişi oyalanmadan çaya yöneldi", "Katil odada uzun süre arandı", "İçeri iki farklı kişi girdi", "İzler bekçiye ait"],
+        correct: "İçeri giren kişi oyalanmadan çaya yöneldi"
+      },
+      {
+        q: "Adli tıbba göre Arda'nın kâbusları iki haftadır neden sürüyordu?",
+        options: ["Düşük doz zehirle önceden alıştırma yapılmıştı", "Arda zaten hasta biriydi", "Doktor yanlış ilaç vermişti", "Aşırı kahve tüketiyordu"],
+        correct: "Düşük doz zehirle önceden alıştırma yapılmıştı"
+      },
+      {
+        q: "Kriminal laboratuvara göre kutu kilidinin zorlanmamış olması neye işaret eder?",
+        options: ["Katilin anahtarı vardı ya da kilit açmayı biliyordu", "Arda kutuyu kendisi açmıştı", "Kutu hep boştu", "Temizlikçi açık bırakmıştı"],
+        correct: "Katilin anahtarı vardı ya da kilit açmayı biliyordu"
       }
     ],
     elimination: [
@@ -448,6 +489,44 @@ const CASES = [
         correct: "Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.",
         options: ["Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.", "Sigara içmediği için bahçede olamazdı.", "Karısı o gece evde olduğuna şahitlik etti."]
       }
+    ],
+    lab: [
+      {
+        sample: "Bardak içi sıvı",
+        options: ["Atropin / skopolamin alkaloitleri", "Yalnızca kafein", "Barbitürat türevi", "Etil alkol"],
+        correct: "Atropin / skopolamin alkaloitleri",
+        note: "Dibinde çöken toz, Datura kaynaklı alkaloitlerle eşleşti."
+      },
+      {
+        sample: "Çamur kazınması",
+        options: ["Kıyı kili + 42 numara taban", "Bahçe toprağı + 44 numara çizme", "İnşaat tozu", "Şebeke suyu kalıntısı"],
+        correct: "Kıyı kili + 42 numara taban",
+        note: "Kil türü yalnız kıyıya özgü; Kenan'ın çizmesi 44 numara."
+      },
+      {
+        sample: "Bardak kenarı ruj izi",
+        options: ["Eski iz — Dr. Esra'nın tonuyla uyumlu", "Taze iz — kimliği belirsiz", "Ruj değil, boya lekesi"],
+        correct: "Eski iz — Dr. Esra'nın tonuyla uyumlu",
+        note: "İz oksitlenmiş; günler önceki bir bardaktan kalma."
+      },
+      {
+        sample: "Kutu kilidi",
+        options: ["İnce uçla açılmış, parmak izi yok", "Çekiçle zorlanmış", "Kilit mekanizması kırık", "Çok sayıda parmak izi var"],
+        correct: "İnce uçla açılmış, parmak izi yok",
+        note: "Zorlama yok: katilin ya anahtarı vardı ya da eli kilit açmaya yatkın."
+      },
+      {
+        sample: "Datura tohum kesesi",
+        options: ["Taze koparılmış — son bir hafta", "Aylar önce kurumuş", "Market ürünü, ambalajlı"],
+        correct: "Taze koparılmış — son bir hafta",
+        note: "Bahçedeki öbekten yakın zamanda koparılmış; keseler eksik."
+      }
+    ],
+    confrontation: [
+      { statement: "Fikret, cinayetten önce haftalarca gece kutuyu aradı.", answer: true, why: "Arda'nın duyduğu sesler ve Nermin'in iki gece üst üste görmesi bunu kanıtlıyor." },
+      { statement: "Zehir, Hale'nin ocağında demliğe katıldı.", answer: false, why: "Demlik her akşam mühürleniyor; zehir bardağa sonradan katıldı." },
+      { statement: "Kutunun içinde Arda'nın hasta günlüğü vardı.", answer: false, why: "İçinde arşivden eksilen belgelerin listesi vardı; Kenan'ın tahmini yanlıştı." },
+      { statement: "Katil, kutunun anahtarını bulamadan kilidi ince uçla açtı.", answer: true, why: "Anahtar zincirle Arda'nın yelek cebindeydi; kilitte zorlama izi yok." }
     ]
   },
   {
@@ -480,10 +559,10 @@ const CASES = [
       objects: [
         { form: "car", x: 3.5, y: 6.2, w: 1.9, h: 4.7, mx: 2.95, my: 8.15, label: "Araç", label2: "motor çalışır, ışıklar sönük" },
         { form: "body-seat", x: 3.05, y: 5.05, mx: 5.45, my: 4.15, label: "Ferman (ceset)", label2: "sürücü koltuğunda yığılmış" },
-        { form: "paper", x: 4.0, y: 5.05, w: 0.5, h: 0.38, mx: 5.45, my: 5.25, label: "Dünkü gazete", label2: "yolcu koltuğunda açık" },
-        { form: "mirror", x: 3.5, y: 4.45, w: 0.34, h: 0.16, mx: 5.45, my: 6.35, label: "Dikiz aynası", label2: "arka koltuğa dönük" },
-        { form: "blanket", x: 3.5, y: 7.35, w: 1.3, h: 0.65, mx: 5.45, my: 7.45, label: "Battaniye", label2: "arka koltukta sarılı" },
-        { form: "cap", x: 4.62, y: 7.7, mx: 5.45, my: 8.55, label: "Benzin kapağı", label2: "kapatılmamış" }
+        { form: "paper", x: 4.0, y: 5.05, w: 0.5, h: 0.38, mx: 5.45, my: 5.25, label: "Dünkü gazete", label2: "yolcu koltuğunda açık", real: true },
+        { form: "mirror", x: 3.5, y: 4.45, w: 0.34, h: 0.16, mx: 5.45, my: 6.35, label: "Dikiz aynası", label2: "arka koltuğa dönük", real: true },
+        { form: "blanket", x: 3.5, y: 7.35, w: 1.3, h: 0.65, mx: 5.45, my: 7.45, label: "Battaniye", label2: "arka koltukta sarılı", real: false },
+        { form: "cap", x: 4.62, y: 7.7, mx: 5.45, my: 8.55, label: "Benzin kapağı", label2: "kapatılmamış", real: true }
       ],
       // Açık otopark: zemin + park çizgileri; duvar yok.
       modelSpace: { width: 14, depth: 16, wallH: 0, enclosed: false,
@@ -504,6 +583,11 @@ const CASES = [
         { name: "Kapatılmamış benzin kapağı", desc: "Son dolum istasyonda gerçekleşti ve kapak kapandı; açık kalması sonradan tekrar açıldığını gösterir." },
         { name: "Dünkü tarihli gazete", desc: "Ferman gazeteyi her sabah kendisi alırdı; dünkü gazete olması iki gündür araca bineninin olmadığını gösterir." },
         { name: "Araç içi iki koku", desc: "Tütün ve vanilya karışımı; kokular araç içinde yoğun." }
+      ],
+      notes: [
+        "Sürücü kapısının yanındaki yarım taban izi otopark çıkışına dönük — sahneyi düzenleyen kişi aceleyle ayrıldı.",
+        "Dikiz aynası uzun boylu birine göre ayarlı; Ferman kısa boyluydu, bu ayar onun olamaz.",
+        "Gazete dünkü tarihli ama sayfalar yeni açılmış gibi düzgün — sahneye sonradan kondu."
       ]
     },
     csi: {
@@ -524,6 +608,11 @@ const CASES = [
         "Benzin kapağı çevresi: DNA örneği + bez lifi",
         "Yarım taban izi: alçı kalıp alındı",
         "Battaniye: lif örneği"
+      ],
+      notes: [
+        "Benzin kapağının vida dişine takılan bez lifi havsız — kapak iz bırakmamak için bezle açıldı.",
+        "Tütün kokusu döşemeye değil havaya sinmiş: kapı açıkken içilmiş, içen araca binmemiş.",
+        "Araçta izmarit yok; vanilya kokusu ise Selin'in her zamanki parfümü."
       ]
     },
     autopsy: {
@@ -553,7 +642,12 @@ const CASES = [
         ["Kafein",                      "1,8 mg/L",   "0,5–10 mg/L",                 "Terapötik"]
       ],
       causeNote: "Yüksek doz flunitrazepam etkisine bağlı derin sedasyon ve solunum depresyonu. "
-        + "Ölüm ilacın solunumu baskılamasıyla gelişti. Karbon monoksit düzeyi ölçülmedi."
+        + "Ölüm ilacın solunumu baskılamasıyla gelişti. Karbon monoksit düzeyi ölçülmedi.",
+      notes: [
+        "Mide boş; ilaç yemekle değil, öğleden sonra içirilen çayla alındı.",
+        "Düşük vücut ısısı sedasyonla uyumlu — soğuktan donma değil, ilaç kaynaklı.",
+        "Karaciğerdeki yoğun ilaç birikimi, dozun tek seferde ve yüksek verildiğini gösteriyor."
+      ]
     },
     deathCauses: [
       "Flunitrazepam (sedatif-hipnotik) zehirlenmesi",
@@ -747,6 +841,11 @@ const CASES = [
             { subject: "kadir", speaker: "Kadir Alaz", text: "Dilekçe olduğunu sizden duyuyorum. Avukatımla görüşmeden başka cevap yok." }
           ]
         }
+      ],
+      notes: [
+        "Nazan'ın verdiği damla yeşilimsi; Selin'in kullandığı şişe renksizdi — şişe değiştirilmiş.",
+        "Yusuf, yedi sularında uzun boylu, paltolu bir adamı sürücü kapısına eğilirken gördü.",
+        "Kadir, polisin açıklamadığı 'motor çalışıyordu' detayını önceden bildi ve 'Yusuf aradı' yalanı tutanakla çürüdü."
       ]
     },
     suspects: [
@@ -813,6 +912,21 @@ const CASES = [
         q: "Kadir'i ele veren en belirgin açık neydi?",
         options: ["Motorun çalıştığını bilmesi ve 'Yusuf aradı' demesi — Yusuf kimseyi aramamıştı", "Ferman'ı tanımadığını söylemesi", "Garaja yanlış araçla gelmesi", "Palto giydiğini inkâr etmesi"],
         correct: "Motorun çalıştığını bilmesi ve 'Yusuf aradı' demesi — Yusuf kimseyi aramamıştı"
+      },
+      {
+        q: "Olay yeri uzmanına göre yarım taban izi neyi gösteriyor?",
+        options: ["Sahneyi düzenleyen kişi aceleyle ayrıldı", "Ferman araçtan inip yürüdü", "Yusuf araca yaklaştı", "Polis geç geldi"],
+        correct: "Sahneyi düzenleyen kişi aceleyle ayrıldı"
+      },
+      {
+        q: "Kriminal laboratuvara göre benzin kapağındaki bez lifi ne anlama geliyor?",
+        options: ["Kapak iz bırakmamak için bezle açıldı", "Ferman'ın ceketinden düştü", "Battaniyeden koptu", "Eski bir iz"],
+        correct: "Kapak iz bırakmamak için bezle açıldı"
+      },
+      {
+        q: "Adli tıbba göre ilacın alınma biçimi neydi?",
+        options: ["Öğleden sonra içirilen çayla, tek yüksek dozda", "Yemekle birlikte yavaş yavaş", "Solunum yoluyla", "Enjeksiyonla"],
+        correct: "Öğleden sonra içirilen çayla, tek yüksek dozda"
       }
     ],
     elimination: [
@@ -850,6 +964,445 @@ const CASES = [
         id: "kadir",
         correct: "Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.",
         options: ["Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.", "Defterleri temizdi, motivesi yoktu.", "O akşam evdeydi, komşuları şahit."]
+      }
+    ],
+    lab: [
+      {
+        sample: "Kan örneği",
+        options: ["Flunitrazepam + metaboliti", "Yalnızca etil alkol", "Karbon monoksit", "Antidepresan"],
+        correct: "Flunitrazepam + metaboliti",
+        note: "78 ng/ml — uyku dozunun çok üzerinde, toksik aralıkta."
+      },
+      {
+        sample: "Benzin kapağı lifi",
+        options: ["Havsız silme bezi — araçta yok", "Ferman'ın ceketi", "Battaniye lifi", "Koltuk kumaşı"],
+        correct: "Havsız silme bezi — araçta yok",
+        note: "Kapak, parmak izi bırakmamak için bezle açılmış."
+      },
+      {
+        sample: "Yarım taban izi",
+        options: ["44-45 numara, çıkışa dönük", "42 numara, araca dönük", "Ferman'ın kendi ayakkabısı", "Kadın topuğu"],
+        correct: "44-45 numara, çıkışa dönük",
+        note: "Sahneyi düzenleyen kişi işini bitirip aceleyle ayrılmış."
+      },
+      {
+        sample: "Ayna düğmesi sürüntüsü",
+        options: ["Silinmiş ama yarım avuç izi kaldı", "Yalnızca Ferman'ın parmak izi", "Hiç iz yok", "Selin'in avuç izi"],
+        correct: "Silinmiş ama yarım avuç izi kaldı",
+        note: "Katil sildi ama tamamen yok edemedi."
+      },
+      {
+        sample: "Battaniye lifi",
+        options: ["Ferman'a ait — üçüncü kişi izi yok", "Kadir'in paltosuna ait", "Kan bulaşmış", "Yanık izi var"],
+        correct: "Ferman'a ait — üçüncü kişi izi yok",
+        note: "Battaniye yanıltıcı; kurbanın kendi battaniyesi."
+      }
+    ],
+    confrontation: [
+      { statement: "Selin, kardeşini bilerek zehirledi.", answer: false, why: "Şişe değiştirilmişti; Selin kendi uyku damlası sandı." },
+      { statement: "Uyku damlası şişesi perşembe sabahı değiştirildi.", answer: true, why: "Kadir sabah garaja uğradı; Selin çayı dörtte içirdi." },
+      { statement: "Dikiz aynasındaki ayar Ferman'a aitti.", answer: false, why: "Ferman kısa boyluydu; ayna arka koltuğu gösterecek biçimde, uzun birine göre ayarlandı." },
+      { statement: "Kadir, Ferman'ın cuma günü vereceği dilekçeden korkuyordu.", answer: true, why: "Baran da Feride de dilekçeyi ve Kadir'in korkusunu doğruladı." }
+    ]
+  },
+  {
+    id: 3,
+    title: "Fener Otelinde Son Gece",
+    teaser: "304 numaralı odanın balkonu, yıkanmış bir çay bardağı ve terasta yatan emekli "
+      + "bir hâkim. Selim Deniz düştü mü, yoksa çok daha önce mi öldürüldü?",
+    story: "Emekli ağır ceza hâkimi Selim Deniz (67), Deniz Feneri Oteli'nin 304 numaralı "
+      + "odasının balkonunun altındaki taş terasta, sabah 06:10'da bulundu. Bir haftadır "
+      + "otelde kalıyordu: her sabah sahilde yürüyüşe çıkar, her akşam balkonunda ıhlamur "
+      + "çayı içerdi. Balkon kapısı açık, balkondaki iki sandalyeden biri devrik, küçük masanın "
+      + "üzerindeki tepside yıkanmış bir çay bardağı duruyordu. İlk izlenim 'kazaen düşme' "
+      + "oldu; ancak gece bekçisi Haluk, 04:15'te teras yönünden ağır bir gürültü duyduğunu, "
+      + "03:30 civarında da servis merdiveni yanında 'olmaması gereken' birini gördüğünü "
+      + "söyledi. Selim Deniz, on beş yıl önceki ünlü 'Liman Davası'nın hâkimi olarak "
+      + "tanınıyordu; o dava iki ailenin ocağına ateş düşürmüştü.",
+    scene: {
+      summary: "304 numaralı oda 4x5 m; balkon kuzey cephede. Balkon kapısı açık, "
+        + "sandalyelerden biri devrik, küçük masada yıkanmış çay bardağı olan tepsi var. "
+        + "Ceset balkonun hemen altındaki taş terasta. Odada zorlanma izi yok; balkon "
+        + "korkuluğu 1,1 m yüksekliğinde.",
+      plan: {
+        caption: "Deniz Feneri Oteli — 304 numaralı oda + balkon",
+        w: 6, d: 6.5, enclosed: true,
+        features: [
+          { kind: "door", wall: "G", from: 2.4, to: 3.3, label: "Oda kapısı" },
+          { kind: "window", wall: "B", from: 2.6, to: 4.2, label: "Batı penceresi" },
+          { kind: "line", x1: 0, y1: 1.5, x2: 2.0, y2: 1.5 },
+          { kind: "line", x1: 4.0, y1: 1.5, x2: 6, y2: 1.5 },
+          { kind: "line", x1: 2.0, y1: 1.5, x2: 2.0, y2: 0.02 },
+          { kind: "line", x1: 4.0, y1: 1.5, x2: 4.0, y2: 0.02 }
+        ]
+      },
+      objects: [
+        { form: "desk", x: 2.7, y: 0.55, w: 0.8, h: 0.5, mx: 1.5, my: 0.5, label: "Balkon masası", label2: "üzerinde tepsi", real: false },
+        { form: "cup", x: 2.7, y: 0.55, mx: 4.6, my: 0.4, label: "Çay bardağı", label2: "yıkanmış, tepside", real: true },
+        { form: "chair", x: 2.35, y: 1.1, mx: 1.4, my: 1.25, label: "Sandalye", label2: "balkonda, dolu", real: false },
+        { form: "chair-fallen", x: 3.5, y: 0.9, mx: 4.7, my: 1.1, label: "Devrik sandalye", label2: "balkon masasının yanı", real: true },
+        { form: "patch", x: 3.3, y: 0.32, w: 0.5, h: 0.3, mx: 5.1, my: 0.25, label: "Yarım taban izi", label2: "korkuluk dibinde", real: true },
+        { form: "shelf", x: 0.55, y: 4.6, w: 0.5, h: 1.6, mx: 1.3, my: 5.3, label: "Gardırop", label2: "kapaklar kapalı", real: false }
+      ],
+      evidence: [
+        { name: "Yıkanmış çay bardağı", desc: "Tepsi gece boyu balkonda kaldığı halde bardak tertemiz; ıhlamur kokusu sürüyor. Toz ve çay tortusu yok." },
+        { name: "Devrik sandalye", desc: "Balkon masasının yanında; biri aceleyle kalkmış ya da sahne düzenlenmiş gibi." },
+        { name: "Balkon korkuluğu", desc: "1,1 m yüksekliğinde; 1,72 m boyundaki Selim'in üzerinden 'kazayla' aşması için kaldırılması ya da itilmesi gerekir." },
+        { name: "Açık balkon kapısı", desc: "Zorlanma yok; oda kapısı kapalı ama kilitli değil. İçeride dağılmış eşya yok." },
+        { name: "Kesik yüksükotu sapları", desc: "Otel bahçesindeki yüksükotlarından üç sap taze kesilmiş; kesik yerinde hâlâ öz su var." }
+      ],
+      notes: [
+        "Yıkanmış bardak sahnelemenin ilk çatlağı: gece boyu dışarıda kalan tepside toz olurdu.",
+        "Korkuluk 1,1 m; 1,72 m boyundaki Selim'in üzerinden 'kazayla' aşması için kaldırılması gerekir.",
+        "Devrik sandalye masanın yanına iliştirilmiş — biri aceleyle kalkmış gibi dursun diye."
+      ]
+    },
+    csi: {
+      examiner: "Olay Yeri İnceleme Görevlisi T. Aksoy",
+      date: "Vaka günü 08:30",
+      finding: "Odada zorlanma izi yok; balkon kapısı açık bırakılmış. Tepsideki bardak "
+        + "yıkanmış: parmak izi taraması sonuçsuz, bez lifi de bulunamadı. Balkon "
+        + "korkuluğunun dış yüzeyinde koyu renkli kumaş lifi ve korkuluk dibinde yarım taban "
+        + "izi (43-44 numara) saptandı. Servis merdiveninin sahanlığında taze sürtünme "
+        + "izleri var. Bahçede yüksükotu (Digitalis) öbeğinden üç sap kesilmiş; kesim aleti "
+        + "aranıyor. Otel giriş ve servis kapısı kameraları incelemede.",
+      items: [
+        "Bardak içi sürüntü: laboratuvara",
+        "Korkuluk lifi: kriminal lif analizi",
+        "Korkuluk dibi taban izi: alçı kalıp",
+        "Servis merdiveni sürtünme izleri: adli fotoğraf",
+        "Yüksükotu sapları: botanik örnek",
+        "Kamera kayıtları: giriş + servis kapısı"
+      ],
+      notes: [
+        "Bardak silinmiş: parmak izi yok, bez lifi yok — dikkatli bir el tarafından yıkandı.",
+        "Korkuluktaki koyu kumaş lifi garson üniformasıyla eşleşiyor.",
+        "Servis merdiveni sahanlığındaki sürtünme izleri taze: o gece ağır bir şey taşındı."
+      ]
+    },
+    autopsy: {
+      victim: { age: 67, height: 172, weight: 78 },
+      pathologist: "Doç. Dr. E. Özkan, Adli Tıp Kurumu",
+      date: "Vaka günü 11:30",
+      external: "Erkek, 67 yaş, 172 cm, 78 kg. Yüksekten düşme ile uyumlu yaralanmalar: "
+        + "sağ bacak ve kalçada çoklu kırık, sağ omuzda geniş ekimoz. Ancak ekimozların "
+        + "rengi soluk; yara çevresinde belirgin yaşamsal tepki yok. Ellerde ve tırnak "
+        + "aralarında savunma izi yok. Göz bebekleri geniş ve sabit.",
+      internal: "Kalp hafif büyümüş; karıncık iç yüzünde peteşiyal kanamalar. Midede ıhlamur "
+        + "kokulu yaklaşık 150 ml sıvı; mide mukozası konjesyone. Kan, karaciğer ve böbrek "
+        + "örnekleri toksikolojiye gönderildi.",
+      injuries: {
+        external: [
+          { x: 30, y: 20, kind: "mydriasis", label: "Geniş ve sabit göz bebekleri" },
+          { x: 22, y: 55, kind: "cold", label: "Ekimozlar soluk; yaşamsal tepki zayıf" },
+          { x: 75, y: 78, kind: "flush", label: "Sağ bacak ve kalçada çoklu kırık" }
+        ],
+        internal: [
+          { x: 50, y: 62, kind: "heart", label: "Karıncık iç yüzünde peteşiyal kanamalar" },
+          { x: 62, y: 92, kind: "stomach", label: "Mide: ıhlamur kokulu sıvı, konjesyone mukoza" },
+          { x: 78, y: 88, kind: "liver", label: "Karaciğer: yüksek ilaç konsantrasyonu" }
+        ]
+      },
+      toxicology: [
+        ["Digoksin (serum)",        "6,4 ng/ml",  "Terapötik 0,5–2,0 ng/ml", "Yüksek, toksik"],
+        ["Digitoksin metabolitleri", "pozitif",    "bitkisel kaynak işaretçisi", "Kanıt"],
+        ["Ihlamur (tilia) artığı",   "pozitif",    "mide içeriği",             "Çay"],
+        ["Etil alkol",               "negatif",    "—",                         "—"],
+        ["Sedatifler",               "negatif",    "—",                         "—"]
+      ],
+      causeNote: "Ölüm, yüksek doz digoksinin yol açtığı kalp ritim bozukluğuna bağlıdır. "
+        + "Düşmeye bağlı yaralanmalarda yaşamsal tepki yok; düşme ölüm sonrasında "
+        + "gerçekleşmiştir. Ölüm zamanı 00:30–01:00 civarıdır — 04:15 değil.",
+      notes: [
+        "Ekimozlar soluk ve yaşamsal tepki yok: düşme, ölüm gerçekleştikten sonra.",
+        "Kalpte peteşi + yüksek digoksin: ölüm ritim bozukluğundan.",
+        "Ellerde savunma izi yok: Selim çırpınmadı; bilincini çoktan kaybetmişti."
+      ]
+    },
+    deathCauses: [
+      "Digoksin (yüksükotu) zehirlenmesi",
+      "Yüksekten düşmeye bağlı ölüm (çoklu travma)",
+      "Kalp krizi (miyokard enfarktüsü)",
+      "İlaç etkisiyle kazaen düşme"
+    ],
+    deathCauseCorrect: "Digoksin (yüksükotu) zehirlenmesi",
+    motives: [
+      "Liman Davası'nda Selim'in hapse gönderdiği babasının intikamını almak",
+      "Kurbanın mirasına konmak",
+      "Otelin mülkiyetini ele geçirmek",
+      "Eski bir davayı susturmak"
+    ],
+    motiveCorrect: "Liman Davası'nda Selim'in hapse gönderdiği babasının intikamını almak",
+    interrogation: {
+      officer: "Sorgu Hakimi A. Karan, Emniyet Müdürlüğü",
+      date: "Vaka günü 15:00",
+      records: [
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "Nesli Hanım, kurban bir haftadır otelinizde kalıyordu. Onu tanıyor muydunuz?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Kayıt gününde tanıdım. Selim Deniz — Liman Davası'nın hâkimi. On beş yıl önce kardeşimi hapse gönderdi; kardeşim on iki yıl yattı, çıktıktan sonra yıkıldı. Saklamadım: geldiği gün yüzüne tükürdüm." },
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "Yüzüne tükürdünüz. Sonra?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Sonra hiçbir şey. Bana baktı, 'o davayı hatırlıyorum' dedi, odasına çıktı. Sevmem ama öldürmem; öldüren, karşısındakine benzer." },
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "Perşembe akşamı neredeydiniz?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Otel hesaplarını kapatıp dokuzda çıktım; giriş kamerası gösterir. Evime gittim; kızım ona doğru bana geldi, sabaha kadar beraberdik.", clue: true },
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "Selim Bey'in akşam çayı ritüelini biliyor muydunuz?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Bilmeyen yoktu. Her akşam on gibi balkonda ıhlamur; çayı Recep götürürdü. Selim Bey onu severdi, 'bu çocuk dikkatli' derdi.", clue: true },
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "Selim Deniz'e kırgın başka kim var?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Liman Davası'nda içeri girenlerin aileleri. İki aileydi: benimki ve bir diğeri. Fazlasını söylemeyeyim." },
+        { subject: "nesli", speaker: "Hakim A. Karan", text: "O gece olağan dışı bir şey fark ettiniz mi?" },
+        { subject: "nesli", speaker: "Nesli Arslan", text: "Etmedim; otelde bile değildim. Sabah polis aradı; önce inanamadım, düştü sandım." },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "Doktor Vedat, kurbanın eski dostusunuz. Onu en son ne zaman gördünüz?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Perşembe öğleden sonra dörtte. Odasına çıktım, tansiyonuna baktım, sohbet ettik. Kalbi biraz yorgundu; 'kendini zorlama' dedim. Beşte ayrıldım." },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "Neler konuştunuz?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Eski günleri, Liman Davası'nı. 'Vedat, o davada görevimi yaptım ama geceleri uyuyamadığım oluyor' dedi. Son zamanlarda çok düşünür olmuştu." },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "Digoksin reçete eder misiniz?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Ederim; kalp hastalarına, düşük dozda. Kliniğimdeki dolap kilitlidir, defterle sayarım. Polis kontrol etti: envanter tam, tek ampul eksik değil.", clue: true },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "Selim Bey digoksin kullanıyor muydu?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Hayır. Selim tansiyon ilacı kullanırdı, digoksin değil. Kan düzeyi yüksekse dışarıdan gelmiştir; benim dolabımdan da değildir.", clue: true },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "O gece neredeydiniz?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Akşam sekizden sabaha kadar hastanede nöbetteydim; nöbet defteri ve hemşireler doğrular. Hastaneden yalnızca dokuza doğru, yemek için yirmi dakika çıktım." },
+        { subject: "vedat", speaker: "Hakim A. Karan", text: "Balkon, çay... Düşmeye yorumunuz?" },
+        { subject: "vedat", speaker: "Dr. Vedat", text: "Selim yüksekten korkardı; balkon korkuluğuna yaslanmazdı bile. 'Düşmek mi? Ne münasebet' derdi. Düştüyse, biri yardım etmiştir." },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Recep, o akşam çayı sen götürdün. Ritüeli anlat." },
+        { subject: "recep", speaker: "Recep Yaman", text: "Selim Bey her akşam on gibi ıhlamur içerdi. Ben demlerdim, tepsiyle balkona bırakırdım. Bahşişi boldu. O akşam da her zamanki gibiydi." },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Çayı saat kaçta götürdünüz?" },
+        { subject: "recep", speaker: "Recep Yaman", text: "On gibi. Kapıyı tıklattım, açtı, tepsiyi aldı. 'İyi geceler evlat' dedi. Son görüşüm oydu." },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Çayda bir gariplik fark ettiniz mi?" },
+        { subject: "recep", speaker: "Recep Yaman", text: "Tadımlık aldı, 'biraz acı olmuş' dedi. Ben de 'ıhlamur yeni mahsul, ondan beyim' dedim. Güldü, 'peki öyle olsun' dedi.", clue: true },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Otelden saat kaçta ayrıldınız?" },
+        { subject: "recep", speaker: "Recep Yaman", text: "Vardiyam on birde bitti. Çıkışımı yaptım, ön kapıdan çıktım. Kamera gösterir.", clue: true },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Haluk Bey 03:30'da servis merdiveni yanında birini görmüş." },
+        { subject: "recep", speaker: "Recep Yaman", text: "Ben değildim. Ben saatler önce çıkmıştım. Haluk yaşlıdır, gözü iyi görmez. Belki kedidir." },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Otel bahçesinde yüksükotu var. Bilir misiniz?" },
+        { subject: "recep", speaker: "Recep Yaman", text: "Mor çiçekli, güzel ama tehlikeli bir bitki; bahçıvan 'dokunmayın, kalbi durdurur' derdi. Ben hiç dokunmadım.", clue: true },
+        { subject: "recep", speaker: "Hakim A. Karan", text: "Liman Davası size bir şey ifade ediyor mu?" },
+        { subject: "recep", speaker: "Recep Yaman", text: "Yıllar önceki ünlü dava; duymuşluğum var. Neden sordunuz, benimle ne ilgisi var?" },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "Müjde Hanım, cesedi siz buldunuz. Anlatın." },
+        { subject: "mujde", speaker: "Müjde", text: "Sabah altıda temizliğe başlarım. Terasa çıktığımda gördüm; bağırdım, elimdeki bez düştü. Yaklaşmadım, koşup Haluk'u çağırdım." },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "Perşembe günü 304'ü temizlediniz mi?" },
+        { subject: "mujde", speaker: "Müjde", text: "Öğlen temizledim. Selim Bey'in odası hep düzenliydi; çöpünü boşalttım, havlularını değiştirdim. Olağan dışı bir şey yoktu." },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "Balkondaki çay bardağı — siz mi topladınız?" },
+        { subject: "mujde", speaker: "Müjde", text: "Sabah tepsiyi ben topladım. Bardak tertemizdi, ıhlamur kokuyordu. Garibime gitti: gece boyu dışarıda kalan tepside toz olur; bu silinmişti.", clue: true },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "O akşam kimseyi gördünüz mü?" },
+        { subject: "mujde", speaker: "Müjde", text: "Ben akşam altıda çıkarım; akşamı görmem. Ama perşembe öğlen odayı temizlerken koridorda Recep Bey'le Selim Bey'i duydum; sesleri alçaktı ama gergindi.", clue: true },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "Selim Bey personele nasıl davranırdı?" },
+        { subject: "mujde", speaker: "Müjde", text: "Kibar, sessiz. Hepimizi adımızla sorardı. En çok Recep'i severdi; 'o çocuk dikkatli' derdi." },
+        { subject: "mujde", speaker: "Hakim A. Karan", text: "Bahçede, çiçeklerde dikkatinizi çeken bir şey var mı?" },
+        { subject: "mujde", speaker: "Müjde", text: "Ben bahçeye bakmam ama cuma sabahı çiçek tarhı karışmıştı; mor çiçek sapları kesilmişti. Bahçıvan kesmiştir sandım." },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Ferit Bey, kurbanın yeğenisiniz. Aranız nasıldı?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Dayım sert adamdı. Miras yüzünden aramızda gerginlik vardı, inkâr etmem. Ama yine de dayımdı." },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Perşembe akşamı ziyaret ettiniz. Ne konuştunuz?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Sekizde geldim. Yazlıktan yine açtım konusunu; sinirlendi, 'malımın gözüne bakıyorsun' dedi. Tartıştık. Dokuzda çıktım." },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Çıkışınızı gören var mı?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Giriş kamerası. Doğruca şehirdeki bara gittim; ikiye kadar oradaydım. Fişim poliste, barmen beni tanır.", clue: true },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Dayınızın parası size ne zaman kalacaktı?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Vasiyet var mı onu bile bilmiyorum; 'hepsini vakfa bırakacağım' der, benimle dalga geçerdi. Bakın, para için öldürecek olsam kameraya görünmediğim bir gece seçmez miydim?", clue: true },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Dayınıza kırgın birini biliyor musunuz?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Liman Davası. O davada adam mahkûm etti; emekli olunca 'bir gün beni bulurlar' derdi. Ben şaka sanırdım." },
+        { subject: "ferit", speaker: "Hakim A. Karan", text: "Otelde dikkatinizi çeken bir şey oldu mu?" },
+        { subject: "ferit", speaker: "Ferit Deniz", text: "Garson. Odadan çıkarken koridorda masaları topluyordu; bizim tartışmayı izlemiş. Göz göze geldik, başını çevirdi." },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Nazlı Hanım, yan odadaydınız. Selim Bey'i tanır mıydınız?" },
+        { subject: "nazli", speaker: "Nazlı", text: "Otelde tanıştık. Birkaç sabah kahvaltıda sohbet ettik; kibar, sessiz bir beydi. Emekli hâkim olduğunu bile bilmezdim." },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Perşembe gecesi bir şey duydunuz mu?" },
+        { subject: "nazli", speaker: "Nazlı", text: "On bir gibi yan odanın balkon kapısı açılıp kapandı, sandalye sürtündü. Hava almaya çıktı sandım. Sonra sessizlik.", clue: true },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Ondan sonra ses duydunuz mu?" },
+        { subject: "nazli", speaker: "Nazlı", text: "Sabaha karşı dörtte ağır bir şey düştü; uyandım. Mutfakta kasa düştü sandım. Saate baktım: dört on beş.", clue: true },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Koridorda kimseyi gördünüz mü?" },
+        { subject: "nazli", speaker: "Nazlı", text: "Gece ikiye doğru tuvalete kalkmıştım; koridor boştu ama servis merdiveni gıcırdadı. Üstüne düşünmedim." },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Otelde kalma sebebiniz?" },
+        { subject: "nazli", speaker: "Nazlı", text: "Deniz havası, doktor tavsiyesi. İki haftadır buradayım. Yetmiş yaşındayım; uykum hafiftir, her sese uyanırım." },
+        { subject: "nazli", speaker: "Hakim A. Karan", text: "Selim Bey'in ziyaretçisi oldu mu?" },
+        { subject: "nazli", speaker: "Nazlı", text: "Perşembe akşamı genç bir adam geldi; bir süre yüksek sesle konuştular, sonra adam kapıyı çarpıp çıktı. Bir de öğleden sonra doktor gelmişti." },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Haluk, o gece görevdeydin. Ne gördün?" },
+        { subject: "haluk", speaker: "Haluk", text: "Bütün gece ön girişteyim; kamera gösterir. Üç buçukta sigara için bahçeye çıktım." },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Ve?" },
+        { subject: "haluk", speaker: "Haluk", text: "Servis merdiveninin yanında birini gördüm. Uzun boylu, zayıf, koyu üniformalı. Seslenecektim, köşeden kaydı. Recep sandım; ama Recep on birde çıkmıştı.", clue: true },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Sonra?" },
+        { subject: "haluk", speaker: "Haluk", text: "Dört on beşte teras tarafından ağır bir gürültü geldi. Bakmaya gittim; karanlıkta bir şey görünmüyordu. 'Kedi devirdi' dedim. Altıda Müjde'nin çığlığıyla uyandım.", clue: true },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Servis merdivenini kimler kullanır?" },
+        { subject: "haluk", speaker: "Haluk", text: "Personel. Üçüncü kat koridoruna çıkar, mutfakla bağlantılıdır. Anahtarı personeldedir; kapı içeriden kilitli değildir." },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Bahçede dikkatini çeken bir şey var mı?" },
+        { subject: "haluk", speaker: "Haluk", text: "Olaydan bir gün önce yüksükotu saplarının kesildiğini fark ettim. Üç sap. Bahçıvana söyledim; 'ben kesmedim' dedi.", clue: true },
+        { subject: "haluk", speaker: "Hakim A. Karan", text: "Selim Bey'le konuşur muydunuz?" },
+        { subject: "haluk", speaker: "Haluk", text: "Her sabah yürüyüşe çıkar, 'günaydın Haluk' derdi. Düzeni olan adamdı. O yüzden kazaen düştüğüne hiç inanmadım." }
+      ],
+      pressure: [
+        {
+          subject: "nazli", minClues: 3, records: [
+            { subject: "nazli", speaker: "Hakim A. Karan", text: "Bir kez daha: sandalye sürtünmesi — balkonda tek kişi mi vardı?" },
+            { subject: "nazli", speaker: "Nazlı", text: "Tek sandalye sürtündü. Sonra hafif bir fısıltı duydum; iki kişi konuşur gibi. Emin olamam, duvarlar kalın.", clue: true },
+            { subject: "nazli", speaker: "Hakim A. Karan", text: "Kapıyı çarpıp çıkan genç adam — eşkâli?" },
+            { subject: "nazli", speaker: "Nazlı", text: "Uzun boylu, koyu ceketli. Merdivenden inerken arkasından baktım; dönüp bakmadı." }
+          ]
+        },
+        {
+          subject: "haluk", minClues: 6, records: [
+            { subject: "haluk", speaker: "Hakim A. Karan", text: "03:30'da gördüğün kişiyi anlat. Yürüyüşü nasıldı?" },
+            { subject: "haluk", speaker: "Haluk", text: "Hızlı ama koşmadan, yerini bilen biri gibi yürüdü. Elinde personel anahtarlığı vardı; kapı ışığı yandı.", clue: true },
+            { subject: "haluk", speaker: "Hakim A. Karan", text: "O kişi dışarıdan gelmiş olabilir mi?" },
+            { subject: "haluk", speaker: "Haluk", text: "Olmaz. Gece ön kapı kilitli, kamera kayıtta. Servis girişinden yalnız personel girer.", clue: true }
+          ]
+        },
+        {
+          subject: "vedat", minClues: 9, records: [
+            { subject: "vedat", speaker: "Hakim A. Karan", text: "Doktor, digoksin bitkiden elde edilebilir mi?" },
+            { subject: "vedat", speaker: "Dr. Vedat", text: "Elbette. Yüksükotu — Digitalis purpurea. Yaprak ve tohum kaynatılırsa kalbi durduran bir konsantre elde edilir. Botanikten anlayan herkes bilir.", clue: true },
+            { subject: "vedat", speaker: "Hakim A. Karan", text: "Çaya katılsa tadı anlaşılır mı?" },
+            { subject: "vedat", speaker: "Dr. Vedat", text: "Digoksin acıdır; ama ıhlamura bal katılırsa maskelenir. Selim çayına hep bal koyardı.", clue: true }
+          ]
+        },
+        {
+          subject: "recep", minClues: 12, records: [
+            { subject: "recep", speaker: "Hakim A. Karan", text: "Recep, kameralara baktık: on birde çıkış yapmışsın; ama servis kapısı..." },
+            { subject: "recep", speaker: "Recep Yaman", text: "Çıktım diyorum! ...Kamera ne gösteriyor?", clue: true },
+            { subject: "recep", speaker: "Hakim A. Karan", text: "Haluk 03:30'da personel anahtarlığı gördü. O gece anahtarlığını teslim etmeyen tek kişi sensin." },
+            { subject: "recep", speaker: "Recep Yaman", text: "Ben... anahtarlığı resepsiyona bırakmayı unutmuş olabilirim. Olur böyle şeyler.", clue: true }
+          ]
+        }
+      ],
+      notes: [
+        "Recep on birde çıktığını söylüyor; Haluk 03:30'da merdivende personel anahtarlı birini gördü.",
+        "'Biraz acı olmuş' çay ve 'yeni mahsul' bahanesi — kurbanın son sözleri.",
+        "Müjde tepsiyi silinmiş buldu; Nazlı gürültüyü 04:15'te duydu."
+      ]
+    },
+    suspects: [
+      { id: "nesli", name: "Nesli Arslan", initial: "N", note: "Otel müdürü" },
+      { id: "vedat", name: "Dr. Vedat", initial: "V", note: "Otel doktoru, aile dostu" },
+      { id: "recep", name: "Recep Yaman", initial: "R", note: "Garson" },
+      { id: "mujde", name: "Müjde", initial: "M", note: "Temizlik görevlisi" },
+      { id: "ferit", name: "Ferit Deniz", initial: "F", note: "Selim'in yeğeni" },
+      { id: "nazli", name: "Nazlı", initial: "N", note: "305 numaralı odanın misafiri" },
+      { id: "haluk", name: "Haluk", initial: "H", note: "Gece bekçisi" }
+    ],
+    culprit: "recep",
+    verdictEvidence: [
+      { name: "Yıkanmış çay bardağı", ok: true, keys: ["bardak", "yıkanmış", "tepsi", "temiz"], why: "Gece boyu dışarıda kalan tepside bardak tertemizdi; zehirle birlikte parmak izi de silinmişti." },
+      { name: "Devrik balkon sandalyesi", ok: true, keys: ["sandalye", "devrik"], why: "Sahnelemenin son dokunuşu; 'kalkarken devrildi' süsü verilmişti." },
+      { name: "Kesik yüksükotu sapları", ok: true, keys: ["yüksükotu", "çiçek", "sap", "bitki", "digitalis"], why: "Üç sap taze kesilmişti; digoksinin bitkisel kaynağı." },
+      { name: "Korkuluk yüksekliği ve kurbanın boyu", ok: true, keys: ["korkuluk", "boy", "yükseklik"], why: "1,72 m boyundaki Selim'in 1,1 m korkuluktan kazayla aşması mümkün değil; savunma izi de yok." },
+      { name: "Oda kapısının kilitsiz olması", ok: false, keys: ["oda kapısı", "kilit"], why: "Herkesin girebildiğini gösterir ama tek başına kimseyi işaret etmez." },
+      { name: "Selim'in tansiyon ilaçları", ok: false, keys: ["tansiyon", "ilaç", "reçete"], why: "Düzenli kullandığı ilaçlar; ölüm nedeni değil." },
+      { name: "Nazlı'nın deniz havası tedavisi", ok: false, keys: ["deniz havası", "tedavi"], why: "Misafirin otelde kalma sebebi; olayla ilgisi yok." },
+      { name: "Ferit'in miras kavgası", ok: false, keys: ["miras", "kavga", "yeğen"], why: "Yanlış kişiye işaret eden motif; Ferit'in alibisi kamera ve fişle doğrulandı." }
+    ],
+    solution: "Katil Recep'ti. On beş yıl önceki Liman Davası'nda Hâkim Selim, Recep'in "
+      + "babasını hapse göndermiş; baba orada ölmüştü. Recep adını değiştirip bir ay önce "
+      + "otelde işe girdi ve bekledi. Perşembe akşamı bahçedeki yüksükotundan hazırladığı "
+      + "konsantreyi ıhlamur çayına kattı; Selim 'biraz acı' dedi, 'yeni mahsul' diye "
+      + "geçiştirdi. Ölüm gece yarısına doğru balkon koltuğunda gerçekleşti. 04:15'te sahneyi "
+      + "kurdu: sandalyeyi devirdi, cesedi korkuluktan aşırdı, bardağı yıkadı. Onu ele veren "
+      + "Haluk oldu: 03:30'da servis merdiveninde personel anahtarlığıyla görülen kişi oydu. "
+      + "Dr. Vedat'ın dolap envanteri tamdı, Nesli'nin çıkışı kameralıydı, Ferit'in bar fişi "
+      + "vardı; üçü de temize çıktı.",
+    lab: [
+      {
+        sample: "Bardak içi sürüntü",
+        options: ["Digoksin + ıhlamur kalıntısı", "Yalnızca etil alkol", "Barbitürat türevi", "Siyanür"],
+        correct: "Digoksin + ıhlamur kalıntısı",
+        note: "Bardak yıkanmıştı ama dibindeki mikro çiziklerde digoksin izi kaldı."
+      },
+      {
+        sample: "Korkuluk lifi",
+        options: ["Koyu renkli garson üniforması kumaşı", "Selim'in pijama kumaşı", "Nazlı'nın şalı", "Üçüncü kişi izi yok"],
+        correct: "Koyu renkli garson üniforması kumaşı",
+        note: "Lif, garson üniformasıyla eşleşti; Selim'in kıyafetinden lif yok."
+      },
+      {
+        sample: "Korkuluk dibi taban izi",
+        options: ["43-44 numara taban — Recep'in ayakkabısıyla uyumlu", "Selim'in kendi terliği", "38 numara kadın ayakkabısı", "Haluk'un botları"],
+        correct: "43-44 numara taban — Recep'in ayakkabısıyla uyumlu",
+        note: "İz, Recep'in vardiya ayakkabısının taban deseniyle eşleşti."
+      },
+      {
+        sample: "Yüksükotu sapı",
+        options: ["Taze kesilmiş — kesit bahçedeki öbekle eşleşiyor", "Aylar önce kurumuş", "Market ürünü buket malzemesi"],
+        correct: "Taze kesilmiş — kesit bahçedeki öbekle eşleşiyor",
+        note: "Sapın özü hâlâ nemli; kesit yüzeyi bahçedeki kütükle birebir eşleşti."
+      },
+      {
+        sample: "Mide içeriği",
+        options: ["Ihlamur çayı + yüksek doz digoksin", "Kahve + sedatif", "Alkol + uyku ilacı"],
+        correct: "Ihlamur çayı + yüksek doz digoksin",
+        note: "Çaydaki bal acılığı maskelemişti; ölüm içimden saatler sonra gelişti."
+      }
+    ],
+    confrontation: [
+      { statement: "Selim Deniz'in ölümü, gürültünün duyulduğu 04:15 civarında gerçekleşti.", answer: false, why: "Otopsi ölüm saatini 00:30–01:00 aralığına koyuyor; düşme ölüm sonrasında sahnelendi." },
+      { statement: "Çay, balkona çıkarılmadan önce zehirlenmişti.", answer: true, why: "Digoksin bardaktaydı; Recep konsantreyi çayı hazırlarken kattı." },
+      { statement: "Dr. Vedat'ın digoksin dolabı zehrin kaynağıydı.", answer: false, why: "Dolap envanteri tamdı; zehir bahçedeki yüksükotu bitkisinden elde edildi." },
+      { statement: "Haluk'un 03:30'da merdivende gördüğü kişi Recep'ti.", answer: true, why: "On birde çıktığını söyledi; personel anahtarlığı ve kameralar aksini gösterdi." }
+    ],
+    timeline: [
+      "On beş yıl önce: Liman Davası'nda Hâkim Selim, Recep'in babasını hapse gönderdi; baba hapiste öldü.",
+      "Bir ay önce: Recep adını değiştirerek otelde garson olarak işe başladı.",
+      "Bir hafta önce: Selim otele yerleşti; Nesli onu tanıdı ve yüzüne tükürdü.",
+      "Olaydan bir gün önce: bahçedeki yüksükotundan üç sap kesildi.",
+      "Perşembe 16:00: Dr. Vedat muayene yaptı, 17:00'de ayrıldı.",
+      "Perşembe 20:00–21:00: Ferit ziyaret etti, miras tartışması yaşandı, kameralar önünde ayrıldı.",
+      "Perşembe 22:00: Recep ıhlamur çayını balkona götürdü; gece yarısına doğru Selim öldü.",
+      "Cuma 04:15: ağır gürültü — ceset balkondan terasta sahnelendi; 06:10'da Müjde cesedi buldu."
+    ],
+    quiz: [
+      {
+        q: "Selim Deniz'in gerçek ölüm nedeni neydi?",
+        options: ["Çayına katılan digoksin zehirlenmesi", "Düşmeye bağlı çoklu travma", "Kalp krizi", "İlaç etkisiyle kazaen düşme"],
+        correct: "Çayına katılan digoksin zehirlenmesi"
+      },
+      {
+        q: "Düşmenin sahnelendiğini ne gösterdi?",
+        options: ["Gürültü 04:15'te duyuldu ama ölüm saati gece yarısıydı", "Balkon kapısının açık olması", "Odanın düzenli olması", "Çayın soğumuş olması"],
+        correct: "Gürültü 04:15'te duyuldu ama ölüm saati gece yarısıydı"
+      },
+      {
+        q: "Zehir nereden elde edilmişti?",
+        options: ["Otel bahçesindeki yüksükotu bitkisinden", "Dr. Vedat'ın ilaç dolabından", "Eczaneden", "Ferit'in getirdiği ilaçtan"],
+        correct: "Otel bahçesindeki yüksükotu bitkisinden"
+      },
+      {
+        q: "Ferit'i kesin olarak temize çıkaran neydi?",
+        options: ["Giriş kamerası ve bardaki fiş", "Dayısını sevmesi", "O gece uyuması", "Müjde'nin ifadesi"],
+        correct: "Giriş kamerası ve bardaki fiş"
+      },
+      {
+        q: "Recep'in en belirgin hatası neydi?",
+        options: ["On birde çıktığını söylemesi — oysa 03:30'da servis merdiveninde görüldü", "Bahşiş almaması", "Tepsiyi yıkamaması", "Kapıyı tıklattığını unutması"],
+        correct: "On birde çıktığını söylemesi — oysa 03:30'da servis merdiveninde görüldü"
+      }
+    ],
+    elimination: [
+      {
+        id: "nesli",
+        correct: "21:00'te evine gitti; giriş kamerası ve kızı doğruluyor. Zehirlenme daha sonra oldu.",
+        options: ["21:00'te evine gitti; giriş kamerası ve kızı doğruluyor. Zehirlenme daha sonra oldu.", "O gece otelde sabaha kadar hesap kapatıyordu.", "Çay ritüelinden haberi yoktu."]
+      },
+      {
+        id: "vedat",
+        correct: "Digoksin dolabının envanteri tam; gece boyu hastanede nöbetteydi.",
+        options: ["Digoksin dolabının envanteri tam; gece boyu hastanede nöbetteydi.", "Kurbanın dostu olduğu için şüpheli.", "Selim'e digoksin reçete etmişti."]
+      },
+      {
+        id: "recep",
+        correct: "Elenemez: çay, yüksükotu ve 03:30'daki personel anahtarlığı onu işaret ediyor.",
+        options: ["Elenemez: çay, yüksükotu ve 03:30'daki personel anahtarlığı onu işaret ediyor.", "On birde çıkış yaptığı için elenir.", "Bahçeyi ve bitkileri bilmez."]
+      },
+      {
+        id: "mujde",
+        correct: "18:00'de temizliği bitirip ayrıldı; cesedi sabah bulup alarm veren de o.",
+        options: ["18:00'de temizliği bitirip ayrıldı; cesedi sabah bulup alarm veren de o.", "Tepsiyi topladığı için bardağı o yıkadı.", "O gece otelde kalmıştı."]
+      },
+      {
+        id: "ferit",
+        correct: "Kamera 21:00'de ayrıldığını gösteriyor; 02:00'ye kadar şehirdeydi, fişi var.",
+        options: ["Kamera 21:00'de ayrıldığını gösteriyor; 02:00'ye kadar şehirdeydi, fişi var.", "Miras için tartıştı, bu yüzden suçlu.", "Çay ritüelini bilmiyordu."]
+      },
+      {
+        id: "nazli",
+        correct: "Kurbanla otelde tanıştı; bütün gece kendi odasındaydı, bağlantısı tanıklıktan ibaret.",
+        options: ["Kurbanla otelde tanıştı; bütün gece kendi odasındaydı, bağlantısı tanıklıktan ibaret.", "Gürültüyle uyandığı için şüpheli.", "Balkona çıkıp sahneyi o kurdu."]
+      },
+      {
+        id: "haluk",
+        correct: "Ön giriş kamerası gece boyunca yerinde olduğunu gösteriyor; gürültüyü duyan ve merdivendeki kişiyi gören tanık o.",
+        options: ["Ön giriş kamerası gece boyunca yerinde olduğunu gösteriyor; gürültüyü duyan ve merdivendeki kişiyi gören tanık o.", "Bahçede sigara içtiği için şüpheli.", "Yüksükotunu o kesti."]
       }
     ]
   }
