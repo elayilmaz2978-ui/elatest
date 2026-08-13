@@ -8,4 +8,4 @@ COPY . .
 ENV PORT=8000
 EXPOSE 8000
 
-CMD ["ruby", "server.rb"]
+CMD ["/usr/local/bin/ruby", "server.rb"]
