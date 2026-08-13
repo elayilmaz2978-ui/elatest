@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=25">
+  <link rel="stylesheet" href="css/style.css?v=26">
 </head>
 <body class="view-lobby">
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
@@ -79,6 +79,14 @@
     <div class="drawer__body">
       <ul id="drawer-list" class="drawer-list"></ul>
       <p id="drawer-empty" class="drawer__empty">Tutanaklardan satır işaretledikçe burada toplanır.</p>
+      <div id="chat-panel" class="chat-panel hidden">
+        <h4 class="chat-panel__head">Ekip Sohbeti</h4>
+        <ul id="chat-list" class="chat-list"></ul>
+        <div class="chat-input">
+          <input id="chat-text" type="text" placeholder="Mesaj yaz..." maxlength="120">
+          <button id="chat-send" class="btn" type="button">➤</button>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -93,7 +101,7 @@
     </div>
   </div>
 
-  <script src="js/cases.js?v=25"></script>
-  <script src="js/game.js?v=25"></script>
+  <script src="js/cases.js?v=26"></script>
+  <script src="js/game.js?v=26"></script>
 </body>
 </html>

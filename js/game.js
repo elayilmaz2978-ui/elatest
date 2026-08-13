@@ -16,8 +16,8 @@ const MODES = [
     id: "classic",
     name: "Klasik Soruşturma",
     desc: "Tüm raporlar açık: olay yeri, kriminal, otopsi ve sorgular. Klasik deneyim.",
-    tag: "9 kart · tüm raporlar",
-    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
+    tag: "10 kart · tüm raporlar",
+    cards: ["brief", "scene", "csi", "lab", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
   },
   {
     id: "interrogation",
@@ -51,18 +51,26 @@ const ROLES = ["Olay Yeri", "Kriminal", "Adli Tıp", "Sorgu"];
 
 // Kart -> uzmanlık eşlemesi; eşlemesi olmayan kartlar (brief, timeline, quiz,
 // elimination, verdict) her dedektife açıktır.
-const ROLE_CARD = { scene: "Olay Yeri", csi: "Kriminal", autopsy: "Adli Tıp", interrogation: "Sorgu" };
+const ROLE_CARD = { scene: "Olay Yeri", csi: "Kriminal", lab: "Kriminal", autopsy: "Adli Tıp", interrogation: "Sorgu" };
+
+// Vaka sırasına göre rol dönüşü: 2. vakada roller bir kayar.
+function caseShift() {
+  const idx = caseIndexById(state.caseId);
+  return idx > 0 ? idx % ROLES.length : 0;
+}
 
 // i. oyuncunun uzmanlıkları: roller dağıtılarak paylaştırılır, 4. oyuncudan
 // sonrası "serbest"tir (tüm kartları görür).
 function rolesOf(i, n) {
   if (!n || n <= 1) return ROLES.slice();
   if (i >= ROLES.length) return ROLES.slice();
+  const shift = caseShift();
+  const rotated = ROLES.slice(shift).concat(ROLES.slice(0, shift));
   const out = [];
-  for (let j = 0; j < ROLES.length; j++) {
-    if (j % n === i) out.push(ROLES[j]);
+  for (let j = 0; j < rotated.length; j++) {
+    if (j % n === i) out.push(rotated[j]);
   }
-  return out.length ? out : [ROLES[i % ROLES.length]];
+  return out.length ? out : [rotated[i % rotated.length]];
 }
 
 // Rol filtresi yalnız çevrimiçi ekip oyununda etkin.
@@ -91,8 +99,8 @@ const state = {
   players: [],
   teamCount: 1,
   activePlayer: 0,
-  mySlot: 0,
   teamConfirm: [],
+  traitor: null,
   activeSuspect: null,
   resolved: false,
   resultNode: null,
@@ -107,7 +115,19 @@ const state = {
   quizCorrect: 0,
   elimSolved: {},
   elimOrders: null,
-  elimDone: false
+  elimDone: false,
+  scenePicks: {},
+  sceneSealed: false,
+  sceneScore: null,
+  labSolved: {},
+  labFirstTry: {},
+  labTried: {},
+  labMissed: {},
+  labOrders: null,
+  labDone: false,
+  labScore: null,
+  confrontAnswers: {},
+  confrontDone: false
 };
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -142,6 +162,10 @@ const el = {
   drawerBody: document.querySelector(".drawer__body"),
   drawerList: document.getElementById("drawer-list"),
   drawerEmpty: document.getElementById("drawer-empty"),
+  chatPanel: document.getElementById("chat-panel"),
+  chatList: document.getElementById("chat-list"),
+  chatText: document.getElementById("chat-text"),
+  chatSend: document.getElementById("chat-send"),
   drawerNotes: null,
   confirmOverlay: document.getElementById("confirm-overlay"),
   confirmTitle: document.getElementById("confirm-title"),
@@ -216,8 +240,9 @@ function totalScore(progress) {
   }, 0);
 }
 
-// Vaka başına 120 puan: karar 100 + zaman çizelgesi 10 + çapraz analiz 10.
-const MAX_TOTAL = CASES.length * 120;
+// Vaka başına 140 puan: karar 100 + zaman çizelgesi 10 + çapraz analiz 10
+// + kanıt toplama 10 + laboratuvar 10.
+const MAX_TOTAL = CASES.length * 140;
 
 // Zor eşikler: en üst rütbe yalnızca kusursuz kariyerle (%100) açılır.
 const RANKS = [
@@ -284,7 +309,7 @@ function renderCareerSummary() {
 
     const no = h("span", "career-summary__no", "№" + pad(c.id));
     const title = h("span", "career-summary__title", c.title);
-    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/120");
+    const score = h("span", "career-summary__score", formatPoints(rec.score) + "/140");
     const stamp = h("span", "career-summary__stamp " + (rec.solved ? "ok" : (rec.partial ? "mid" : "bad")), stampTextFor(rec));
 
     li.appendChild(no);
@@ -439,6 +464,7 @@ function syncPlayers() {
     out.push({ name: custom || (i + 1) + ". Dedektif", role: roleName(i) });
   }
   state.players = out;
+  netSend({ t: "setup", modeId: state.modeId, teamCount: state.teamCount, teamNames: state.teamNames, players: out });
 }
 
 function renderTeamSetup() {
@@ -538,6 +564,9 @@ function renderTeamBar() {
     });
     el.teamBar.appendChild(chip);
   });
+  if (state.traitor != null && state.traitor === state.mySlot) {
+    el.teamBar.appendChild(h("span", "team-traitor-secret", "Gizli rolün: KÖSTEBEK — ekip çözemesin diye çalış."));
+  }
 }
 
 function teamAllConfirmed() {
@@ -586,10 +615,20 @@ function netConnect(code) {
   ws.onmessage = function (e) {
     try { netOnMessage(JSON.parse(e.data)); } catch (err) {}
   };
-  ws.onclose = function () { state.net = null; renderTeamSetup(); };
+  ws.onclose = function () {
+    state.net = null;
+    if (state.netReconnect > 0) {
+      state.netReconnect -= 1;
+      setTimeout(function () { netConnect(code); }, 1200);
+    } else {
+      renderTeamSetup();
+    }
+  };
+  state.netReconnect = state.netReconnect == null ? 5 : state.netReconnect;
 }
 
 function netDisconnect() {
+  state.netReconnect = 0;
   if (state.net && state.net.ws) state.net.ws.close();
   state.net = null;
   renderTeamSetup();
@@ -597,10 +636,50 @@ function netDisconnect() {
 
 function netOnMessage(m) {
   if (m.t === "welcome") { state.net.isHost = m.isHost; renderTeamSetup(); }
-  else if (m.t === "peer") { if (state.net && state.net.isHost) sendSnapshot(); }
+  else if (m.t === "peer") { if (state.net) state.net.peers = m.n; }
   else if (m.t === "snapshot") { applySnapshot(m.state); }
+  else if (m.t === "chat") { appendChat(m.from, m.text); }
+  else if (m.t === "ping") { flashPing(m.i); }
   else netApply(m);
 }
+
+function myName() {
+  return (isTeam() && state.players[state.activePlayer]) ? state.players[state.activePlayer].name : "Sen";
+}
+
+function appendChat(from, text) {
+  (state.chat = state.chat || []).push({ from: from, text: text });
+  if (el.chatList) {
+    const li = h("li", "chat-msg");
+    li.appendChild(h("strong", null, from + ": "));
+    li.appendChild(document.createTextNode(text));
+    el.chatList.appendChild(li);
+    el.chatList.scrollTop = el.chatList.scrollHeight;
+  }
+}
+
+function sendChat() {
+  const t = (el.chatText.value || "").trim();
+  if (!t) return;
+  netSend({ t: "chat", from: myName(), text: t });
+  appendChat(myName(), t);
+  el.chatText.value = "";
+}
+
+function flashPing(i) {
+  const item = el.drawerList.querySelector('[data-idx="' + i + '"]');
+  if (item) {
+    item.classList.remove("ping-flash");
+    void item.offsetWidth;
+    item.classList.add("ping-flash");
+  }
+  if (!el.drawer.classList.contains("open")) openDrawer();
+}
+
+if (el.chatSend) el.chatSend.addEventListener("click", sendChat);
+if (el.chatText) el.chatText.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") { e.preventDefault(); sendChat(); }
+});
 
 function sendSnapshot() {
   netSend({
@@ -620,6 +699,7 @@ function applySnapshot(s) {
   state.modeId = s.modeId; state.teamCount = s.teamCount; state.teamNames = s.teamNames;
   state.players = s.players; state.activePlayer = s.activePlayer; state.teamConfirm = s.teamConfirm;
   state.marked = s.marked || []; state.markedBy = s.markedBy || {};
+  state.traitor = s.traitor != null ? s.traitor : null;
   if (s.caseId != null) {
     state.caseId = s.caseId;
     const cards = visibleCards();
@@ -643,6 +723,8 @@ function netApply(m) {
     state.teamConfirm[m.i] = m.on; renderTeamConsensus();
   } else if (m.t === "active") {
     state.activePlayer = m.i; renderTeamBar();
+  } else if (m.t === "traitor") {
+    state.traitor = m.i; renderTeamBar();
   } else if (m.t === "case") {
     openCase(m.id);
   } else if (m.t === "card") {
@@ -718,7 +800,7 @@ function renderCaseGrid() {
     card.appendChild(meta);
 
     if (rec) {
-      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/120"));
+      card.appendChild(h("p", "case-file__score", "En iyi skor: " + formatPoints(rec.score) + "/140"));
     }
 
     const open = h("button", "btn case-file__open", rec ? "Dosyayı yeniden aç" : "Dosyayı aç");
@@ -741,6 +823,11 @@ function openCase(caseId) {
   state.teamConfirm = [];
   state.activePlayer = 0;
   syncPlayers();
+  state.traitor = null;
+  if (isTeam() && state.players.length >= 3) {
+    state.traitor = Math.floor(Math.random() * state.players.length);
+    netSend({ t: "traitor", i: state.traitor });
+  }
   state.activeSuspect = null;
   state.resolved = false;
   state.resultNode = null;
@@ -754,6 +841,18 @@ function openCase(caseId) {
   state.elimSolved = {};
   state.elimOrders = null;
   state.elimDone = false;
+  state.scenePicks = {};
+  state.sceneSealed = false;
+  state.sceneScore = null;
+  state.labSolved = {};
+  state.labFirstTry = {};
+  state.labTried = {};
+  state.labMissed = {};
+  state.labOrders = null;
+  state.labDone = false;
+  state.labScore = null;
+  state.confrontAnswers = {};
+  state.confrontDone = false;
   closeDrawer();
   showView("game");
   renderGame();
@@ -835,6 +934,8 @@ function goCard(i) {
 
 // Bazı kartlar tamamlanmadan ilerlenemez (zaman, analiz, eleme).
 function cardGateDone(key) {
+  if (key === "scene") return state.sceneSealed;
+  if (key === "lab") return state.labDone;
   if (key === "timeline") return state.timelineScore != null;
   if (key === "quiz") return state.quizScore != null;
   if (key === "elimination") return state.elimDone;
@@ -842,9 +943,11 @@ function cardGateDone(key) {
 }
 
 function gateHintFor(key) {
+  if (key === "scene") return "Kanıtları topla ve mühürle.";
+  if (key === "lab") return "Tüm örnekleri doğru analizle eşleştir.";
   if (key === "timeline") return "Sıralamayı tamamla ve kontrol et.";
   if (key === "quiz") return "Tüm soruları cevapla ve kilitle.";
-  if (key === "elimination") return "Tüm şüphelileri ele.";
+  if (key === "elimination") return "Tüm şüphelileri ele ve yüzleşmeyi tamamla.";
   return "";
 }
 
@@ -925,11 +1028,73 @@ function cardBrief(area, c) {
 
 // ================= Kart: Olay Yeri =================
 
+function notesBox(notes) {
+  if (!notes || !notes.length) return null;
+  const box = h("div", "notes-box");
+  box.appendChild(h("h4", "notes-box__head", "Sana Özel Uzman Notları"));
+  const ul = h("ul", "notes-box__list");
+  notes.forEach(function (t) { ul.appendChild(h("li", null, t)); });
+  box.appendChild(ul);
+  box.appendChild(h("p", "notes-box__hint", "Bu notlar yalnız senin ekranında — karar için ekibine sözlü aktar."));
+  return box;
+}
+
 function cardScene(area, c) {
   const card = h("section", "card");
   card.appendChild(sectionHead("Olay Yeri"));
   card.appendChild(h("p", "report__body", c.scene.summary));
-  card.appendChild(buildSceneFigure(c.scene));
+
+  const pickables = c.scene.objects.filter(function (o) { return o.real !== undefined; });
+  let countNode = null;
+  function refreshCount() {
+    if (countNode) {
+      countNode.textContent = "Kanıt torbası: " + Object.keys(state.scenePicks).length
+        + " / " + pickables.length + " öğe";
+    }
+  }
+
+  card.appendChild(buildSceneFigure(c.scene, refreshCount));
+
+  if (pickables.length) {
+    const panel = h("div", "scene-collect");
+    countNode = h("p", "scene-collect__count");
+    refreshCount();
+    panel.appendChild(countNode);
+
+    if (!state.sceneSealed) {
+      const seal = h("button", "btn", "Kanıtları Mühürle");
+      seal.type = "button";
+      seal.addEventListener("click", function () {
+        let hits = 0, wrong = 0, totalReal = 0;
+        c.scene.objects.forEach(function (o, i) {
+          if (o.real === undefined) return;
+          totalReal++;
+          const picked = !!state.scenePicks[i];
+          if (o.real && picked) hits++;
+          else if (!o.real && picked) wrong++;
+        });
+        state.sceneSealed = true;
+        state.sceneScore = Math.max(0, Math.round(10 * (hits - wrong) / totalReal * 10) / 10);
+        renderCard();
+        renderCardNav();
+      });
+      panel.appendChild(seal);
+    } else {
+      const fb = h("ul", "scene-collect__fb");
+      c.scene.objects.forEach(function (o, i) {
+        if (o.real === undefined) return;
+        const picked = !!state.scenePicks[i];
+        let txt, ok;
+        if (o.real && picked) { txt = o.label + " — doğru, gerçek kanıt"; ok = true; }
+        else if (!o.real && picked) { txt = o.label + " — yanıltıcıydı, torbaya girmemeliydi"; ok = false; }
+        else { txt = o.label + " — gerçek kanıttı, kaçırıldı"; ok = false; }
+        fb.appendChild(h("li", ok ? "ok" : "bad", (ok ? "✓ " : "✗ ") + txt));
+      });
+      panel.appendChild(fb);
+      panel.appendChild(h("p", "card-done", "Kanıt toplama: +" + formatPoints(state.sceneScore) + " puan"));
+    }
+    card.appendChild(panel);
+  }
 
   card.appendChild(h("h4", "report__subhead", "Olay yerinde toplananlar"));
   const list = h("ul", "evidence-list");
@@ -940,6 +1105,10 @@ function cardScene(area, c) {
     list.appendChild(li);
   });
   card.appendChild(list);
+
+  const nb = notesBox(c.scene.notes);
+  if (nb) card.appendChild(nb);
+
   area.appendChild(card);
   stagger(list);
 }
@@ -956,8 +1125,86 @@ function cardCsi(area, c) {
   const list = h("ul", "evidence-list");
   c.csi.items.forEach(function (t) { list.appendChild(h("li", null, t)); });
   card.appendChild(list);
+
+  const nb = notesBox(c.csi.notes);
+  if (nb) card.appendChild(nb);
+
   area.appendChild(card);
   stagger(list);
+}
+
+// ================= Kart: Kriminal Laboratuvar =================
+
+function cardLab(area, c) {
+  const card = h("section", "card");
+  card.appendChild(sectionHead("Kriminal Laboratuvar"));
+  card.appendChild(h("p", "hint",
+    "Toplanan örnekleri doğru analiz sonucuyla eşleştir. İlk denemede doğrulanan her örnek "
+    + "tam puan getirir; tüm örnekler doğrulanmadan kart kapanmaz."));
+
+  if (!state.labOrders) {
+    state.labOrders = {};
+    c.lab.forEach(function (row, ri) {
+      state.labOrders[ri] = shuffleIndices(row.options.length)
+        .map(function (i) { return row.options[i]; });
+    });
+  }
+
+  const list = h("div", "lab-list");
+  c.lab.forEach(function (row, ri) {
+    const solved = !!state.labSolved[ri];
+    const rdiv = h("div", "lab-row" + (solved ? " solved" : ""));
+    rdiv.appendChild(h("p", "lab-row__name", "Örnek " + (ri + 1) + ": " + row.sample));
+
+    if (solved) {
+      rdiv.appendChild(h("p", "lab-row__done", "✓ " + row.correct));
+      rdiv.appendChild(h("p", "lab-row__note", row.note));
+    } else {
+      const controls = h("div", "lab-row__controls");
+      const select = h("select");
+      state.labOrders[ri].forEach(function (opt) {
+        select.appendChild(h("option", null, opt)).value = opt;
+      });
+      const msg = h("span", "lab-row__msg");
+      const btn = h("button", "btn btn--small", "Doğrula");
+      btn.type = "button";
+      btn.addEventListener("click", function () {
+        state.labTried[ri] = true;
+        if (select.value === row.correct) {
+          state.labSolved[ri] = true;
+          if (!state.labMissed[ri]) state.labFirstTry[ri] = true;
+          const total = c.lab.length;
+          if (Object.keys(state.labSolved).length === total) {
+            state.labDone = true;
+            const firstTryCount = Object.keys(state.labFirstTry).length;
+            state.labScore = Math.round(10 * firstTryCount / total * 10) / 10;
+          }
+          renderCard();
+          renderCardNav();
+        } else {
+          state.labMissed[ri] = true;
+          delete state.labFirstTry[ri];
+          msg.textContent = "Analiz bu sonuçla uyuşmuyor; örneğe yeniden bak.";
+          rdiv.classList.remove("shake");
+          void rdiv.offsetWidth;
+          rdiv.classList.add("shake");
+        }
+      });
+      controls.appendChild(select);
+      controls.appendChild(btn);
+      rdiv.appendChild(controls);
+      rdiv.appendChild(msg);
+    }
+    list.appendChild(rdiv);
+  });
+  card.appendChild(list);
+
+  if (state.labDone) {
+    card.appendChild(h("p", "card-done",
+      "Laboratuvar tamam: +" + formatPoints(state.labScore) + " puan"));
+  }
+
+  area.appendChild(card);
 }
 
 // ================= Kart: Otopsi =================
@@ -981,6 +1228,9 @@ function cardAutopsy(area, c) {
 
   card.appendChild(h("h4", "report__subhead", "Ölüm Nedeni Notu"));
   card.appendChild(h("p", "report__body", aut.causeNote));
+
+  const nb = notesBox(aut.notes);
+  if (nb) card.appendChild(nb);
 
   area.appendChild(card);
 }
@@ -1021,6 +1271,10 @@ function cardInterrogation(area, c) {
   card.appendChild(chips);
   card.appendChild(info);
   card.appendChild(list);
+
+  const nb = notesBox(rec.notes);
+  if (nb) card.appendChild(nb);
+
   area.appendChild(card);
 
   if (!state.activeSuspect || !c.suspects.some(function (s) { return s.id === state.activeSuspect; })) {
@@ -1339,7 +1593,8 @@ function cardElimination(area, c) {
       btn.addEventListener("click", function () {
         if (select.value === entry.correct) {
           state.elimSolved[entry.id] = true;
-          if (Object.keys(state.elimSolved).length === c.elimination.length) {
+          if (Object.keys(state.elimSolved).length === c.elimination.length
+            && (!c.confrontation || !c.confrontation.length || state.confrontDone)) {
             state.elimDone = true;
           }
           renderCard();
@@ -1360,8 +1615,53 @@ function cardElimination(area, c) {
   });
   card.appendChild(list);
 
+  const allEliminated = Object.keys(state.elimSolved).length === c.elimination.length;
+
+  if (allEliminated && c.confrontation && c.confrontation.length && !state.confrontDone) {
+    card.appendChild(h("h4", "report__subhead", "Son Yüzleşme"));
+    card.appendChild(h("p", "hint",
+      "Masa temiz. Şimdi senaryoyu doğrula: her ifade için Doğru ya da Yanlış de. "
+      + "Tümü cevaplanmadan karar kartı açılmaz."));
+
+    const cfList = h("div", "confront-list");
+    c.confrontation.forEach(function (st, si) {
+      const row = h("div", "confront-row");
+      row.appendChild(h("p", "confront-row__text", (si + 1) + ". " + st.statement));
+      const controls = h("div", "confront-row__controls");
+      [["Doğru", true], ["Yanlış", false]].forEach(function (pair) {
+        const b = h("button", "btn btn--small", pair[0]);
+        b.type = "button";
+        b.addEventListener("click", function () {
+          state.confrontAnswers[si] = pair[1];
+          if (Object.keys(state.confrontAnswers).length === c.confrontation.length) {
+            state.confrontDone = true;
+            state.elimDone = true;
+          }
+          renderCard();
+          renderCardNav();
+        });
+        controls.appendChild(b);
+      });
+      row.appendChild(controls);
+      cfList.appendChild(row);
+    });
+    card.appendChild(cfList);
+  } else if (allEliminated && c.confrontation && c.confrontation.length && state.confrontDone) {
+    const cfList = h("div", "confront-list");
+    c.confrontation.forEach(function (st, si) {
+      const answered = state.confrontAnswers[si];
+      const ok = answered === st.answer;
+      const row = h("div", "confront-row answered");
+      row.appendChild(h("p", "confront-row__text", (si + 1) + ". " + st.statement));
+      row.appendChild(h("p", ok ? "confront-row__ok" : "confront-row__bad",
+        (ok ? "✓ Doğru — " : "✗ Yanlış — ") + st.why));
+      cfList.appendChild(row);
+    });
+    card.appendChild(cfList);
+  }
+
   if (state.elimDone) {
-    card.appendChild(h("p", "card-done", "Masa temiz: tüm şüpheliler elendi. Karar kartı açık."));
+    card.appendChild(h("p", "card-done", "Masa temiz ve senaryo doğrulandı. Karar kartı açık."));
   }
 
   area.appendChild(card);
@@ -1559,13 +1859,17 @@ function resolveVerdict() {
 
   const timelinePts = state.timelineScore || 0;
   const quizPts = state.quizScore || 0;
+  const scenePts = state.sceneScore || 0;
+  const labPts = state.labScore || 0;
 
   const score = (causeRight ? WEIGHTS.cause : 0)
     + (suspectRight ? WEIGHTS.suspect : 0)
     + (motiveRight ? WEIGHTS.motive : 0)
     + evidenceScore
     + timelinePts
-    + quizPts;
+    + quizPts
+    + scenePts
+    + labPts;
 
   state.resolved = true;
 
@@ -1618,12 +1922,22 @@ function resolveVerdict() {
     "Tümü doğru",
     state.quizCorrect === c.quiz.length,
     formatPoints(quizPts) + "/10");
+  addRow("Kanıt toplama",
+    state.sceneSealed ? "Torba mühürlendi" : "Mühürlenmedi",
+    "Gerçek kanıtları toplamak",
+    scenePts === 10,
+    formatPoints(scenePts) + "/10");
+  addRow("Laboratuvar",
+    state.labDone ? "Tüm örnekler doğrulandı" : "Tamamlanmadı",
+    "İlk denemede tümü doğru",
+    labPts === 10,
+    formatPoints(labPts) + "/10");
 
   const totalRow = h("tr", "row-total");
   const totalLabel = h("td", null, "TOPLAM");
   totalLabel.colSpan = 3;
   totalRow.appendChild(totalLabel);
-  totalRow.appendChild(h("td", null, formatPoints(score) + "/120"));
+  totalRow.appendChild(h("td", null, formatPoints(score) + "/140"));
   report.appendChild(totalRow);
   result.appendChild(report);
 
@@ -1707,6 +2021,7 @@ const CARD_RENDERERS = {
   brief: cardBrief,
   scene: cardScene,
   csi: cardCsi,
+  lab: cardLab,
   autopsy: cardAutopsy,
   interrogation: cardInterrogation,
   timeline: cardTimeline,
@@ -1752,12 +2067,20 @@ function renderDrawer() {
     const row = records[i];
     if (!row) return;
     const li = h("li", "drawer-item");
+    li.setAttribute("data-idx", i);
     const body = h("p", "drawer-item__text");
     body.appendChild(h("strong", null, row.speaker + ": "));
     body.appendChild(document.createTextNode(row.text));
     li.appendChild(body);
     if (isTeam() && state.markedBy[i] != null && state.players[state.markedBy[i]]) {
       li.appendChild(h("span", "drawer-item__by", state.players[state.markedBy[i]].name));
+    }
+    if (state.net) {
+      const ping = h("button", "drawer-item__ping", "⚡");
+      ping.type = "button";
+      ping.title = "Takıma bu kanıtı vurgula";
+      ping.addEventListener("click", function () { netSend({ t: "ping", i: i }); flashPing(i); });
+      li.appendChild(ping);
     }
     if (!state.resolved) {
       const del = h("button", "drawer-item__del", "✕");
@@ -1769,6 +2092,7 @@ function renderDrawer() {
     el.drawerList.appendChild(li);
   });
   el.drawerEmpty.hidden = state.marked.length > 0;
+  if (el.chatPanel) el.chatPanel.classList.toggle("hidden", !state.net);
 
   if (el.drawerNotes) {
     el.drawerNotes.remove();
@@ -2118,11 +2442,12 @@ function drawMarker(g, x, y, num, f) {
   planText(g, x, y + r * 0.45, num, "plan-marker-num", 0.28 * f);
 }
 
-function buildSceneFigure(scene) {
+function buildSceneFigure(scene, onPickChange) {
   const plan = scene.plan;
   const objects = scene.objects;
   const w = plan.w, d = plan.d;
   const f = Math.max(1, Math.max(w, d) / 9);
+  const collectMode = objects.some(function (o) { return o.real !== undefined; });
 
   const fig = h("figure", "scene-figure");
   const head = h("figcaption", "scene-figure__head");
@@ -2138,7 +2463,9 @@ function buildSceneFigure(scene) {
   fig.appendChild(planBox);
   fig.appendChild(stamp);
   fig.appendChild(legend);
-  fig.appendChild(h("p", "hint", "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
+  fig.appendChild(h("p", "hint", collectMode && !state.sceneSealed
+    ? "Numaralı öğelere tıklayarak kanıt torbasına ekle ya da çıkar — dikkat, her öğe kanıt değildir. Ardından 'Kanıtları Mühürle' ile tamamla."
+    : "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
 
   const svg = svgEl("svg");
   const padX = 1.6 * f, padTop = 1.5 * f, padBot = 1.6 * f;
@@ -2153,6 +2480,10 @@ function buildSceneFigure(scene) {
     const g = svgEl("g");
     g.setAttribute("class", "plan-item");
     g.setAttribute("data-i", i);
+    if (o.real !== undefined) {
+      g.classList.add("pickable");
+      if (state.scenePicks[i]) g.classList.add("picked");
+    }
 
     const tip = svgEl("title");
     tip.textContent = o.label + (o.label2 ? " — " + o.label2 : "");
@@ -2207,6 +2538,18 @@ function buildSceneFigure(scene) {
     lis[i].classList.toggle("hot", onn);
     svg.classList.toggle("has-hot", onn);
   }
+  function togglePick(i) {
+    if (objects[i].real === undefined || state.sceneSealed) return;
+    if (state.scenePicks[i]) {
+      delete state.scenePicks[i];
+    } else {
+      state.scenePicks[i] = true;
+    }
+    const on = !!state.scenePicks[i];
+    items[i].classList.toggle("picked", on);
+    lis[i].classList.toggle("picked", on);
+    if (onPickChange) onPickChange();
+  }
   items.forEach(function (g, i) {
     g.addEventListener("mouseenter", function () { setHot(i, true); });
     g.addEventListener("mouseleave", function () { setHot(i, false); });
@@ -2214,6 +2557,8 @@ function buildSceneFigure(scene) {
     lis[i].addEventListener("mouseleave", function () { setHot(i, false); });
     lis[i].addEventListener("focus", function () { setHot(i, true); });
     lis[i].addEventListener("blur", function () { setHot(i, false); });
+    g.addEventListener("click", function () { togglePick(i); });
+    lis[i].addEventListener("click", function () { togglePick(i); });
   });
 
   return fig;

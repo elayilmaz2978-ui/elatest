@@ -10,8 +10,43 @@ PORT = (ARGV[0] || 8000).to_i
 ROOT = File.expand_path(File.dirname(__FILE__))
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 
-$rooms = {}      # code => { socks: [], host: nil }
+$rooms = {}      # code => { socks: [], state: {} }
 $mu = Mutex.new
+
+# Oda durumunu sunucuda tutar (yetkili sunucu): geç katılan/kopan dönen
+# her istemci bu durumdan taze bir anlık görüntü alır.
+def fresh_state
+  { "modeId" => "classic", "caseId" => nil, "cardIndex" => 0, "unlocked" => 1,
+    "marked" => [], "markedBy" => {}, "teamCount" => 1, "teamNames" => [],
+    "players" => [], "activePlayer" => 0, "teamConfirm" => [], "traitor" => nil }
+end
+
+def apply_event(st, m)
+  case m["t"]
+  when "mark"
+    st["marked"] ||= []
+    st["marked"] << m["i"] unless st["marked"].include?(m["i"])
+    (st["markedBy"] ||= {})[m["i"].to_s] = m["by"]
+  when "unmark"
+    (st["marked"] ||= []).delete(m["i"])
+    (st["markedBy"] ||= {}).delete(m["i"].to_s)
+  when "confirm"
+    (st["teamConfirm"] ||= [])[m["i"]] = m["on"]
+  when "active"
+    st["activePlayer"] = m["i"]
+  when "case"
+    st["caseId"] = m["id"]; st["cardIndex"] = 0; st["unlocked"] = 1
+    st["marked"] = []; st["markedBy"] = {}; st["teamConfirm"] = []
+  when "card"
+    st["cardIndex"] = m["i"]
+    st["unlocked"] = [st["unlocked"].to_i, m["unlocked"].to_i].max
+  when "setup"
+    %w[modeId teamCount teamNames players].each { |k| st[k] = m[k] if m.key?(k) }
+  when "traitor"
+    st["traitor"] = m["i"]
+  end
+  st
+end
 
 MIME = { ".html" => "text/html; charset=utf-8", ".css" => "text/css", ".js" => "text/javascript",
          ".png" => "image/png", ".svg" => "image/svg+xml", ".ico" => "image/x-icon" }
@@ -74,13 +109,13 @@ end
 
 def handle_ws(client, room_code)
   $mu.synchronize do
-    $rooms[room_code] ||= { socks: [], host: nil }
+    $rooms[room_code] ||= { socks: [], state: fresh_state }
     room = $rooms[room_code]
-    is_host = room[:host].nil?
-    room[:host] = client if is_host
+    is_host = room[:socks].empty?
     room[:socks] << client
     client.instance_variable_set(:@room, room_code)
     send_frame(client, JSON.generate({ t: "welcome", isHost: is_host, room: room_code }))
+    send_frame(client, JSON.generate({ t: "snapshot", state: room[:state] }))
     room[:socks].each { |s| send_frame(s, JSON.generate({ t: "peer", n: room[:socks].length })) if s != client }
   end
 
@@ -97,6 +132,11 @@ def handle_ws(client, room_code)
     $mu.synchronize do
       room = $rooms[client.instance_variable_get(:@room)]
       next unless room
+      begin
+        msg = JSON.parse(payload)
+        room[:state] = apply_event(room[:state], msg)
+      rescue JSON::ParserError
+      end
       room[:socks].each { |s| send_frame(s, payload) if s != client }
     end
   end
@@ -105,7 +145,6 @@ ensure
     code = client.instance_variable_get(:@room)
     if code && $rooms[code]
       $rooms[code][:socks].delete(client)
-      $rooms[code][:host] = nil if $rooms[code][:host] == client
       $rooms[code][:socks].each { |s| send_frame(s, JSON.generate({ t: "peer", n: $rooms[code][:socks].length })) }
       $rooms.delete(code) if $rooms[code][:socks].empty?
     end

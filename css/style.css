@@ -2824,3 +2824,134 @@ body.view-game .footer {
   width: 5.5rem;
 }
 .team-setup__hint { font-size: 0.72rem; color: var(--ink-soft); }
+/* ---- Sohbet + ping ---- */
+.chat-panel { margin-top: 1rem; border-top: 1px dashed var(--line); padding-top: 0.6rem; }
+.chat-panel__head { font-family: var(--font-type); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--ink-soft); }
+.chat-list { list-style: none; max-height: 9rem; overflow-y: auto; margin: 0.4rem 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.chat-msg { font-size: 0.82rem; background: var(--paper-panel); border: 1px solid var(--line); padding: 0.3rem 0.5rem; }
+.chat-msg strong { color: var(--accent); }
+.chat-input { display: flex; gap: 0.4rem; }
+.chat-input input { flex: 1; border: 1px solid var(--line); background: var(--paper-panel); color: var(--ink); padding: 0.4rem 0.55rem; font-family: var(--font-type); }
+.drawer-item__ping { border: 1px solid var(--line); background: transparent; color: var(--brass); cursor: pointer; padding: 0.1rem 0.4rem; margin-left: 0.4rem; }
+.drawer-item__ping:hover { border-color: var(--accent); color: var(--accent); }
+.drawer-item.ping-flash { animation: ping-flash 1.2s ease 2; border-color: var(--accent); }
+@keyframes ping-flash {
+  0%, 100% { background: transparent; }
+  40% { background: rgba(178, 58, 44, 0.25); box-shadow: 0 0 0 3px rgba(178,58,44,0.3); }
+}
+
+/* ---- Uzman notları (rol bazlı gizli notlar) ---- */
+.notes-box {
+  margin-top: 1rem;
+  border: 1px dashed var(--accent);
+  border-radius: 12px;
+  background: rgba(143, 45, 36, 0.05);
+  padding: 0.8rem 1rem;
+}
+.notes-box__head {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+.notes-box__list { margin: 0 0 0.4rem 1.1rem; padding: 0; }
+.notes-box__list li { margin-bottom: 0.3rem; font-size: 0.92rem; }
+.notes-box__hint {
+  font-family: var(--font-type);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+/* ---- Kanıt toplama (olay yeri) ---- */
+.scene-collect {
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+.scene-collect__count {
+  font-family: var(--font-type);
+  font-size: 0.85rem;
+  color: var(--ink);
+  flex: 1;
+}
+.scene-collect__fb {
+  width: 100%;
+  margin: 0.2rem 0 0 1.1rem;
+  font-size: 0.88rem;
+}
+.scene-collect__fb li.ok { color: var(--ok); }
+.scene-collect__fb li.bad { color: var(--accent); }
+.scene-collect .card-done { width: 100%; margin: 0; }
+
+.plan-item.pickable { cursor: pointer; }
+.plan-item.picked .plan-marker { fill: var(--accent-bright); }
+.plan-item.picked .plan-marker-num { fill: #f6ead2; }
+.plan-item.picked { filter: drop-shadow(0 0 0.12px rgba(178, 58, 44, 0.9)); }
+.plan-legend li.picked { background: rgba(178, 58, 44, 0.14); border-color: var(--accent); }
+
+/* ---- Kriminal laboratuvar ---- */
+.lab-list { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+.lab-row {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0.75rem 0.9rem;
+}
+.lab-row.solved {
+  border-color: var(--ok);
+  background: rgba(58, 122, 58, 0.07);
+}
+.lab-row__name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 0.45rem;
+}
+.lab-row__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+.lab-row__controls select {
+  flex: 1;
+  min-width: 220px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(244, 234, 210, 0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23915c33' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 0.8rem center / 12px;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 2.2rem 0.55rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.lab-row__done { color: var(--ok); font-weight: bold; font-size: 0.9rem; }
+.lab-row__note { color: var(--ink-soft); font-size: 0.85rem; font-style: italic; }
+.lab-row__msg { color: var(--accent); font-size: 0.82rem; width: 100%; }
+.lab-row.shake { animation: shake-x 0.4s ease; }
+
+/* ---- Son yüzleşme ---- */
+.confront-list { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+.confront-row {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0.75rem 0.9rem;
+}
+.confront-row.answered { border-color: var(--line); background: rgba(255, 255, 255, 0.5); }
+.confront-row__text { font-size: 0.95rem; margin-bottom: 0.45rem; }
+.confront-row__controls { display: flex; gap: 0.6rem; }
+.confront-row__ok { color: var(--ok); font-size: 0.88rem; }
+.confront-row__bad { color: var(--accent); font-size: 0.88rem; }
