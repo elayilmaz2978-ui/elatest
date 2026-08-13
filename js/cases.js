@@ -1418,5 +1418,400 @@ const CASES = [
         keys: ["kamera", "giriş", "tanık", "duydu", "gördü"]
       }
     ]
+  },
+  {
+    id: 4,
+    title: "Saray Sinemasında Son Seans",
+    teaser: "Perdesi beyaz kalan son seans, projeksiyon odasında devrik bir sandalye ve "
+      + "pırıl pırıl silinmiş bir şekerlik. Makinist Nihat'ı kim susturdu?",
+    story: "Saray Sineması'nın makinisti Nihat Aksan (61), cuma gecesi 22:40'ta projeksiyon "
+      + "odasında, sandalyesinin yanında yerde bulundu. Film makinesi hâlâ dönüyordu; makara "
+      + "bitmiş, kuyruk perdede beyaz bir ışık olarak çırpınıyordu. Odanın kapısı kapalı ama "
+      + "kilitsizdi. Masada yarım bardak çay, kapağı açık bir film kutusu, tamir bandı ve açık "
+      + "bir not defteri duruyordu; defterin son sayfasına 'S. borç defteri bende — N.' yazılmıştı. "
+      + "Nihat'ın kişisel şekerliği pırıl pırıl silinmişti, tek parmak izi yoktu. Havada hafif bir "
+      + "acı badem kokusu asılıydı. Nihat otuz yıldır bu sinemada çalışır, her seans çayına mutlaka "
+      + "iki kesme şeker atardı. Sinemanın sahibi Süreyya son aylarda gergindi; Nihat ise "
+      + "defterini kimseye göstermeden, sessizce bekliyordu.",
+    scene: {
+      summary: "Projeksiyon odası 5x4 m; kapı güney duvarında, batıda küçük bir havalandırma "
+        + "penceresi var. Film makinesi kuzeydeki projeksiyon masasında, makara bitmiş halde "
+        + "hâlâ dönüyor. Sandalye devrik, ceset sandalyenin yanında yerde. Masada yarım bardak "
+        + "çay, açık film kutusu ve not defteri; şekerlik pırıl pırıl.",
+      plan: {
+        caption: "Saray Sineması — projeksiyon odası",
+        w: 5, d: 4, enclosed: true,
+        features: [
+          { kind: "door", wall: "G", from: 2.0, to: 2.9, label: "Projeksiyon odası kapısı" },
+          { kind: "window", wall: "B", from: 1.2, to: 2.4, label: "Havalandırma penceresi" }
+        ]
+      },
+      objects: [
+        { form: "desk", x: 2.5, y: 0.95, w: 2.6, h: 0.9, mx: 0.9, my: 1.9, label: "Projeksiyon masası", label2: "film makinesi", real: false },
+        { form: "cup", x: 1.8, y: 0.7, label: "Yarım bardak çay", label2: "iki şekerli, acı badem kokusu", real: true },
+        { form: "cup", x: 2.6, y: 0.65, label: "Şekerlik", label2: "pırıl pırıl silinmiş", real: true },
+        { form: "paper", x: 3.4, y: 0.75, label: "Not defteri", label2: "'S. borç defteri bende — N.'", real: true },
+        { form: "box", x: 1.2, y: 0.7, w: 0.5, h: 0.36, label: "Film kutusu", label2: "Süreyya'nın getirdiği", real: true },
+        { form: "chair-fallen", x: 3.1, y: 2.1, rot: 75, label: "Devrik sandalye", real: false },
+        { form: "body", x: 3.8, y: 2.4, label: "Nihat Aksan (ceset)", label2: "yerde, sandalyenin yanında" },
+        { form: "shelf", x: 0.3, y: 2.7, w: 0.5, h: 2.2, label: "Film arşivi rafı", real: false }
+      ],
+      evidence: [
+        { name: "Yarım bardak çay", desc: "İki kesme şekerle tatlandırılmış; bardağın dibinde acı badem kokusu." },
+        { name: "Şekerlik", desc: "Pırıl pırıl silinmiş, tek parmak izi yok; içindeki şeker analize gönderildi." },
+        { name: "Not defteri", desc: "Son sayfada 'S. borç defteri bende — N.' yazıyor; aynı gün yazılmış." },
+        { name: "Film kutusu", desc: "Kapağı açık; kutunun üzerinde Süreyya'nın parmak izleri çıktı." },
+        { name: "Kapı", desc: "Kapalı ama kilitsiz; zorlanma izi yok." }
+      ],
+      notes: [
+        "Süreyya'nın 18:00'de yukarı taşıdığı film kutusunda kendi parmak izleri duruyor — şekerliği silmiş ama kutuyu unutmuş.",
+        "Şekerlik pırıl pırıl; oysa Nihat kaseyi her gün sapından tutardı, hiç bu kadar temiz olmazdı.",
+        "Devrik sandalye düşüş anını gösteriyor: Nihat çayı içtikten dakikalar sonra sandalyeden kaymış."
+      ]
+    },
+    csi: {
+      examiner: "Olay Yeri İnceleme Görevlisi T. Aras",
+      date: "Cuma, 23:20",
+      finding: "Kapı kapalı ama kilitsiz; zorlanma izi yok. Film makinesi hâlâ dönüyor, makara "
+        + "bitmiş. Masada yarım bardak çay: iki kesme şekerle tatlandırılmış, dibinde acı badem "
+        + "kokusu. Şekerlik pırıl pırıl silinmiş, tek parmak izi yok; içindeki şeker laboratuvara "
+        + "gönderildi. Not defterinin son sayfasında 'S. borç defteri bende — N.' yazısı: aynı gün, "
+        + "Nihat'ın el yazısıyla. Kapağı açık film kutusunun üzerinde Süreyya Demirel'in parmak "
+        + "izleri tespit edildi. Odada boğuşma izi yok; sandalye devrik, ceset yanında. İlk "
+        + "değerlendirme: 'zehir şekerde, şekerlik temizleyen eldivenli'.",
+      items: [
+        "Bardak içi sıvı: 40 ml, laboratuvara",
+        "Şekerlik içeriği: şeker örneği, laboratuvara",
+        "Film kutusu: parmak izi kaldırma, 3 iz",
+        "Not defteri: el yazısı karşılaştırması",
+        "Masadan ve kapı kolundan parmak izi taraması"
+      ],
+      notes: [
+        "Bardakta iki şekerin çözünme halkası var: Nihat çayını her zamanki gibi tatlandırmış, zehir şekerle gelmiş.",
+        "Film makinesi 21:20 civarında makara sonuna ulaşmış; ölüm bu saatten önce.",
+        "Kutudaki parmak izleri taze ve net — kutu o akşam eldivensiz taşınmış."
+      ]
+    },
+    autopsy: {
+      victim: { age: 61, height: 168, weight: 70 },
+      pathologist: "Doç. Dr. E. Özkan, Adli Tıp Kurumu",
+      date: "Cumartesi, 10:00",
+      external: "Erkek, 61 yaş, 168 cm, 70 kg. Dış travma izi yok; düşmeye bağlı hafif omuz "
+        + "sıyrığı mevcut. Ölü lekeleri kiraz kırmızısı renkte. Ağız ve burun çevresinde hafif "
+        + "acı badem kokusu. Göz bebekleri eşit ve orta genişlikte. Cilt soluk-pembe, tırnak "
+        + "yatakları pembe. Kesici/delici yaralanma yok.",
+      internal: "Mide içeriği yaklaşık 120 ml; çay ve çözünmemiş şeker kalıntıları içeriyor, "
+        + "mide mukozasında erozyon belirgin. Kalp boşluklarındaki kan açık parlak kırmızı "
+        + "renkte. Akciğerlerde ödem ve konjesyon. Beyin kesitlerinde yaygın hipoksi bulgusu. "
+        + "Karaciğer ve böbrek olağan. Kan, mide içeriği ve şekerlik örneği toksikolojiye gönderildi.",
+      injuries: {
+        external: [
+          { x: 70, y: 85, kind: "flush", label: "Kiraz kırmızısı ölü lekeleri (siyanür tipik)" },
+          { x: 66, y: 40, kind: "dry", label: "Ağız/burun çevresinde acı badem kokusu" },
+          { x: 74, y: 60, kind: "cold", label: "Omuzda düşmeye bağlı hafif sıyrık" }
+        ],
+        internal: [
+          { x: 70, y: 100, kind: "stomach", label: "Mide: çay + şeker kalıntısı, mukozada erozyon" },
+          { x: 62, y: 66, kind: "heart", label: "Kalp kanı: parlak kırmızı (siyanür oksijen kullanımını durdurur)" }
+        ]
+      },
+      toxicology: [
+        ["Siyanür (kan)",              "4,8 mg/L",  "Öldürücü: > 0,5 mg/L",      "Çok yüksek, öldürücü aralıkta"],
+        ["Tiyosiyanat (idrar)",        "pozitif",   "metaboliti",                 "Siyanür alımını doğrular"],
+        ["Şekerlik içeriği",           "KCN bulaşık", "—",                         "Kesme şekerlere siyanür karıştırılmış"],
+        ["Etil alkol",                 "0 ‰",       "—",                           "Temiz"],
+        ["Digoksin / kardiyak ilaç",   "negatif",   "—",                           "—"],
+        ["Barbitürik asid türevi",     "negatif",   "—",                           "—"]
+      ],
+      causeNote: "Bulgular akut siyanür zehirlenmesi ile uyumlu: kiraz kırmızısı ölü lekeleri, "
+        + "acı badem kokusu, parlak kırmızı kalp kanı ve mide erozyonu. Zehir, şekerliğe "
+        + "karıştırılmış potasyum siyanürle, çaya atılan kesme şekerler yoluyla alınmıştır. "
+        + "Ölüm, alımdan sonraki dakikalar içinde gelişmiştir.",
+      notes: [
+        "Kiraz kırmızısı lekeler ve acı badem kokusu siyanürün imzasıdır; ölüm dakikalar içinde olur.",
+        "Midedeki çözünmemiş şeker kalıntıları zehrin şekerle alındığını gösteriyor — çayın kendisi temiz.",
+        "Düşme sıyrığı ölüm sonrası pozisyonla uyumlu: Nihat sandalyeden kayarken omzunu çarpmış."
+      ]
+    },
+    deathCauses: [
+      "Siyanür zehirlenmesi",
+      "Kalp krizi (miyokard enfarktüsü)",
+      "Karbon monoksit zehirlenmesi",
+      "Gıda zehirlenmesi"
+    ],
+    deathCauseCorrect: "Siyanür zehirlenmesi",
+    motives: [
+      "Borç defterinin ortaya çıkmasını engellemek",
+      "Sinema binasını tek başına ele geçirmek",
+      "Eski bir film anlaşmazlığının intikamı",
+      "Nihat'ın mirasına konmak"
+    ],
+    motiveCorrect: "Borç defterinin ortaya çıkmasını engellemek",
+    suspects: [
+      { id: "sureyya", name: "Süreyya Demirel", initial: "S", note: "Sinema sahibi" },
+      { id: "cetin", name: "Çetin Kaya", initial: "Ç", note: "Karşıdaki çay ocağı sahibi" },
+      { id: "kerem", name: "Kerem Aslan", initial: "K", note: "Makinist çırağı" },
+      { id: "lale", name: "Lale Işık", initial: "L", note: "Emekli aktris" },
+      { id: "cevat", name: "Cevat Ünal", initial: "C", note: "Emekli yönetmen" },
+      { id: "nazife", name: "Nazife Ortak", initial: "N", note: "Temizlik görevlisi" },
+      { id: "inci", name: "İnci Sezer", initial: "İ", note: "Gişe görevlisi" }
+    ],
+    interrogation: {
+      officer: "Sorgu Hakimi A. Karan, Emniyet Müdürlüğü",
+      date: "Cumartesi, 14:00",
+      records: [
+        { subject: "inci", speaker: "Hakim A. Karan", text: "İnci Hanım, cuma akşamı gişede siz vardınız. Nihat Bey'i en son ne zaman gördünüz?" },
+        { subject: "inci", speaker: "İnci Sezer", text: "Seans başlayınca yukarı çıktı, makineyi o çalıştırır. Bir daha görmedim... yani canlı görmedim." },
+        { subject: "inci", speaker: "Hakim A. Karan", text: "Akşam projeksiyon odasına çıkan oldu mu?" },
+        { subject: "inci", speaker: "İnci Sezer", text: "On sekize doğru Süreyya Bey çıktı; kolunun altında bir film kutusu vardı. 'Arşivi konuşacağız' dedi. Yirmi dakika sonra indi, eli boştu.", clue: true },
+        { subject: "inci", speaker: "Hakim A. Karan", text: "Kutuyu geri götürmedi mi?" },
+        { subject: "inci", speaker: "İnci Sezer", text: "Hayır, eli boş indi. Kutu yukarıda kalmış olmalı; masada bulduğunuz o olsa gerek.", clue: true },
+        { subject: "inci", speaker: "Hakim A. Karan", text: "Nihat Bey'in çayını kim getirirdi?" },
+        { subject: "inci", speaker: "İnci Sezer", text: "Karşıdaki Çetin'in ocağından gelirdi. Nihat Abi şekersiz içmezdi; iki kesme atardı, herkes bilir." },
+        { subject: "inci", speaker: "Hakim A. Karan", text: "Cesedi siz bulmuşsunuz. Anlatır mısınız?" },
+        { subject: "inci", speaker: "İnci Sezer", text: "Yirmi iki kırkta perde beyaz kaldı, makara bitmişti ama makine hâlâ dönüyordu. Yukarı çıktım, kapı kapalıydı ama kilitli değildi. Onu yerde görünce çığlığı bastım." },
+        { subject: "cetin", speaker: "Hakim A. Karan", text: "Çetin Bey, karşıdaki çay ocağı sizinsiniz. Cuma akşamı yukarı çay gitti mi?" },
+        { subject: "cetin", speaker: "Çetin Kaya", text: "Gitti. Yirmiyi çeyrek geçe oğlanla gönderdim; Nihat Abi'nin seans çayıydı, her cuma olduğu gibi." },
+        { subject: "cetin", speaker: "Hakim A. Karan", text: "Çayı kim demledi, kim bardağa koydu?" },
+        { subject: "cetin", speaker: "Çetin Kaya", text: "Ben demledim, ben koydum. Demliğim gözümün önündedir; ocağımdan çıkan çaya kimse bir şey katamaz.", clue: true },
+        { subject: "cetin", speaker: "Hakim A. Karan", text: "Şeker bardağa sonradan mı atıldı?" },
+        { subject: "cetin", speaker: "Çetin Kaya", text: "Nihat Abi şekeri kendi atardı, kendi şekerliğinden. İki kesme, hiç şaşmaz. Bardağı şekersiz gönderirim, karışmam.", clue: true },
+        { subject: "cetin", speaker: "Hakim A. Karan", text: "Nihat Bey'le aranız nasıldı?" },
+        { subject: "cetin", speaker: "Çetin Kaya", text: "Otuz yıllık komşuyuz; çayını içer, parasını gününde verirdi. Bir diyeceğim yok, Allah rahmet eylesin." },
+        { subject: "kerem", speaker: "Hakim A. Karan", text: "Kerem, sen Nihat Bey'in çırağısın. Aranız son zamanlarda limoniymiş." },
+        { subject: "kerem", speaker: "Kerem Aslan", text: "Ay sonunda beni çıkaracaktı, evet. Otuz yılın üstüne bir çırağı kapı önüne koymak... kızgındım, inkâr etmem. Ama öldürmedim." },
+        { subject: "kerem", speaker: "Hakim A. Karan", text: "Cuma akşamı neredeydin, 20:30 ile 21:30 arası?" },
+        { subject: "kerem", speaker: "Kerem Aslan", text: "Salonun arkasında koltuk yaylarını sıkıyordum; pazartesi matinesi var diye. İnci Abla gördü, hatta 'kolay gelsin' dedi.", clue: true },
+        { subject: "kerem", speaker: "Hakim A. Karan", text: "Projeksiyon odasına çıktın mı?" },
+        { subject: "kerem", speaker: "Kerem Aslan", text: "Çıkmadım. Usta kızgındı, o gün yanına yaklaşmak istemedim. Makara değişimini bile kendi yaptı." },
+        { subject: "kerem", speaker: "Hakim A. Karan", text: "Nihat Bey'in not defterini bilir misin? 'S. borç defteri bende' yazıyormuş." },
+        { subject: "kerem", speaker: "Kerem Aslan", text: "Defteri bilirim, her şeyi yazardı. Ama o satırı ilk kez sizden duyuyorum. Borç defteri de neyin nesi, onu da bilmiyorum.", clue: true },
+        { subject: "lale", speaker: "Hakim A. Karan", text: "Lale Hanım, siz cuma akşamı sinemadaymışsınız. Nihat Bey'le görüştünüz mü?" },
+        { subject: "lale", speaker: "Lale Işık", text: "Görüşemedim, yazık ki. Eski bir filmimin makaralarını isteyecektim; arşiv Nihat'taydı." },
+        { subject: "lale", speaker: "Hakim A. Karan", text: "Projeksiyon odasına çıktınız mı?" },
+        { subject: "lale", speaker: "Lale Işık", text: "Çıkmadım. Fuayede Süreyya Bey'le konuştum; 'Nihat seans bitince bakar' dedi, beklemek istemedim, ayrıldım. Fuaye kamerası vardır, bakın.", clue: true },
+        { subject: "lale", speaker: "Hakim A. Karan", text: "Süreyya Bey'le ne konuştunuz?" },
+        { subject: "lale", speaker: "Lale Işık", text: "Film makaralarını ve sinemanın geleceğini. Süreyya Bey gergindi; 'bu bina yakında el değiştirebilir' gibi bir şey söyledi. Nihat duyarsa kıyamet kopar dedi... garibime gitti.", clue: true },
+        { subject: "lale", speaker: "Hakim A. Karan", text: "Nihat Bey'le aranız nasıldı?" },
+        { subject: "lale", speaker: "Lale Işık", text: "Eski dostuz; ilk filmlerimi bu salonda oynatmıştı. Onu kaybetmek... kelimeler yetmez." },
+        { subject: "cevat", speaker: "Hakim A. Karan", text: "Cevat Bey, öğleden sonra Nihat Bey'le tartışmışsınız. Yarım sokak duymuş." },
+        { subject: "cevat", speaker: "Cevat Ünal", text: "Tartıştık. Arşiv kopyasını isteyecektim, vermedi. 'Bu arşiv benim kefen param' dedi, kapıyı yüzüme kapattı." },
+        { subject: "cevat", speaker: "Hakim A. Karan", text: "Saat kaçta ayrıldınız sinemadan?" },
+        { subject: "cevat", speaker: "Cevat Ünal", text: "On yedide çıktım; kahvede domino oynadım akşama kadar. Sorun, yarım sokak şahittir.", clue: true },
+        { subject: "cevat", speaker: "Hakim A. Karan", text: "Zehirleme diye bir şey aklınıza gelir miydi?" },
+        { subject: "cevat", speaker: "Cevat Ünal", text: "Nihat otuz yıl makine başında yaşadı; bu sinemanın kalbiydi. Onu öldüren, bu sinemayı öldürdü demektir." },
+        { subject: "nazife", speaker: "Hakim A. Karan", text: "Nazife Hanım, siz cuma akşamı temizlikteydiniz. Ne duydunuz, ne gördünüz?" },
+        { subject: "nazife", speaker: "Nazife Ortak", text: "Dokuzu çeyrek geçe koridorda künt bir gürültü duydum; makara sandım, üstüne varmadım. Meğer Nihat Efendi düşmüş...", clue: true },
+        { subject: "nazife", speaker: "Hakim A. Karan", text: "Şekerliği fark etmişsiniz. Anlatır mısınız?" },
+        { subject: "nazife", speaker: "Nazife Ortak", text: "Pırıl pırıldı. Nihat Efendi kaseyi sapından tutardı, parmak izi kalırdı hep; öyle temiz hiç görmedim. Birisi silmiş, belli.", clue: true },
+        { subject: "nazife", speaker: "Hakim A. Karan", text: "O gün odasına giren çıkan oldu mu?" },
+        { subject: "nazife", speaker: "Nazife Ortak", text: "Ben koridoru silerken Süreyya Bey merdivenden indi; eli boştu, yüzü solgundu. Saat on sekiz yirmi falan.", clue: true },
+        { subject: "nazife", speaker: "Hakim A. Karan", text: "Nihat Bey son günlerde nasıldı?" },
+        { subject: "nazife", speaker: "Nazife Ortak", text: "Sessizdi. Defterini yeleğinin cebinden ayırmazdı; 'bekle Nazife, her şey sırasıyla' derdi." },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Süreyya Bey, sinemanın sahibisiniz. Cuma akşamını anlatır mısınız?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "On sekizde arşivi konuşmak için yukarı çıktım; Nihat'a bir film kutusu götürmüştüm, eski bir yapım. Beş dakika kaldım, indim. Sonra fuayedeydim." },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "İnci Hanım yirmi dakika kaldığınızı söylüyor." },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "Abartıyor. Beş, bilemediniz on dakika. Arşiv konusunu uzatmak istemedim; Nihat inatçıdır." },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Kutu neden yukarıda kaldı?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "Nihat 'bakarım, sonra iade ederim' dedi. Kutu önemsizdi; içinde eski bir fragman vardı.", clue: true },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Nihat Bey'in şekerliği hakkında ne biliyorsunuz?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "Şekerlik mi? Pırıl pırıl bir şeydi, antika gibi; hep temiz tutardı. Nihat titiz adamdı, şekeri de kendi atardı zaten.", clue: true },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Şekerliğin silindiğini size kim söyledi?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "Kimse söylemedi... yani, temizdi işte, her zamanki gibi. Öyle bilinirdi.", clue: true },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Not defterinde 'S. borç defteri bende' yazıyor. Ne demek olabilir?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "Borç defteri mi? Nihat'ın kimseye borcu yoktu. Herhalde eski bir defter, sinemanın ilk yıllarından. Benim bir ilgim olamaz.", clue: true },
+        { subject: "sureyya", speaker: "Hakim A. Karan", text: "Sinemanın mali durumu nasıl?" },
+        { subject: "sureyya", speaker: "Süreyya Demirel", text: "İyi değil, açık söyleyeyim. Salonlar boşalıyor; bu bina ayakta zor duruyor. Ama Nihat'la aramızda para meselesi yoktu." }
+      ],
+      pressure: [
+        {
+          subject: "kerem", minClues: 3, records: [
+            { subject: "kerem", speaker: "Hakim A. Karan", text: "Kerem, bir kez daha düşün: o akşam projeksiyon odasının kapısında hiç kimseyi gördün mü?" },
+            { subject: "kerem", speaker: "Kerem Aslan", text: "Bir kez olsun bakmadım yukarı. Ama şey... on sekizde merdivende ayak sesi duydum, topuklu değil, kösele. İnen biriydi, hızlıydı.", clue: true },
+            { subject: "kerem", speaker: "Hakim A. Karan", text: "Nihat Bey seni gerçekten çıkarıyor muydu, yoksa blöf müydü?" },
+            { subject: "kerem", speaker: "Kerem Aslan", text: "Ciddiydi. Ama sonra 'belki maaşını artırırız' diye de eklemişti. Usta öyleydi: korkutur, sonra yumuşardı." }
+          ]
+        },
+        {
+          subject: "cevat", minClues: 6, records: [
+            { subject: "cevat", speaker: "Hakim A. Karan", text: "Cevat Bey, kahveden kaçta ayrıldığınızı kesinleştirsek?" },
+            { subject: "cevat", speaker: "Cevat Ünal", text: "On yedide girdim, yirmi bire kadar domino. Masadakiler şahit; hatta son eli kaybettim, hesabı ben ödedim, fişi cüzdanımda.", clue: true },
+            { subject: "cevat", speaker: "Hakim A. Karan", text: "Nihat Bey'in 'kefen param' dediği arşiv ne kadar değerli?" },
+            { subject: "cevat", speaker: "Cevat Ünal", text: "Koleksiyoncular bayılır; ama Nihat satmazdı. 'Bu arşiv benden sonra müzeye gidecek' derdi." }
+          ]
+        },
+        {
+          subject: "inci", minClues: 9, records: [
+            { subject: "inci", speaker: "Hakim A. Karan", text: "İnci Hanım, fuaye kamerası on sekizdeki çıkışı doğruluyor mu?" },
+            { subject: "inci", speaker: "İnci Sezer", text: "Kamera fuayeyi ve merdiven başını görür. Kayıtları polise verdik; Süreyya Bey'in çıkışı da inişi de bellidir.", clue: true },
+            { subject: "inci", speaker: "Hakim A. Karan", text: "Süreyya Bey indikten sonra nasıl görünüyordu?" },
+            { subject: "inci", speaker: "İnci Sezer", text: "Solgundu, elleri cebindeydi. Gişeye uğramadan fuayeden çıktı, on dakika sonra geri geldi. Garipsemiştim.", clue: true }
+          ]
+        },
+        {
+          subject: "sureyya", minClues: 12, records: [
+            { subject: "sureyya", speaker: "Hakim A. Karan", text: "Süreyya Bey, film kutusunda parmak izleriniz bulundu. Eldivenle taşımadığınıza göre..." },
+            { subject: "sureyya", speaker: "Süreyya Demirel", text: "Elbette izim çıkacak, kutuyu ben taşıdım! Bunda ne var? Şekerlikle ne ilgisi var bunun?", clue: true },
+            { subject: "sureyya", speaker: "Hakim A. Karan", text: "Son bir kez: borç defteri nedir?" },
+            { subject: "sureyya", speaker: "Süreyya Demirel", text: "Bilmiyorum diyorum! Nihat uydurmuş olmalı. Avukatımı istiyorum artık." }
+          ]
+        }
+      ],
+      notes: [
+        "İnci, Süreyya'yı 18:00'de film kutusuyla yukarı çıkarken gördü; yirmi dakika sonra eli boş indi.",
+        "Süreyya, kimse söylemeden şekerliğin 'pırıl pırıl' olduğunu ve 'borç defteri'ni ağzından kaçırdı.",
+        "Nazife'nin 21:10'daki künt gürültüsü düşüş anı; Süreyya'nın inişi 18:20 — zehir çoktan şekerlikte.",
+        "Kerem'in salon arkası, Cevat'ın kahve fişi, Lale'nin fuaye kamerası alibileri sağlam."
+      ]
+    },
+    timeline: [
+      "Nihat, Süreyya'nın gişe hasılatından yıllardır para kaçırdığını fark etti ve not defterine 'S. borç defteri bende' yazdı.",
+      "17:00'de Cevat arşiv kopyası için tartıştı ve sinemadan ayrıldı; kahvede domino oynamaya gitti.",
+      "18:00'de Süreyya, kolunun altında bir film kutusuyla projeksiyon odasına çıktı; yirmi dakika sonra eli boş indi.",
+      "19:30'da seans başladı; 20:15'te Çetin'in ocağından çay yukarı gönderildi.",
+      "Nihat ilk makara arasında çayına şekerliğini iki kesme şeker attı; zehir vücuduna böyle girdi.",
+      "21:10 civarında Nazife koridorda künt bir gürültü duydu; Nihat sandalyeden kaymıştı.",
+      "22:40'ta perde beyaz kalınca İnci projeksiyon odasına çıktı ve Nihat'ı yerde buldu."
+    ],
+    quiz: [
+      {
+        q: "Zehir Nihat'ın vücuduna nasıl girdi?",
+        options: ["Çayına attığı kesme şekerlerle (şekerlik bulaşık)", "Çayın kendisiyle", "Film tutkalının kokusuyla", "Yediği atıştırmalıkla"],
+        correct: "Çayına attığı kesme şekerlerle (şekerlik bulaşık)"
+      },
+      {
+        q: "Süreyya 18:00'de projeksiyon odasına ne bahanesiyle çıktı?",
+        options: ["Film kutusu götürerek", "Çay götürerek", "Tamir için", "Hasılat sayımı için"],
+        correct: "Film kutusu götürerek"
+      },
+      {
+        q: "Not defterindeki yazı neyi gösteriyordu?",
+        options: ["Nihat'ın bir borç defterini ele geçirdiğini", "Nihat'ın borçlu olduğunu", "Sinemanın satış sözleşmesini", "Kerem'in işten çıkarılacağını"],
+        correct: "Nihat'ın bir borç defterini ele geçirdiğini"
+      },
+      {
+        q: "Şekerlikle ilgili hangi detay Nazife'nin dikkatini çekti?",
+        options: ["Pırıl pırıl silinmişti, hiç parmak izi yoktu", "Kırılmıştı", "İçinde şeker kalmamıştı", "Yerinde değildi"],
+        correct: "Pırıl pırıl silinmişti, hiç parmak izi yoktu"
+      },
+      {
+        q: "Süreyya'nın olay yerindeki en büyük hatası neydi?",
+        options: ["Şekerliği silerken film kutusunda parmak izlerini bırakması", "Kapıyı kilitlememesi", "Çayı dökmesi", "Makineyi durdurması"],
+        correct: "Şekerliği silerken film kutusunda parmak izlerini bırakması"
+      },
+      {
+        q: "Nihat'ın ölümü neden 22:40'a kadar fark edilmedi?",
+        options: ["Projeksiyon odası üst katta ve izoleydi; film kendi kendine oynamaya devam etti", "Herkes salonu terk etmişti", "Nihat nöbetçi değildi", "Kapı kilitliydi"],
+        correct: "Projeksiyon odası üst katta ve izoleydi; film kendi kendine oynamaya devam etti"
+      },
+      {
+        q: "Çetin'in çayının temiz olduğunu ne gösteriyor?",
+        options: ["Zehir çayda değil şekerdeydi; Çetin şekere hiç dokunmadı", "Çetin'in oğlu çayı götürdü", "Çay soğumuştu", "Bardakta ruj izi yoktu"],
+        correct: "Zehir çayda değil şekerdeydi; Çetin şekere hiç dokunmadı"
+      },
+      {
+        q: "Süreyya'yı sorguda ele veren ne oldu?",
+        options: ["Kimse söylemeden şekerliğin silindiğini ve borç defterini ağzından kaçırması", "Saatleri karıştırması", "Kerem'i suçlaması", "Avukat istemesi"],
+        correct: "Kimse söylemeden şekerliğin silindiğini ve borç defterini ağzından kaçırması"
+      }
+    ],
+    elimination: [
+      {
+        id: "cetin",
+        correct: "Çayı kendi demleyip kendi bardağa koydu; zehir şekerdeydi, Çetin şekere hiç dokunmadı.",
+        keys: ["çay", "demlik", "şeker", "dokunmadı", "temiz"]
+      },
+      {
+        id: "kerem",
+        correct: "20:30-21:30 arası salon arkasında koltuk tamirindeydi; İnci gördü.",
+        keys: ["salon", "koltuk", "inci", "gördü", "arkası"]
+      },
+      {
+        id: "lale",
+        correct: "Fuayede Süreyya'yla konuştu, hiç yukarı çıkmadı; fuaye kamerası doğruluyor.",
+        keys: ["fuaye", "kamera", "çıkmadı", "konuştu"]
+      },
+      {
+        id: "cevat",
+        correct: "Öğleden sonra tartıştı ama 17:00'de ayrıldı; kahvede domino oynadı, fişi var.",
+        keys: ["on yedi", "17", "kahve", "domino", "fiş", "ayrıldı"]
+      },
+      {
+        id: "nazife",
+        correct: "Koridor temizliğindeydi; gürültüyü duyup ihbarı başlatan da o. Motifi yok.",
+        keys: ["temizlik", "gürültü", "koridor", "motif"]
+      },
+      {
+        id: "inci",
+        correct: "22:00'ye kadar gişedeydi; cesedi bulan ve polisi arayan kişi.",
+        keys: ["gişe", "buldu", "aradı", "bilet"]
+      },
+      {
+        id: "sureyya",
+        correct: "Elenemez: film kutusundaki parmak izleri, silinmiş şekerlik, borç defteri notu ve dil sürçmeleri onu işaret ediyor.",
+        keys: ["elenemez", "katil", "suçlu", "o yaptı", "işaret"]
+      }
+    ],
+    confrontation: [
+      { statement: "Zehir, Çetin'in demlediği çayın içindeydi.", answer: false, why: "Çay temizdi; zehir şekerliğe karıştırılmıştı, Çetin şekere hiç dokunmadı." },
+      { statement: "Süreyya şekerliği 18:00'deki ziyaretinde zehirledi.", answer: true, why: "İnci onu o saatte film kutusuyla çıkarken gördü; yirmi dakika sonra eli boş indi." },
+      { statement: "Nihat hiç ses çıkarmadan, oturduğu yerde öldü.", answer: false, why: "Nazife 21:10'da künt bir gürültü duydu — Nihat sandalyeden kayıp yere düşmüştü." },
+      { statement: "Not defterindeki 'S. borç defteri' notu Süreyya'ya işaret ediyor.", answer: true, why: "Sinemanın sahibi Süreyya; gişe hasılatından para kaçırıyordu ve Nihat bunu belgelemişti." }
+    ],
+    verdictEvidence: [
+      { name: "Silinmiş şekerlik", ok: true, keys: ["şekerlik", "silinmiş", "parmak izi", "pırıl"], why: "Zehir şekerdeydi; kase, iz bırakmamak için eldivenle silinmişti." },
+      { name: "Film kutusundaki parmak izleri", ok: true, keys: ["film kutusu", "kutu", "parmak izi", "süreyya"], why: "Süreyya şekerliği sildi ama taşıdığı kutuda kendi izlerini unuttu." },
+      { name: "Not defterindeki yazı", ok: true, keys: ["not defteri", "borç defteri", "defter", "s."], why: "Nihat yolsuzluğu belgelemişti; 'S.' = Süreyya." },
+      { name: "İnci'nin 18:00 tanıklığı", ok: true, keys: ["inci", "on sekiz", "18", "gördü", "film kutusu"], why: "Süreyya'yı kutuyla yukarı çıkarken, yirmi dakika sonra eli boş inerken gördü." },
+      { name: "Yarım bardak çay", ok: false, keys: ["bardak", "çay"], why: "Zehrin şekerle alındığını gösterir ama şekeri kimin zehirlediğini tek başına söylemez." },
+      { name: "Kerem'in işten çıkarılacak olması", ok: false, keys: ["kerem", "kovulma", "işten", "çırak"], why: "Yanlış kişiye işaret eden motif; Kerem'in salon arkası alibisi İnci tarafından doğrulandı." },
+      { name: "Cevat'ın öğleden sonraki tartışması", ok: false, keys: ["cevat", "tartışma", "arşiv"], why: "Tartışma 17:00'de bitti, Cevat ayrıldı; zehirleme saatinden çok önce." },
+      { name: "Sinemanın kötü mali durumu", ok: false, keys: ["mali", "borç", "sinema", "salon"], why: "Genel durum bilgisi; tek başına kimseyi işaret etmez." }
+    ],
+    culprit: "sureyya",
+    solution: "Katil Süreyya'ydı. Nihat, sinema sahibinin gişe hasılatından yıllardır para "
+      + "kaçırdığını belgelemiş ve not defterine 'S. borç defteri bende' yazmıştı; defteri "
+      + "muhasebeciye götürmeye hazırlanıyordu. Süreyya 18:00'de film kutusu bahanesiyle "
+      + "projeksiyon odasına çıktı, yanında getirdiği potasyum siyanürü şekerliğe karıştırdı — "
+      + "Nihat'ın çayına iki kesme şeker attığını herkes gibi o da biliyordu. Eldivenle şekerliği "
+      + "sildi ama taşıdığı film kutusunda kendi parmak izlerini unuttu. 20:15'te Çetin çayı "
+      + "getirdi, Nihat tatlandırdı ve dakikalar içinde öldü; 21:10'da sandalyeden kayarken "
+      + "çıkardığı künt gürültüyü Nazife duydu. Süreyya'yı sorgu ele verdi: kimse söylemeden "
+      + "şekerliğin 'pırıl pırıl' olduğunu ve 'borç defteri'ni ağzından kaçırdı, İnci'nin yirmi "
+      + "dakika tanıklığını 'beş dakika' diye küçültmeye çalıştı. Çetin'in çayı temizdi, Kerem "
+      + "salon arkasındaydı, Cevat 17:00'de ayrılmıştı, Lale fuayeden hiç çıkmamıştı, İnci "
+      + "gişedeydi — hepsi temize çıktı.",
+    lab: [
+      {
+        sample: "Şekerlik içeriği",
+        options: ["Kesme şekerlere bulaşmış potasyum siyanür", "Yalnızca toz şeker", "Arsenik izi", "Fare zehri"],
+        correct: "Kesme şekerlere bulaşmış potasyum siyanür",
+        note: "Kesme şekerlerin yüzeyinde homojen KCN bulaşığı; kase silinmiş ama şeker duruyor."
+      },
+      {
+        sample: "Bardak dibi sıvısı",
+        options: ["Çay + siyanür izi + iki şekerlik çözelti", "Yalnızca çay", "Kahve + şeker", "Bitki çayı"],
+        correct: "Çay + siyanür izi + iki şekerlik çözelti",
+        note: "Zehir bardağa şekerle taşınmış; çayın kendisinde bağımsız zehir yok."
+      },
+      {
+        sample: "Film kutusu yüzeyi",
+        options: ["Süreyya Demirel'e ait net parmak izleri", "Hiç iz yok", "Nihat'ın izleri", "Eldiven izi"],
+        correct: "Süreyya Demirel'e ait net parmak izleri",
+        note: "Kutu o akşam eldivensiz taşınmış; izler taze."
+      },
+      {
+        sample: "Not defteri mürekkebi",
+        options: ["Aynı gün yazılmış, Nihat'ın el yazısı", "Günler öncesine ait", "Başka birinin el yazısı", "Matbaa baskısı"],
+        correct: "Aynı gün yazılmış, Nihat'ın el yazısı",
+        note: "El yazısı örnekleriyle birebir uyumlu; mürekkep yaşı aynı gün."
+      },
+      {
+        sample: "Mide içeriği",
+        options: ["Çay + şeker + siyanür; gıda yok", "Yalnızca gıda", "Alkol + çay", "İlaç kalıntısı"],
+        correct: "Çay + şeker + siyanür; gıda yok",
+        note: "Alım yolu net: şekerle tatlandırılmış çay."
+      }
+    ]
   }
 ];
