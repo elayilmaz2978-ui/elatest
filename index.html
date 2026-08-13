@@ -7,12 +7,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=31">
+  <link rel="stylesheet" href="css/style.css?v=32">
 </head>
 <body class="view-lobby">
   <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
   <div class="vignette" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
+
+  <div id="intro" aria-hidden="true">
+    <div class="intro__phase intro__phase--type">
+      <p class="intro__line intro__line--1">Hoş geldin dedektif.</p>
+      <p class="intro__line intro__line--2">Dosyalar seni bekliyor.</p>
+    </div>
+    <div class="intro__phase intro__phase--stamp">
+      <div class="intro__stamp">HOŞ GELDİN DEDEKTİF</div>
+    </div>
+    <div class="intro__phase intro__phase--folder">
+      <div class="intro__folder">
+        <div class="intro__folder-tab"></div>
+        <div class="intro__folder-back"></div>
+        <div class="intro__folder-paper">ELA·AGENCY</div>
+        <div class="intro__folder-front"></div>
+      </div>
+    </div>
+  </div>
 
   <header class="topbar">
     <div class="stamp" style="--rot: 8deg" aria-hidden="true">GİZLİ</div>
@@ -28,7 +46,7 @@
     <section id="view-lobby" class="lobby">
       <section class="lobby__block">
         <h2 class="lobby__head">Ekip Kurulumu</h2>
-        <p class="hint">Tek başına ya da aynı cihazda 2-4 dedektif oyna. Rol dağılımı otomatik yapılır; işaretler ortak havuza düşer ve karar ancak herkes onaylarsa mühürlenir.</p>
+        <p class="hint team-setup__intro">Tek başına ya da aynı cihazda 2-4 dedektif oyna. Rol dağılımı otomatik yapılır; işaretler ortak havuza düşer ve karar ancak herkes onaylarsa mühürlenir.</p>
         <div id="team-setup" class="team-setup"></div>
       </section>
       <section class="lobby__block">
@@ -101,7 +119,7 @@
     </div>
   </div>
 
-  <script src="js/cases.js?v=31"></script>
-  <script src="js/game.js?v=31"></script>
+  <script src="js/cases.js?v=32"></script>
+  <script src="js/game.js?v=32"></script>
 </body>
 </html>
