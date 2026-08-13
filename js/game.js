@@ -3450,11 +3450,11 @@ function playIntro() {
 
   if (sound.enabled) {
     for (let i = 0; i < 20; i++) sound.noise(0.05, 2400, 0.05, 0.35 + i * 0.0425);
-    for (let i = 0; i < 23; i++) sound.noise(0.05, 2400, 0.05, 1.2 + i * 0.037);
-    sound.tone(85, 0.2, "sine", 0.16, 2.25);
-    sound.noise(0.12, 320, 0.12, 2.25);
-    sound.noise(0.2, 950, 0.06, 3.7);
-    sound.noise(0.25, 700, 0.05, 4.0);
+    for (let i = 0; i < 23; i++) sound.noise(0.05, 2400, 0.05, 1.25 + i * 0.0304);
+    sound.tone(85, 0.2, "sine", 0.16, 2.55);
+    sound.noise(0.12, 320, 0.12, 2.55);
+    sound.noise(0.2, 950, 0.06, 3.9);
+    sound.noise(0.25, 700, 0.05, 4.3);
   }
 
   const resume = function () { sound.ensure(); };
