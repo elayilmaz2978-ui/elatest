@@ -18,7 +18,7 @@ $mu = Mutex.new
 def fresh_state
   { "modeId" => "classic", "caseId" => nil, "cardIndex" => 0, "unlocked" => 1,
     "marked" => [], "markedBy" => {}, "teamCount" => 1, "teamNames" => [],
-    "players" => [], "activePlayer" => 0, "teamConfirm" => [], "traitor" => nil }
+    "players" => [], "activePlayer" => 0, "teamConfirm" => [], "traitor" => nil, "echoes" => [] }
 end
 
 def apply_event(st, m)
@@ -44,6 +44,9 @@ def apply_event(st, m)
     %w[modeId teamCount teamNames players].each { |k| st[k] = m[k] if m.key?(k) }
   when "traitor"
     st["traitor"] = m["i"]
+  when "echo"
+    st["echoes"] ||= []
+    st["echoes"] << m["id"] unless st["echoes"].include?(m["id"])
   end
   st
 end

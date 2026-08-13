@@ -2606,7 +2606,7 @@ body.view-game .footer {
 .elim-input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(143, 45, 36, 0.15);
+  box-shadow: 0 0 0 3px rgba(145, 92, 51, 0.15);
 }
 
 .elim-row__done {
@@ -2742,7 +2742,7 @@ body.view-game .footer {
 }
 .team-count.selected {
   border-color: var(--accent);
-  background: rgba(143, 45, 36, 0.1);
+  background: rgba(145, 92, 51, 0.1);
   color: var(--accent);
   font-weight: 700;
 }
@@ -2786,7 +2786,7 @@ body.view-game .footer {
 .team-chip em { font-size: 0.68rem; color: var(--ink-soft); font-style: normal; }
 .team-chip.active {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(143, 45, 36, 0.14);
+  box-shadow: 0 0 0 3px rgba(145, 92, 51, 0.14);
 }
 .team-consensus { margin-top: 0.6rem; }
 .team-consensus__label {
@@ -2855,7 +2855,7 @@ body.view-game .footer {
 .drawer-item.ping-flash { animation: ping-flash 1.2s ease 2; border-color: var(--accent); }
 @keyframes ping-flash {
   0%, 100% { background: transparent; }
-  40% { background: rgba(178, 58, 44, 0.25); box-shadow: 0 0 0 3px rgba(178,58,44,0.3); }
+  40% { background: rgba(185, 129, 78, 0.25); box-shadow: 0 0 0 3px rgba(185,129,78,0.3); }
 }
 
 /* ---- Uzman notları (rol bazlı gizli notlar) ---- */
@@ -2863,7 +2863,7 @@ body.view-game .footer {
   margin-top: 1rem;
   border: 1px dashed var(--accent);
   border-radius: 12px;
-  background: rgba(143, 45, 36, 0.05);
+  background: rgba(145, 92, 51, 0.05);
   padding: 0.8rem 1rem;
 }
 .notes-box__head {
@@ -2900,6 +2900,13 @@ body.view-game .footer {
   color: var(--ink);
   flex: 1;
 }
+.scene-collect__hint {
+  flex-basis: 100%;
+  font-size: 0.84rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  margin: 0;
+}
 .scene-collect__fb {
   width: 100%;
   margin: 0.2rem 0 0 1.1rem;
@@ -2912,8 +2919,8 @@ body.view-game .footer {
 .plan-item.pickable { cursor: pointer; }
 .plan-item.picked .plan-marker { fill: var(--accent-bright); }
 .plan-item.picked .plan-marker-num { fill: #f6ead2; }
-.plan-item.picked { filter: drop-shadow(0 0 0.12px rgba(178, 58, 44, 0.9)); }
-.plan-legend li.picked { background: rgba(178, 58, 44, 0.14); border-color: var(--accent); }
+.plan-item.picked { filter: drop-shadow(0 0 0.12px rgba(185, 129, 78, 0.9)); }
+.plan-legend li.picked { background: rgba(185, 129, 78, 0.16); border-color: var(--accent); }
 
 /* ---- Kriminal laboratuvar ---- */
 .lab-list { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
@@ -2989,4 +2996,18 @@ body.view-game .footer {
   color: var(--accent);
   border: 1px dashed var(--accent);
   padding: 0.4rem 0.7rem;
+}
+.echo-note {
+  margin-top: 0.6rem;
+  border-left: 3px solid var(--accent-bright);
+  background: rgba(178, 58, 44, 0.08);
+  padding: 0.5rem 0.7rem;
+  font-family: var(--font-type);
+  font-size: 0.85rem;
+  color: var(--accent);
+  animation: echo-in 0.5s ease both;
+}
+@keyframes echo-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }

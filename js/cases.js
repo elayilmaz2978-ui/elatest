@@ -383,6 +383,12 @@ const CASES = [
       { id: "fikret", name: "Fikret Aksel", initial: "F", note: "Yardımcı arşiv uzmanı" }
     ],
     culprit: "fikret",
+    echoes: [
+      { key: "çay", to: "autopsy", text: "Yankı: Mide içeriğinde acı-buruş tohum artığı — çaya katılan toz bitkisel olabilir." },
+      { key: "çamur", to: "csi", text: "Yankı: Toprak analizi kıyıya özgü kil; pencere yönüyle eşleşiyor." },
+      { key: "kutu", to: "csi", text: "Yankı: Kilitli kutudaki eksik belge listesi arşiv açıklarına işaret ediyor." },
+      { key: "pencere", to: "scene", text: "Yankı: Denizlikte nemli toprak ve gevşek çile — giriş arka pencere." }
+    ],
     verdictEvidence: [
       { name: "Yarım bardak çay", ok: true, keys: ["çay", "bardak"], why: "Dibindeki acı-buruş toz Datura tohumuydu; zehir çaya katıldı." },
       { name: "Spor ayakkabı çamuru", ok: true, keys: ["çamur", "ayakkabı", "spor", "kil"], why: "42 numara, kıyı kili — pencereden giren Fikret'in izi." },
@@ -860,6 +866,11 @@ const CASES = [
       { id: "kadir", name: "Kadir Alaz", initial: "K", note: "Şirket sahibi, patron" }
     ],
     culprit: "kadir",
+    echoes: [
+      { key: "kapak", to: "csi", text: "Yankı: Benzin kapağı DNA örneği, kapağı son açan kişiyle eşleşti." },
+      { key: "gazete", to: "scene", text: "Yankı: Gazete dünkü tarihli — Ferman iki gündür araca binmemiş." },
+      { key: "ayna", to: "autopsy", text: "Yankı: Dikiz aynası açısı, kısa boylu sürücünün değil uzun boylu birinin ayarı." }
+    ],
     verdictEvidence: [
       { name: "Dikiz aynası açısı", ok: true, keys: ["ayna", "dikiz"], why: "Arka koltuğa dönük ayna uzun boylu birinin ayarı — Kadir'in boyuna uyuyor." },
       { name: "Kapatılmamış benzin kapağı", ok: true, keys: ["benzin", "kapak"], why: "İstasyonda kapanmıştı; sonradan açıp sahneyi kuran el Kadir'indi." },

@@ -32,6 +32,14 @@ const MODES = [
     desc: "Sorgu yok, kriminal yok: yalnız olay yeri ve otopsiyle katili çıkar. Zorlu mod.",
     tag: "7 kart · sorgusuz",
     cards: ["brief", "scene", "autopsy", "timeline", "quiz", "elimination", "verdict"]
+  },
+  {
+    id: "hard",
+    name: "Zor Ekip (Bölünmüş)",
+    desc: "Sert bölme: her dedektif yalnız kendi uzmanlık kartını görür. Bulgular 'yankı' ile diğerlerine akar; konuşmadan çözülmez.",
+    tag: "9 kart · sert bölme + yankı",
+    split: true,
+    cards: ["brief", "scene", "csi", "autopsy", "interrogation", "timeline", "quiz", "elimination", "verdict"]
   }
 ];
 
@@ -73,9 +81,9 @@ function rolesOf(i, n) {
   return out.length ? out : [rotated[i % rotated.length]];
 }
 
-// Rol filtresi yalnız çevrimiçi ekip oyununda etkin.
+// Rol filtresi: çevrimiçi ekip oyununda ya da bölünmüş (Zor) modda etkin.
 function roleFilterActive() {
-  return !!(state.net && state.teamCount > 1);
+  return state.teamCount > 1 && (!!state.net || !!activeMode().split);
 }
 
 function visibleCards() {
@@ -101,6 +109,7 @@ const state = {
   activePlayer: 0,
   teamConfirm: [],
   traitor: null,
+  echoes: [],
   activeSuspect: null,
   resolved: false,
   resultNode: null,
@@ -701,6 +710,7 @@ function applySnapshot(s) {
   state.players = s.players; state.activePlayer = s.activePlayer; state.teamConfirm = s.teamConfirm;
   state.marked = s.marked || []; state.markedBy = s.markedBy || {};
   state.traitor = s.traitor != null ? s.traitor : null;
+  state.echoes = s.echoes || [];
   if (s.caseId != null) {
     state.caseId = s.caseId;
     const cards = visibleCards();
@@ -726,6 +736,9 @@ function netApply(m) {
     state.activePlayer = m.i; renderTeamBar();
   } else if (m.t === "traitor") {
     state.traitor = m.i; renderTeamBar();
+  } else if (m.t === "echo") {
+    if (state.echoes.indexOf(m.id) === -1) state.echoes.push(m.id);
+    renderCard();
   } else if (m.t === "case") {
     openCase(m.id);
   } else if (m.t === "card") {
@@ -825,6 +838,7 @@ function openCase(caseId) {
   state.activePlayer = 0;
   syncPlayers();
   state.traitor = null;
+  state.echoes = [];
   if (isTeam() && state.players.length >= 3) {
     state.traitor = Math.floor(Math.random() * state.players.length);
     netSend({ t: "traitor", i: state.traitor });
@@ -1056,12 +1070,15 @@ function cardScene(area, c) {
   card.appendChild(buildSceneFigure(c.scene, refreshCount));
 
   if (pickables.length) {
+    card.appendChild(h("h4", "report__subhead", "Kanıt Torbası"));
     const panel = h("div", "scene-collect");
     countNode = h("p", "scene-collect__count");
     refreshCount();
     panel.appendChild(countNode);
 
     if (!state.sceneSealed) {
+      panel.appendChild(h("p", "scene-collect__hint",
+        "Yukarıdaki krokide kanıt olduğuna emin olduğun öğelere tıklayıp buraya doldur; hazır olunca mühürle."));
       const seal = h("button", "btn", "Kanıtları Mühürle");
       seal.type = "button";
       seal.addEventListener("click", function () {
@@ -1108,6 +1125,7 @@ function cardScene(area, c) {
 
   const nb = notesBox(c.scene.notes);
   if (nb) card.appendChild(nb);
+  appendEchoes(card, "scene");
 
   area.appendChild(card);
   stagger(list);
@@ -1128,6 +1146,7 @@ function cardCsi(area, c) {
 
   const nb = notesBox(c.csi.notes);
   if (nb) card.appendChild(nb);
+  appendEchoes(card, "csi");
 
   area.appendChild(card);
   stagger(list);
@@ -1157,6 +1176,7 @@ function cardAutopsy(area, c) {
 
   const nb = notesBox(aut.notes);
   if (nb) card.appendChild(nb);
+  appendEchoes(card, "autopsy");
 
   area.appendChild(card);
 }
@@ -1299,6 +1319,7 @@ function toggleMark(i) {
     state.marked.push(i);
     state.markedBy[i] = state.mySlot;
     netSend({ t: "mark", i: i, by: state.mySlot });
+    unlockEchoesFor(i);
   } else {
     state.marked.splice(idx, 1);
     delete state.markedBy[i];
@@ -1307,6 +1328,35 @@ function toggleMark(i) {
   renderInterrogation(currentCase());
   renderDrawer();
   updateNoteCount();
+}
+
+// İşaretlenen satır bir yankı tetikliyorsa, hedef rolün kartına otomatik düşür.
+function unlockEchoesFor(i) {
+  const c = currentCase();
+  if (!c || !c.echoes) return;
+  const row = c.interrogation.records[i];
+  if (!row) return;
+  const txt = trNorm(row.text);
+  c.echoes.forEach(function (e, id) {
+    if (state.echoes.indexOf(id) !== -1) return;
+    const k = trNorm(e.key);
+    if (k && txt.indexOf(k) !== -1) {
+      state.echoes.push(id);
+      netSend({ t: "echo", id: id });
+      renderCard();
+    }
+  });
+}
+
+// Bir karta düşmüş açık yankıları listele.
+function appendEchoes(container, cardKey) {
+  const c = currentCase();
+  if (!c || !c.echoes) return;
+  state.echoes.forEach(function (id) {
+    const e = c.echoes[id];
+    if (!e || e.to !== cardKey) return;
+    container.appendChild(h("p", "echo-note", e.text));
+  });
 }
 
 // ================= Kart: Zaman Çizelgesi =================
@@ -2402,7 +2452,9 @@ function buildSceneFigure(scene, onPickChange) {
   fig.appendChild(stamp);
   fig.appendChild(legend);
   fig.appendChild(h("p", "hint", collectMode && !state.sceneSealed
-    ? "Numaralı öğelere tıklayarak kanıt torbasına ekle ya da çıkar — dikkat, her öğe kanıt değildir. Ardından 'Kanıtları Mühürle' ile tamamla."
+    ? "Kanıtları topla: krokideki numaralı öğelere TIKLA — gerçek kanıt olduğunu düşündüklerini torbaya ekle, "
+      + "yanlışlıkla eklediklerine tekrar tıklayıp çıkar. Dikkat, her öğe kanıt değildir; yanıltıcı olanlar da var. "
+      + "Bitirince aşağıdaki 'Kanıtları Mühürle' butonuna bas. Doğru kanıtlar puan kazandırır, yanıltıcı öğeler puan düşürür."
     : "Krokideki numaralı öğelerin ya da listedeki maddelerin üzerine gel: eşleşen öğe vurgulanır."));
 
   const svg = svgEl("svg");
