@@ -367,6 +367,44 @@ const CASES = [
           ]
         }
       ],
+      freeform: {
+        esra: [
+          { q: "Kâbuslar ve sesler hakkında ne düşünüyorsunuz?", keys: ["kabus", "uykusuzluk", "ses"], a: "İki haftadır uykusuzdu, 'duvardan sesler geliyor' diyordu. Stres sandım; şimdi düşük doz bir şeyle alıştırıldığını düşünüyorum.", clue: true },
+          { q: "Bardaktaki ruj izi sizin mi?", keys: ["ruj", "bardak"], a: "O bardak günler önceki muayeneden kalmaydı; ruj izim eskidir. Bardaktaki çay lekesi ise tazeydi." },
+          { q: "Arda'ya ne ilaç verdiniz?", keys: ["papatya", "ilaç", "recete", "reçete"], a: "Yalnızca papatya çayı önerdim. Atropin içeren hiçbir şey reçete etmedim." }
+        ],
+        kenan: [
+          { q: "Pencere önündeki çamur izi sizin mi?", keys: ["camur", "çamur", "iz", "ayakkabi", "ayakkabı"], a: "Bahçede çamur olur, doğru. Ama benim çizmem 44 numara; pencere önündeki iz 42 numara spor ayakkabı.", clue: true },
+          { q: "O akşam kaçta ayrıldınız?", keys: ["sulama", "bahce", "bahçe", "saat"], a: "Sulama beşte başlar, hava kararmadan biter. Perşembe sekize doğru çıktım." },
+          { q: "Bahçedeki Datura öbeğini biliyor muydunuz?", keys: ["datura", "cicek", "çiçek", "bitki"], a: "Arka bahçede yabani bir öbek var. Sökülmesini istemiştim; belediye bir türlü sıra vermedi.", clue: true }
+        ],
+        kaan: [
+          { q: "İçeri girdiğinizde ne gördünüz?", keys: ["isik", "ışık", "kapi", "kapı", "girdin"], a: "22:40'ta ışığı açık gördüm, içeri girdim. Kapı kilitli değildi. Arda masada oturuyordu, tepki vermedi." },
+          { q: "Çay bardağı size garip geldi mi?", keys: ["cay", "çay", "kahve"], a: "Arda çay içmezdi, kahve içerdi. O bardağı görünce bir tuhaflık hissettim.", clue: true },
+          { q: "O gece bir ses duydunuz mu?", keys: ["ses", "gurultu", "gürültü", "duydun"], a: "Duymadım. Eski bina zaten gıcırdar; o gece sessizdi." }
+        ],
+        nermin: [
+          { q: "Fikret Bey'i geceleri gördünüz mü?", keys: ["fikret", "sigara", "bahce", "bahçe"], a: "İki gece üst üste gördüm, pencereye doğru eğiliyordu. 'Sigara içiyorum' dedi ama yirmi yıldır elinde sigara görmedim.", clue: true },
+          { q: "Kutunun anahtarı kimdeydi?", keys: ["kutu", "anahtar", "cekmece", "çekmece"], a: "Anahtar yeleğinin cebindeydi, zincirle bağlıydı. Kimse fark ettirmeden alamazdı." },
+          { q: "O sabah başka ne gördünüz?", keys: ["torba", "cop", "çöp", "bez"], a: "Fikret Bey koyu bir bez torbayı çöpe atıyordu. Karıştırmak istedim ama çöpçü benden önce gelmişti.", clue: true }
+        ],
+        hale: [
+          { q: "Çayı kim alıp götürdü?", keys: ["kim", "aldi", "aldı", "goturdu", "götürdü"], a: "Genç bir adam aldı; 'Arda Abi'ye götürüyorum' dedi. Yüzü yarım dönüktü. Garipsemedim, hep aynı cümleyi söylerdi.", clue: true },
+          { q: "Çayınıza bir şey katılmış olabilir mi?", keys: ["muhur", "mühür", "demlik", "temiz"], a: "Demliğim her akşam mühürlenir. Ocağımdan çıkan temizdir; zehir girdiyse sonradan girmiştir." },
+          { q: "Arda Bey çayını nasıl içerdi?", keys: ["seker", "şeker", "kesme"], a: "İki kesme şekerli içerdi; şekeri de kendi şekerliğinden atardı." }
+        ],
+        tolga: [
+          { q: "Borçlarınız için mi öldürdünüz?", keys: ["borc", "borç", "para", "miras"], a: "Borcum vardı, doğru. Amcamdan para istedim, vermedi. Ama onu öldürmedim; o gece barışmaya gittim." },
+          { q: "Pencerede ne gördünüz?", keys: ["golge", "gölge", "pencere", "gordun", "gördün"], a: "Dokuz buçukta arka tarafa dolandım. Pencerede eğilmiş, bir şey arayan bir gölge vardı. Korkup kaçtım.", clue: true },
+          { q: "Ayakkabınız kaç numara?", keys: ["numara", "ayakkabi", "ayakkabı"], a: "Kırk üç. İz 42'yse benim değildir." }
+        ],
+        fikret: [
+          { q: "Kutunun içinde ne vardı?", keys: ["kutu", "ne vardi", "ne vardı", "icinde", "içinde"], a: "Kişisel notları vardı kutuda. Arda ketum adamdı; ne yazdığını bilmem." },
+          { q: "Borç defteri hakkında ne biliyorsunuz?", keys: ["borc", "borç", "defter", "hasilat", "hasılat"], a: "Borç defteri falan bilmem; Arda uydurmuş olmalı. Ben kasaya hiç el sürmedim.", clue: true },
+          { q: "Nermin Hanım'ın gördüğü bez torba neydi?", keys: ["nermin", "torba", "cop", "çöp"], a: "Torba mı? Çöp atmış olabilirim. Herkes çöp atar. Çöp için mi tutuklayacaksınız?" },
+          { q: "O gece kütüphaneye girdiniz mi?", keys: ["gece", "girdin", "pencere"], a: "Girmedim, yüz kez söyledim. Pencere çilesi gevşekti; isteyen girerdi." }
+        ]
+      },
       notes: [
         "Fikret, kimse söylemeden 'eksik evrak listesi' dedi — kutunun içeriğini katilden başkası bilmiyordu.",
         "Nermin, Fikret'i iki gece pencereye eğilirken gördü; elinde koyu bir bez torba vardı.",
@@ -850,6 +888,44 @@ const CASES = [
           ]
         }
       ],
+      freeform: {
+        mert: [
+          { q: "Benzin kapağını kapattınız mı?", keys: ["kapak", "benzin", "kapattin", "kapattın"], a: "İstasyonda kapağı ben kapattım, kayıtlarda var. Sonradan açıldıysa biri tekrar açtı.", clue: true },
+          { q: "Kadir Bey istasyona geldi mi?", keys: ["kadir", "istasyon", "geldi"], a: "Kadir Bey sabah istasyona uğradı; Ferman'ın vardiyesini sordu. Garibime gitti.", clue: true },
+          { q: "Selin Hanım'ı gördünüz mü?", keys: ["selin", "gordun", "gördün"], a: "Selin Hanım her gün uğrar; o öğleden sonra da geldi, gitti." }
+        ],
+        selin: [
+          { q: "Kardeşinize ne verdiniz?", keys: ["sise", "şişe", "damla", "ne verdin"], a: "Kendi şişesinden damlattım; 'uyku damlam' dedi. Şişe renksizdi. Değiştirildiğini bilmiyordum.", clue: true },
+          { q: "Araçtaki vanilya kokusu sizin mi?", keys: ["vanilya", "koku"], a: "Vanilya benim parfümüm. Ayrılırken kardeşime sarıldım. Sigara içmem, içmedim." },
+          { q: "Sigorta parası için mi yaptınız?", keys: ["miras", "sigorta", "para"], a: "Sigortadan haberim bile yoktu. Kardeşim her şeyimdi; para onu geri getirmez." }
+        ],
+        nazan: [
+          { q: "Verdiğiniz damlanın rengi neydi?", keys: ["yesil", "yeşil", "renk", "damla"], a: "Benim verdiğim damla yeşilimsidir; üretici öyle boyar. Selin Hanım renksiz bir şişe tarif etti.", clue: true },
+          { q: "Sizden reçetesiz ilaç isteyen oldu mu?", keys: ["recetesiz", "reçetesiz", "adam", "istedi"], a: "Bir hafta önce uzun boylu, paltolu bir adam 'uyku için güçlü bir şey' istedi, reçetesiz. Reddettim; sinirlenip çıktı.", clue: true },
+          { q: "Flunitrazepam nasıl bulunur?", keys: ["flunitrazepam", "ilac", "ilaç", "nereden"], a: "Flunitrazepam öylece alınacak bir ilaç değildir; ya reçete gerekir ya da... karaborsa." }
+        ],
+        yusuf: [
+          { q: "Akşam aracın yanına gelen oldu mu?", keys: ["adam", "paltolu", "gordun", "gördün"], a: "Yedi gibi uzun boylu, paltolu biri. Sürücü kapısını açıp eğildi; iki dakika kalıp çıkışa yürüdü.", clue: true },
+          { q: "Araçta sigara mı içtiniz?", keys: ["sigara", "tutun", "tütün", "ictin", "içtin"], a: "Ben içerim ama kulübenin dışında. Araçta tütün havada asılıydı, izmarit yoktu; içen kişi binmemiş." },
+          { q: "Arka koltuktaki battaniye kimin?", keys: ["battaniye", "arka koltuk"], a: "Battaniye Ferman'ındı; molalarda üstüne örterdi." }
+        ],
+        feride: [
+          { q: "Ferman size son ne söyledi?", keys: ["defter", "ne soyledi", "ne söyledi", "son"], a: "İki gün önce ağlıyordu. 'Başıma bir şey gelirse Kadir'in defterlerine bak' dedi. Abartıyor sandım.", clue: true },
+          { q: "Sigorta için mi boşanmadınız?", keys: ["sigorta", "neden", "bosanma", "boşanma"], a: "Boşanma çekişmeliydi ama onu sigorta için öldürmedim. Konuşmaya gittim, o kadar." },
+          { q: "Dilekçeden haberiniz var mıydı?", keys: ["dilekce", "dilekçe", "savcilik", "savcılık"], a: "Ferman cuma günü dilekçe verecekti; hem korkuyor hem kararlı duruyordu." }
+        ],
+        baran: [
+          { q: "Ferman size ne anlattı?", keys: ["dilekce", "dilekçe", "cuma", "korku"], a: "'Cuma dilekçeyi veriyorum; ya batacağım ya çıkacağım' dedi. Kadir'den korkuyordu; defterler için sorgulanmıştı.", clue: true },
+          { q: "Rakıya bir şey kattınız mı?", keys: ["raki", "rakı", "icki", "içki", "aksam", "akşam"], a: "Rakıya bir şey katmadım. Sekizde camdan baktım, uyukluyordu; uyandırmadım. En büyük pişmanlığım bu." },
+          { q: "Kadir'le arası nasıldı?", keys: ["kadir", "iliski", "ilişki"], a: "Kadir onun patronuydu ama ortaktan öteydiler. Ferman defterleri görene kadar." }
+        ],
+        kadir: [
+          { q: "Sabah garaja gittiniz mi?", keys: ["garaj", "sabah", "gittin"], a: "Sabah garaja uğradım, evrak aldım. Beş dakika. Ferman uyuyordu, uyandırmadım." },
+          { q: "Motor hakkında ne düşünüyorsunuz?", keys: ["motor", "calisiyordu", "çalışıyordu"], a: "Motor çalışıyormuş, öyle dediler. Ferman araçta uyuyakalmış olabilir; şoförlerde olur.", clue: true },
+          { q: "Defterlerde ne var?", keys: ["defter", "naylon", "fatura"], a: "Defterlerim temizdir; inceletebilirsiniz. Ferman son zamanlarda dengesizdi." },
+          { q: "Şişe değişimi hakkında ne biliyorsunuz?", keys: ["sise", "şişe", "eczane", "ilac", "ilaç"], a: "Şişe, eczane bilmem. Selin'e sorun; ilacı o verdi." }
+        ]
+      },
       notes: [
         "Nazan'ın verdiği damla yeşilimsi; Selin'in kullandığı şişe renksizdi — şişe değiştirilmiş.",
         "Yusuf, yedi sularında uzun boylu, paltolu bir adamı sürücü kapısına eğilirken gördü.",
@@ -1271,6 +1347,38 @@ const CASES = [
           ]
         }
       ],
+      freeform: {
+        nesli: [
+          { q: "Otelde kaçta ayrıldınız?", keys: ["kamera", "cikis", "çıkış", "saat"], a: "Otelde dokuzda çıktım; giriş kamerası ve kızım doğruluyor." },
+          { q: "Selim Bey nasıl bir misafirdi?", keys: ["selim", "iliski", "ilişki", "misafir"], a: "Her yıl gelen onur konuğumuzdu; aynı oda, aynı düzen: sabah yürüyüşü, akşam ıhlamur." }
+        ],
+        vedat: [
+          { q: "Digoksin dolabınız eksik mi?", keys: ["digoksin", "dolap", "envanter"], a: "Digoksin dolabının envanteri tam; tek ampul eksik değil. Gece boyu hastanede nöbetteydim.", clue: true },
+          { q: "Selim Bey'in kalp ilacı var mıydı?", keys: ["recete", "reçete", "ilac", "ilaç", "kalp"], a: "Selim Bey digoksin kullanmıyordu; bilinen bir kalp ilacı yoktu." }
+        ],
+        recep: [
+          { q: "Çayı siz mi götürdünüz?", keys: ["cay", "çay", "ihlamur", "goturdun", "götürdün"], a: "Ihlamur çayını odaya ben götürdüm; Selim Bey istedi. Her misafire çıkan çaydan." },
+          { q: "Gece personel anahtarlığı sizde miydi?", keys: ["anahtar", "kart", "03:30", "uc bucuk", "üç buçuk"], a: "Personel anahtarlığı bilmem; ben o gece görevli değildim.", clue: true },
+          { q: "Liman Davası hakkında ne biliyorsunuz?", keys: ["baba", "liman", "dava"], a: "Liman Davası... evet, babam o davada yargılandı. Cezaevinde öldü. Ama bunlar eski defter.", clue: true },
+          { q: "Adınız gerçekten Recep mi?", keys: ["isim", "ismin", "adın", "degistirdin", "değiştirdin"], a: "Recep elbette. Ne olacak ki başka?" }
+        ],
+        mujde: [
+          { q: "O akşam kaçta ayrıldınız?", keys: ["temizlik", "saat", "ayrildin", "ayrıldın"], a: "Altıda temizliği bitirip çıktım. Sabah Selim Bey'i terasta görüp alarm veren de benim." },
+          { q: "Tepsiyi siz mi topladınız?", keys: ["bardak", "tepsi", "topladin", "topladın"], a: "Gece dışarıda kalan tepsiye dokunmam; gece vardiyasının işidir." }
+        ],
+        ferit: [
+          { q: "Miras için mi öldürdünüz?", keys: ["miras", "para", "sigorta"], a: "Amcamla miras yüzünden tartıştık, evet. Ama ikiye kadar şehirdeydim; bar fişim duruyor." },
+          { q: "Amcanızla son görüşmeniz nasıldı?", keys: ["selim", "son gorusme", "son görüşme"], a: "İki gün önce ziyaret ettim. 'Deniz bana iyi geliyor' dedi. Keşke daha çok kalsaydım." }
+        ],
+        nazli: [
+          { q: "O gece bir şey duydunuz mu?", keys: ["gurultu", "gürültü", "duydun", "gece"], a: "Odam yan tarafta, 305. Gece geç saatte sandalye sürtmesi gibi bir ses duydum; rüzgâr sandım." },
+          { q: "Selim Bey'i en son ne zaman gördünüz?", keys: ["selim", "gordun", "gördün"], a: "Kahvaltıda gördüm; sakindi, ıhlamurunu içiyordu." }
+        ],
+        haluk: [
+          { q: "03:30'da kimi gördünüz?", keys: ["03:30", "uc bucuk", "üç buçuk", "gordun", "gördün"], a: "Üç buçukta servis merdiveninde, olmaması gereken biri. Belinde personel anahtarlığı vardı.", clue: true },
+          { q: "Gürültüyü ne zaman duydunuz?", keys: ["gurultu", "gürültü", "04:15", "dort", "dört"], a: "Dörtü çeyrek geçe teras yönünden ağır bir gürültü geldi. Bir şey düştü sandım; bakmaya gittim, göremedim." }
+        ]
+      },
       notes: [
         "Recep on birde çıktığını söylüyor; Haluk 03:30'da merdivende personel anahtarlı birini gördü.",
         "'Biraz acı olmuş' çay ve 'yeni mahsul' bahanesi — kurbanın son sözleri.",
@@ -1657,6 +1765,38 @@ const CASES = [
           ]
         }
       ],
+      freeform: {
+        sureyya: [
+          { q: "Film kutusunda ne vardı?", keys: ["kutu", "film", "ne vardi", "ne vardı"], a: "Kutuda eski bir fragman vardı; önemsiz. Nihat 'bakarım, iade ederim' dedi." },
+          { q: "Borç defteri hakkında ne biliyorsunuz?", keys: ["borc", "borç", "defter", "hasilat", "hasılat"], a: "Borç defteri ne bilmiyorum; Nihat uydurmuş olmalı. Gişe hasılatı kayıtlıdır, her şey resmidir.", clue: true },
+          { q: "Şekerliğe dokundunuz mu?", keys: ["sekerlik", "şekerlik", "seker", "şeker", "sildin"], a: "Şekerliğe dokunmadım. Nihat titizdi; hep temiz tutardı." }
+        ],
+        cetin: [
+          { q: "Çaya şeker kattınız mı?", keys: ["seker", "şeker", "attin", "attın", "cay", "çay"], a: "Çaya şeker katmam. Nihat Abi kendi şekerliğinden atardı; iki kesme, hiç şaşmaz." },
+          { q: "Çayı kim götürdü?", keys: ["kim goturdu", "kim götürdü", "oglan", "oğlan"], a: "Oğlan götürdü; projeksiyon odasının kapısına bıraktı, adet böyledir." }
+        ],
+        kerem: [
+          { q: "O akşam neredeydin?", keys: ["koltuk", "salon", "neredeydin"], a: "Salonun arkasında koltuk yaylarını sıkıyordum. İnci Abla 'kolay gelsin' dedi; sorun." },
+          { q: "Nihat Bey'le aranız nasıldı?", keys: ["usta", "nihat", "iliski", "ilişki"], a: "Usta beni çıkaracaktı ama sonra 'belki maaşı artırırız' dedi. Korkutur, sonra yumuşardı." },
+          { q: "Merdivende bir şey duydun mu?", keys: ["ayak sesi", "merdiven", "duydun"], a: "Altıda merdivende ayak sesi duydum; kösele, inen biri, hızlıydı.", clue: true }
+        ],
+        lale: [
+          { q: "Arşivden ne istediniz?", keys: ["makara", "film", "arsiv", "arşiv"], a: "Eski filmimin makaralarını isteyecektim; arşiv Nihat'taydı. Görüşemedim, yazık." },
+          { q: "Süreyya Bey'le ne konuştunuz?", keys: ["sureyya", "süreyya", "konustun", "konuştun", "fuaye"], a: "Fuayede konuştuk. 'Bu bina yakında el değiştirebilir' dedi; sonra 'Nihat duyarsa kıyamet kopar' ekledi. Garibime gitti.", clue: true }
+        ],
+        cevat: [
+          { q: "Nihat Bey'le neden tartıştınız?", keys: ["tartisma", "tartışma", "neden", "arsiv", "arşiv"], a: "Arşiv kopyasını istedim, vermedi. 'Bu arşiv benim kefen param' dedi. Kızdım ama on yedide ayrıldım." },
+          { q: "Akşam neredeydiniz?", keys: ["kahve", "domino", "sahit", "şahit"], a: "Beşte kahveye girdim, dokuza kadar domino. Son eli kaybettim, hesabı ödedim; fişi cüzdanımda." }
+        ],
+        nazife: [
+          { q: "Şekerlikte ne fark ettiniz?", keys: ["sekerlik", "şekerlik", "fark ettin", "temiz"], a: "Pırıl pırıldı. Nihat Efendi kaseyi sapından tutardı; öyle temiz hiç görmedim. Biri silmiş, belli.", clue: true },
+          { q: "Gürültüyü ne zaman duydunuz?", keys: ["gurultu", "gürültü", "duydun", "saat"], a: "Dokuzu çeyrek geçe koridorda künt bir gürültü duydum; makara sandım. Meğer Nihat Efendi düşmüş.", clue: true }
+        ],
+        inci: [
+          { q: "Fuaye kamerası kayıt alıyor mu?", keys: ["kamera", "kayit", "kayıt", "var"], a: "Kamera fuayeyi ve merdiven başını görür. Kayıtları polise verdik; Süreyya Bey'in çıkışı da inişi de bellidir.", clue: true },
+          { q: "Süreyya Bey'i gördünüz mü?", keys: ["sureyya", "süreyya", "gordun", "gördün", "cikti", "çıktı"], a: "On sekize doğru film kutusuyla çıktı; 'arşivi konuşacağız' dedi. Yirmi dakika sonra eli boş indi.", clue: true }
+        ]
+      },
       notes: [
         "İnci, Süreyya'yı 18:00'de film kutusuyla yukarı çıkarken gördü; yirmi dakika sonra eli boş indi.",
         "Süreyya, kimse söylemeden şekerliğin 'pırıl pırıl' olduğunu ve 'borç defteri'ni ağzından kaçırdı.",

@@ -137,7 +137,9 @@ const state = {
   labDone: false,
   labScore: null,
   confrontAnswers: {},
-  confrontDone: false
+  confrontDone: false,
+  freeQA: {},
+  freeMiss: null
 };
 
 const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -338,6 +340,7 @@ function saveCaseState() {
     sceneScore: state.sceneScore,
     confrontAnswers: state.confrontAnswers,
     confrontDone: state.confrontDone,
+    freeQA: state.freeQA,
     at: Date.now()
   };
   try {
@@ -388,6 +391,7 @@ function applyCaseSave(s) {
   state.sceneScore = s.sceneScore != null ? s.sceneScore : null;
   state.confrontAnswers = s.confrontAnswers || {};
   state.confrontDone = !!s.confrontDone;
+  state.freeQA = s.freeQA || {};
   syncPlayers();
   const cards = visibleCards();
   const idx = s.cardKey ? cards.indexOf(s.cardKey) : 0;
@@ -989,7 +993,8 @@ function sendSnapshot() {
       cardKey: visibleCards()[state.cardIndex],
       marked: state.marked, markedBy: state.markedBy,
       teamCount: state.teamCount, teamNames: state.teamNames, players: state.players,
-      activePlayer: state.activePlayer, teamConfirm: state.teamConfirm
+      activePlayer: state.activePlayer, teamConfirm: state.teamConfirm,
+      freeQA: state.freeQA
     }
   });
 }
@@ -999,6 +1004,7 @@ function applySnapshot(s) {
   state.modeId = s.modeId; state.teamCount = s.teamCount; state.teamNames = s.teamNames;
   state.players = s.players; state.activePlayer = s.activePlayer; state.teamConfirm = s.teamConfirm;
   state.marked = s.marked || []; state.markedBy = s.markedBy || {};
+  state.freeQA = s.freeQA || {};
   state.traitor = s.traitor != null ? s.traitor : null;
   state.echoes = s.echoes || [];
   if (s.caseId != null) {
@@ -1042,6 +1048,10 @@ function netApply(m) {
       renderCardNav();
       updateProgressBar();
     }
+  } else if (m.t === "freeqa") {
+    state.freeQA[m.subject] = state.freeQA[m.subject] || [];
+    if (state.freeQA[m.subject].indexOf(m.i) === -1) state.freeQA[m.subject].push(m.i);
+    renderInterrogation(currentCase());
   } else if (m.t === "verdict") {
     if (verdictRefs) {
       verdictRefs.causeSelect.value = m.cause;
@@ -1187,6 +1197,8 @@ function openCase(caseId, resume) {
   state.labScore = null;
   state.confrontAnswers = {};
   state.confrontDone = false;
+  state.freeQA = {};
+  state.freeMiss = null;
   if (resume) {
     const s = loadCaseSave(caseId);
     if (s) applyCaseSave(s);
@@ -1547,9 +1559,11 @@ function cardInterrogation(area, c) {
   const chips = h("div", "suspect-chips");
   const info = h("p", "session-info");
   const list = h("div", "transcript");
+  const free = h("div", "freeform-area");
   card.appendChild(chips);
   card.appendChild(info);
   card.appendChild(list);
+  card.appendChild(free);
 
   const nb = notesBox(rec.notes);
   if (nb) card.appendChild(nb);
@@ -1559,7 +1573,7 @@ function cardInterrogation(area, c) {
   if (!state.activeSuspect || !c.suspects.some(function (s) { return s.id === state.activeSuspect; })) {
     state.activeSuspect = c.suspects[0].id;
   }
-  interRefs = { chips: chips, info: info, list: list };
+  interRefs = { chips: chips, info: info, list: list, free: free };
   renderInterrogation(c);
 }
 
@@ -1607,6 +1621,11 @@ function renderInterrogation(c) {
   });
 
   renderPressureRound(interRefs.list, c, state.activeSuspect);
+
+  if (interRefs.free) {
+    interRefs.free.innerHTML = "";
+    renderFreeform(interRefs.free, c);
+  }
 
   if (!REDUCED) {
     interRefs.list.classList.remove("swap");
@@ -2146,6 +2165,97 @@ function matchEvidence(c, line) {
     });
   });
   return best;
+}
+
+// ================= Serbest sorgu =================
+
+// Oyuncunun sorusunu şüphelinin cevap havuzuyla eşleştirir.
+function matchFreeform(c, subject, question) {
+  const pool = ((c.interrogation || {}).freeform || {})[subject] || [];
+  const nq = trNorm(question);
+  if (!nq) return null;
+  let best = null, bestLen = 0;
+  pool.forEach(function (qa, i) {
+    (qa.keys || []).forEach(function (k) {
+      const nk = trNorm(k);
+      if (nk && nq.indexOf(nk) !== -1 && nk.length > bestLen) {
+        best = { idx: i, qa: qa };
+        bestLen = nk.length;
+      }
+    });
+  });
+  return best;
+}
+
+function askFreeform(c, question) {
+  const subject = state.activeSuspect;
+  const q = (question || "").trim();
+  if (!q) return;
+  const m = matchFreeform(c, subject, q);
+  if (m) {
+    state.freeQA[subject] = state.freeQA[subject] || [];
+    if (state.freeQA[subject].indexOf(m.idx) === -1) {
+      state.freeQA[subject].push(m.idx);
+      netSend({ t: "freeqa", subject: subject, i: m.idx });
+    }
+    state.freeMiss = null;
+    sound.click();
+  } else {
+    state.freeMiss = { subject: subject, q: q };
+  }
+  renderInterrogation(c);
+}
+
+function renderFreeform(container, c) {
+  const subject = state.activeSuspect;
+  const pool = ((c.interrogation || {}).freeform || {})[subject] || [];
+  if (!pool.length) return;
+
+  const box = h("div", "freeform-box");
+  box.appendChild(h("p", "freeform-box__head", "Kendi sorunu sor"));
+
+  const asked = state.freeQA[subject] || [];
+  if (asked.length) {
+    const log = h("div", "freeform-log");
+    asked.forEach(function (i) {
+      const qa = pool[i];
+      if (!qa) return;
+      const pair = h("div", "freeform-pair" + (qa.clue ? " has-clue" : ""));
+      pair.appendChild(h("span", "freeform-pair__q", "Soru: " + qa.q));
+      pair.appendChild(h("span", "freeform-pair__a", qa.a));
+      log.appendChild(pair);
+    });
+    box.appendChild(log);
+  }
+
+  if (state.freeMiss && state.freeMiss.subject === subject) {
+    box.appendChild(h("p", "freeform-miss",
+      "'" + state.freeMiss.q + "' — şüpheli bu konuda konuşmuyor. Başka bir açıdan dene."));
+  }
+
+  const row = h("div", "freeform-box__row");
+  const inp = document.createElement("input");
+  inp.type = "text";
+  inp.className = "freeform-box__input";
+  inp.maxLength = 120;
+  inp.placeholder = "Örn: o gece neredeydin, borç, anahtar...";
+  const btn = h("button", "btn btn--small", "Sor");
+  btn.type = "button";
+  function fire() {
+    askFreeform(c, inp.value);
+    inp.value = "";
+    inp.focus();
+  }
+  btn.addEventListener("click", fire);
+  inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); fire(); } });
+  row.appendChild(inp);
+  row.appendChild(btn);
+  box.appendChild(row);
+  box.appendChild(h("p", "freeform-box__hint",
+    "İpucu: sorgu tutanağında geçen konuları sor; her şüphelinin açılacak "
+    + (pool.length - asked.length) + " cevabı kaldı."));
+
+  container.appendChild(box);
 }
 
 function resolveVerdict() {

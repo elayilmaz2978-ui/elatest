@@ -3083,6 +3083,22 @@ body.view-game .footer {
   }
 }
 
+/* Intro oynarken lobi tamamen gizli kalır, ekran sadece krem görünür;
+   intro kapanarken lobi yumuşakça belirir. */
+.topbar,
+.stage {
+  animation: lobby-reveal 0.5s ease 5.4s backwards;
+}
+
+@keyframes lobby-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .intro__phase {
   position: absolute;
   inset: 0;
@@ -3181,7 +3197,7 @@ body.view-game .footer {
   left: 0;
   width: 86px;
   height: 20px;
-  background: #8a5a32;
+  background: #c8a468;
   border-radius: 7px 7px 0 0;
   z-index: 1;
 }
@@ -3189,7 +3205,7 @@ body.view-game .footer {
 .intro__folder-back {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #7a4e2a, #6b4423);
+  background: linear-gradient(180deg, #c09a5e, #b08a4e);
   border-radius: 4px 10px 10px 10px;
   z-index: 2;
 }
@@ -3204,8 +3220,8 @@ body.view-game .footer {
   font-weight: 600;
   letter-spacing: 0.22em;
   font-size: 1.15rem;
-  color: #8f2d24;
-  background: var(--paper-panel);
+  color: rgba(143, 45, 36, 0.7);
+  background: #fbf6e9;
   border-radius: 4px;
   z-index: 3;
   opacity: 0;
@@ -3216,7 +3232,7 @@ body.view-game .footer {
 .intro__folder-front {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #915c33, #7a4e2a);
+  background: linear-gradient(180deg, #d3b17c, #c09a5e);
   border-radius: 4px 10px 10px 10px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
   transform-origin: bottom center;
@@ -3234,7 +3250,7 @@ body.view-game .footer {
   font-family: var(--font-type);
   letter-spacing: 0.28em;
   font-size: 0.85rem;
-  color: rgba(246, 234, 210, 0.75);
+  color: rgba(74, 47, 26, 0.7);
 }
 
 @keyframes intro-flap {
@@ -3270,4 +3286,66 @@ body.view-game .footer {
   .intro {
     display: none;
   }
+  .topbar,
+  .stage {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ---- Serbest sorgu ---- */
+.freeform-box {
+  margin-top: 0.9rem;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 0.9rem;
+}
+.freeform-box__head {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+}
+.freeform-box__row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.freeform-box__input {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(244, 234, 210, 0.9);
+  color: var(--ink);
+  padding: 0.5rem 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+}
+.freeform-box__hint {
+  margin-top: 0.45rem;
+  font-family: var(--font-type);
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+.freeform-log { display: grid; gap: 0.45rem; margin-bottom: 0.6rem; }
+.freeform-pair {
+  border-left: 3px solid var(--line);
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 0 8px 8px 0;
+  display: grid;
+  gap: 0.15rem;
+}
+.freeform-pair.has-clue { border-left-color: var(--accent); background: rgba(143, 45, 36, 0.06); }
+.freeform-pair__q { font-size: 0.8rem; color: var(--ink-soft); font-style: italic; }
+.freeform-pair__a { font-size: 0.92rem; }
+.freeform-miss {
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--accent);
+  font-style: italic;
 }
