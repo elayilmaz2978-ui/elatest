@@ -2813,3 +2813,14 @@ body.view-game .footer {
   padding: 0.05rem 0.4rem;
   border-radius: 999px;
 }
+.team-setup__online { margin-top: 0.7rem; }
+.team-join {
+  border: 1px solid var(--line);
+  background: var(--paper-panel);
+  color: var(--ink);
+  padding: 0.35rem 0.55rem;
+  font-family: var(--font-type);
+  text-transform: uppercase;
+  width: 5.5rem;
+}
+.team-setup__hint { font-size: 0.72rem; color: var(--ink-soft); }

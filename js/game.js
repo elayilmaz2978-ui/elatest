@@ -444,6 +444,42 @@ function renderTeamSetup() {
     el.teamSetup.appendChild(names);
   }
   syncPlayers();
+  renderOnlineRow();
+}
+
+function roomCode() {
+  let s = "";
+  for (let i = 0; i < 4; i++) s += "ABCDEFGHJKLMNPRSTUVYZ"[Math.floor(Math.random() * 21)];
+  return s;
+}
+
+function renderOnlineRow() {
+  const row = h("div", "team-setup__row team-setup__online");
+  if (state.net) {
+    row.appendChild(h("span", "team-setup__label", "Oda: " + state.net.room + (state.net.isHost ? " (kurucu)" : "")));
+    const leave = h("button", "team-count", "Odadan ayrıl");
+    leave.type = "button";
+    leave.addEventListener("click", netDisconnect);
+    row.appendChild(leave);
+  } else {
+    row.appendChild(h("span", "team-setup__label", "Çevrimiçi (ayrı cihazlar):"));
+    const create = h("button", "team-count", "Oda kur");
+    create.type = "button";
+    create.addEventListener("click", function () { netConnect(roomCode()); });
+    row.appendChild(create);
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.placeholder = "Oda kodu"; inp.maxLength = 4;
+    inp.className = "team-join";
+    const join = h("button", "team-count", "Katıl");
+    join.type = "button";
+    join.addEventListener("click", function () {
+      const code = inp.value.trim().toUpperCase();
+      if (code.length >= 3) netConnect(code);
+    });
+    row.appendChild(inp); row.appendChild(join);
+    row.appendChild(h("span", "team-setup__hint", "Tüm cihazlar ruby server.rb ile aynı adreste olmalı."));
+  }
+  el.teamSetup.appendChild(row);
 }
 
 function renderTeamBar() {
@@ -459,6 +495,7 @@ function renderTeamBar() {
     chip.title = "İşaretleri bu dedektife yaz";
     chip.addEventListener("click", function () {
       state.activePlayer = i;
+      netSend({ t: "active", i: i });
       renderTeamBar();
     });
     el.teamBar.appendChild(chip);
@@ -495,7 +532,89 @@ function renderTeamConsensus() {
 
 // Çevrimiçi senkron: yerel modda etkisiz, çevrimiçi odada mesajları iletir.
 function netSend(msg) {
-  if (state.net && state.net.send) state.net.send(msg);
+  if (state.net && state.net.send && !applyingRemote) state.net.send(msg);
+}
+
+let applyingRemote = false;
+
+function netConnect(code) {
+  if (state.net) return;
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  const ws = new WebSocket(proto + "://" + location.host + "/?room=" + encodeURIComponent(code));
+  state.net = {
+    ws: ws, room: code, isHost: false,
+    send: function (m) { if (ws.readyState === 1) ws.send(JSON.stringify(m)); }
+  };
+  ws.onmessage = function (e) {
+    try { netOnMessage(JSON.parse(e.data)); } catch (err) {}
+  };
+  ws.onclose = function () { state.net = null; renderTeamSetup(); };
+}
+
+function netDisconnect() {
+  if (state.net && state.net.ws) state.net.ws.close();
+  state.net = null;
+  renderTeamSetup();
+}
+
+function netOnMessage(m) {
+  if (m.t === "welcome") { state.net.isHost = m.isHost; renderTeamSetup(); }
+  else if (m.t === "peer") { if (state.net && state.net.isHost) sendSnapshot(); }
+  else if (m.t === "snapshot") { applySnapshot(m.state); }
+  else netApply(m);
+}
+
+function sendSnapshot() {
+  netSend({
+    t: "snapshot",
+    state: {
+      modeId: state.modeId, caseId: state.caseId, cardIndex: state.cardIndex,
+      unlocked: state.unlocked, marked: state.marked, markedBy: state.markedBy,
+      teamCount: state.teamCount, teamNames: state.teamNames, players: state.players,
+      activePlayer: state.activePlayer, teamConfirm: state.teamConfirm
+    }
+  });
+}
+
+function applySnapshot(s) {
+  applyingRemote = true;
+  state.modeId = s.modeId; state.teamCount = s.teamCount; state.teamNames = s.teamNames;
+  state.players = s.players; state.activePlayer = s.activePlayer; state.teamConfirm = s.teamConfirm;
+  state.marked = s.marked || []; state.markedBy = s.markedBy || {};
+  if (s.caseId != null) { state.caseId = s.caseId; state.cardIndex = s.cardIndex; state.unlocked = s.unlocked; showView("game"); renderGame(); }
+  applyingRemote = false;
+}
+
+function netApply(m) {
+  applyingRemote = true;
+  if (m.t === "mark") {
+    if (state.marked.indexOf(m.i) === -1) { state.marked.push(m.i); state.markedBy[m.i] = m.by; }
+  } else if (m.t === "unmark") {
+    const ix = state.marked.indexOf(m.i);
+    if (ix !== -1) state.marked.splice(ix, 1);
+    delete state.markedBy[m.i];
+  } else if (m.t === "confirm") {
+    state.teamConfirm[m.i] = m.on; renderTeamConsensus();
+  } else if (m.t === "active") {
+    state.activePlayer = m.i; renderTeamBar();
+  } else if (m.t === "case") {
+    openCase(m.id);
+  } else if (m.t === "card") {
+    state.unlocked = Math.max(state.unlocked, m.unlocked || 0);
+    goCard(m.i);
+  } else if (m.t === "verdict") {
+    if (verdictRefs) {
+      verdictRefs.causeSelect.value = m.cause;
+      verdictRefs.suspectSelect.value = m.suspect;
+      verdictRefs.motiveSelect.value = m.motive;
+      verdictRefs.evidenceInput.value = m.evidence;
+      resolveVerdict();
+    }
+  }
+  applyingRemote = false;
+  renderInterrogation(currentCase());
+  renderDrawer();
+  updateNoteCount();
 }
 
 function renderModeGrid() {
@@ -585,6 +704,7 @@ function openCase(caseId) {
   showView("game");
   renderGame();
   scrollTopInstant();
+  netSend({ t: "case", id: caseId });
 }
 
 function goLobby() {
@@ -653,6 +773,7 @@ function goCard(i) {
   const cards = activeMode().cards;
   if (i < 0 || i >= cards.length || i >= state.unlocked) return;
   state.cardIndex = i;
+  netSend({ t: "card", i: i, unlocked: state.unlocked });
   renderTabs();
   renderCard();
   renderCardNav();
@@ -1284,6 +1405,11 @@ function cardVerdict(area, c) {
       openConfirm("Ekip onayı eksik", "Kararı mühürlemek için tüm dedektifler onay vermeli.", "Tamam", null);
       return;
     }
+    netSend({
+      t: "verdict",
+      cause: causeSelect.value, suspect: suspectSelect.value,
+      motive: motiveSelect.value, evidence: evInput.value
+    });
     openConfirm(
       isTeam() ? "Ekip kararından emin misiniz?" : "Kararından emin misin?",
       "Dosya mühürlenecek ve geri açılmayacak.",
