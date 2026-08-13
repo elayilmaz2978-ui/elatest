@@ -3062,7 +3062,7 @@ body.view-game .footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--paper);
+  background: #f5eeda;
   animation: intro-hide 0.6s ease 5.4s forwards;
 }
 
@@ -3201,9 +3201,10 @@ body.view-game .footer {
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  letter-spacing: 0.3em;
-  font-size: 1rem;
-  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  font-size: 1.15rem;
+  color: #8f2d24;
   background: var(--paper-panel);
   border-radius: 4px;
   z-index: 3;
