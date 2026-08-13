@@ -2955,3 +2955,20 @@ body.view-game .footer {
 .confront-row__controls { display: flex; gap: 0.6rem; }
 .confront-row__ok { color: var(--ok); font-size: 0.88rem; }
 .confront-row__bad { color: var(--accent); font-size: 0.88rem; }
+.team-traitor-secret {
+  margin-left: auto;
+  font-family: var(--font-type);
+  font-size: 0.7rem;
+  color: #f6ead2;
+  background: var(--noir-2);
+  border: 1px dashed var(--accent-bright);
+  padding: 0.25rem 0.6rem;
+}
+.team-traitor-reveal {
+  margin-top: 0.7rem;
+  font-family: var(--font-type);
+  font-size: 0.85rem;
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+  padding: 0.4rem 0.7rem;
+}

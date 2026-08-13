@@ -1981,6 +1981,13 @@ function resolveVerdict() {
     result.appendChild(contrib);
   }
 
+  if (isTeam() && state.traitor != null && state.players[state.traitor]) {
+    const traitorWin = !solved;
+    result.appendChild(h("p", "team-traitor-reveal",
+      "Köstebek " + state.players[state.traitor].name + " idi. " +
+      (traitorWin ? "Ekip çözemediği için köstebek kazandı!" : "Ekip çözdü; köstebek kaybetti.")));
+  }
+
   let text = "İşaretlediğin " + state.marked.length + " satırdan " + clueHits
     + " tanesi gerçekten ipucuydu (toplam " + totalClues + " ipucu saklıydı). ";
   if (solved) {
