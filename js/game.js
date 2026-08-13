@@ -116,6 +116,7 @@ const state = {
   quizCorrect: 0,
   elimSolved: {},
   elimOrders: null,
+  elimDrafts: {},
   elimDone: false,
   scenePicks: {},
   sceneSealed: false,
@@ -841,6 +842,7 @@ function openCase(caseId) {
   state.quizCorrect = 0;
   state.elimSolved = {};
   state.elimOrders = null;
+  state.elimDrafts = {};
   state.elimDone = false;
   state.scenePicks = {};
   state.sceneSealed = false;
@@ -1407,8 +1409,9 @@ function cardTimeline(area, c) {
   const card = h("section", "card");
   card.appendChild(sectionHead("Zaman Çizelgesi"));
   card.appendChild(h("p", "hint",
-    "Olayları kronolojik sıraya diz: en erken olaya tıklayarak sağdaki sıraya yerleştir. "
-    + "Yanlış yerleştirdiğini tıklayıp geri alabilirsin. Sıra tamamlanınca kontrol et."));
+    "Olaylar kısa ipuçları olarak verildi; hangisinin ne zaman olduğunu dosyadan çıkarman "
+    + "gerekiyor. En erken olaya tıklayarak sağdaki sıraya yerleştir; yanlış yerleştirdiğini "
+    + "tıklayıp geri alabilirsin. Sıra tamamlanınca kontrol et."));
 
   if (!state.timeline) {
     state.timeline = { pool: shuffleIndices(c.timeline.length), placed: [] };
@@ -1556,21 +1559,26 @@ function cardQuiz(area, c) {
 
 // ================= Kart: Eleme Masası =================
 
+// Oyuncunun serbest gerekçe metnini şüphelinin anahtar kelimeleriyle eşleştirir.
+function elimMatch(entry, text) {
+  const nt = trNorm(text);
+  if (!nt) return false;
+  const keys = entry.keys || [];
+  for (let i = 0; i < keys.length; i++) {
+    const nk = trNorm(keys[i]);
+    if (nk && nt.indexOf(nk) !== -1) return true;
+  }
+  return false;
+}
+
 function cardElimination(area, c) {
   const card = h("section", "card");
   card.appendChild(sectionHead("Eleme Masası"));
   card.appendChild(h("p", "hint",
-    "Katil kararından önce masayı temizle: her şüpheli için doğru eleme gerekçesini seç. "
-    + "Gerekçe tutmazsa şüpheli elenmez, dosyaya yeniden bakıp tekrar denersin. "
-    + "Herkes elenmeden karar kartı açılmaz."));
-
-  if (!state.elimOrders) {
-    state.elimOrders = {};
-    c.elimination.forEach(function (entry) {
-      state.elimOrders[entry.id] = shuffleIndices(entry.options.length)
-        .map(function (i) { return entry.options[i]; });
-    });
-  }
+    "Katil kararından önce masayı temizle: her şüpheliyi neden elediğini KENDİ cümlenle yaz. "
+    + "Dosyadaki somut bir gerçeğe dayanmalı (alibi, ayakkabı numarası, kamera kaydı...). "
+    + "Gerekçe tutmazsa şüpheli elenmez, dosyaya yeniden bakarsın. Suçlu olduğuna inandığını "
+    + "'elenemez' diye belirt. Herkes elenmeden karar kartı açılmaz."));
 
   const list = h("div", "elim-list");
   c.elimination.forEach(function (entry) {
@@ -1584,15 +1592,18 @@ function cardElimination(area, c) {
       row.appendChild(h("p", "elim-row__done", "✓ " + entry.correct));
     } else {
       const controls = h("div", "elim-row__controls");
-      const select = h("select");
-      state.elimOrders[entry.id].forEach(function (opt) {
-        select.appendChild(h("option", null, opt)).value = opt;
+      const input = h("input", "elim-input");
+      input.type = "text";
+      input.placeholder = "Gerekçeni kendi cümlenle yaz...";
+      input.value = state.elimDrafts[entry.id] || "";
+      input.addEventListener("input", function () {
+        state.elimDrafts[entry.id] = input.value;
       });
       const msg = h("span", "elim-row__msg");
       const btn = h("button", "btn btn--small", "Ele");
       btn.type = "button";
-      btn.addEventListener("click", function () {
-        if (select.value === entry.correct) {
+      function tryEliminate() {
+        if (elimMatch(entry, input.value)) {
           state.elimSolved[entry.id] = true;
           if (Object.keys(state.elimSolved).length === c.elimination.length
             && (!c.confrontation || !c.confrontation.length || state.confrontDone)) {
@@ -1601,13 +1612,17 @@ function cardElimination(area, c) {
           renderCard();
           renderCardNav();
         } else {
-          msg.textContent = "Bu gerekçe tutmuyor; şüpheli elenemedi. Dosyaya yeniden bak.";
+          msg.textContent = "Bu gerekçe tutmuyor; şüpheli elenemedi. Dosyadaki somut bir gerçeğe bak.";
           row.classList.remove("shake");
           void row.offsetWidth;
           row.classList.add("shake");
         }
+      }
+      btn.addEventListener("click", tryEliminate);
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); tryEliminate(); }
       });
-      controls.appendChild(select);
+      controls.appendChild(input);
       controls.appendChild(btn);
       row.appendChild(controls);
       row.appendChild(msg);

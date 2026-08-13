@@ -30,7 +30,9 @@
 //         minClues: bu kadar ipucu işaretlenince tur açılır; records salt okunur ödül ifadesidir
 //   timeline                         → zaman çizelgesi bulmacası: KRONOLOJİK sırayla olay metinleri
 //   quiz                             → karar öncesi çapraz analiz soruları {q, options, correct}
-//   elimination                      → eleme masası {id, correct, options} (culprit için correct "elenemez" seçeneğidir)
+//   elimination                      → eleme masası, SERBEST METİN {id, correct, keys}
+//      correct: oyuncu doğru yazınca gösterilen tam gerekçe; keys: oyuncu metnini doğrulayan
+//      anahtar kelimeler (culprit için "elenemez/katil" gibi ifadeler)
 //   lab                              → kriminal laboratuvar bulmacası {sample, options, correct, note}
 //   confrontation                    → eleme sonrası yüzleşme turu {statement, answer, why}
 //   deathCauses + deathCauseCorrect  → ölüm nedeni seçenekleri
@@ -403,13 +405,13 @@ const CASES = [
       + "önerdi' sözü de Fikret'e çıkıyordu. Kenan'ın çamur izi gerçekten sulamadan, Esra'nın "
       + "ruj izi eski bir bardaktandı; ikisi de temize çıktı.",
     timeline: [
-      "Fikret arşivden nadir belgeleri satmaya başladı; Arda eksikleri fark edip listeyi kilitli kutuya koydu.",
-      "Fikret haftalarca geceleri pencereden girip kutuyu aradı; Arda 'duvardan sesler' duyduğunu söyledi.",
-      "Arda'nın uykusuzluğu ve kâbusları arttı; Dr. Esra papatya çayı önerdi, tohum karışımına karşı çıktı.",
-      "Salı sabahı Nermin temizlikteydi; Arda ona 'bu kutu benim sigortam' dedi.",
-      "Perşembe akşamüstü biri Hale'nin ocağından 'Arda Abi'ye' diye iki bardak çay aldı.",
-      "Perşembe 21:30 civarı Tolga barışmaya geldi, kapı açılmadı; pencerede eğilmiş bir gölge gördü ve içeriden tok bir ses geldi.",
-      "22:40'ta bekçi Kaan ışığı açık gördü, içeri girdi ve 112'yi aradı."
+      "Eksik belgelerin listesi kutuya kondu.",
+      "Geceleri pencere çilesi yoklandı; içeride sesler duyuldu.",
+      "Kâbus ve dalgınlık şikâyeti doktor muayenesine taşındı.",
+      "'Bu kutu benim sigortam' cümlesi kuruldu.",
+      "Ocaktan iki bardak çay sipariş edildi.",
+      "Pencerede eğilmiş bir gölge görüldü; içeriden tok bir ses geldi.",
+      "Işık açık bulundu, 112 arandı."
     ],
     quiz: [
       {
@@ -456,38 +458,38 @@ const CASES = [
     elimination: [
       {
         id: "kaan",
-        correct: "Cesedi bulan ve 112'yi arayan kişi; çay detayını fark edip soruşturmayı o başlattı.",
-        options: ["Cesedi bulan ve 112'yi arayan kişi; çay detayını fark edip soruşturmayı o başlattı.", "Arda'ya borcu vardı, miras için öldürdü.", "Ayakkabı numarası pencere önündeki izle uyuşuyor."]
+        correct: "Cesedi bulan ve 112'yi arayan kişi; çayın garipliğini fark edip soruşturmayı o başlattı.",
+        keys: ["bulan", "112", "ihbar", "haber", "ilk giren"]
       },
       {
         id: "kenan",
         correct: "Çizmesi 44 numara; pencere önündeki iz 42 numara spor ayakkabı.",
-        options: ["Çizmesi 44 numara; pencere önündeki iz 42 numara spor ayakkabı.", "O gece bahçede olduğu için içeri de girmiş olmalı.", "Kıyı kilini bahçeye kendisi döktü, izi de onundur."]
+        keys: ["44", "kırk dört", "çizme"]
       },
       {
         id: "esra",
         correct: "Ruj izi günler önceki bardaktan; papatya dışında hiçbir şey önermedi, kâbusların sebebini bilmiyordu.",
-        options: ["Ruj izi günler önceki bardaktan; papatya dışında hiçbir şey önermedi, kâbusların sebebini bilmiyordu.", "Arda'nın gece yanında kaldı, çıkarken kapıyı kilitledi.", "Datura'yı ilaç diye reçete etti."]
+        keys: ["ruj", "papatya", "eski bardak"]
       },
       {
         id: "nermin",
         correct: "O gece evdeydi; kocası ve komşusu şahit. Fikret'i yalnızca pencerede gördü.",
-        options: ["O gece evdeydi; kocası ve komşusu şahit. Fikret'i yalnızca pencerede gördü.", "Temizlikçi olduğu için arşivin anahtarına sahipti.", "Arda'nın azarına sinirlenip kutuyu o boşalttı."]
+        keys: ["evde", "koca", "komşu", "şahit"]
       },
       {
         id: "hale",
         correct: "Demliğine her akşam mühür vuruyor; çay temizdi, zehir sonradan katıldı.",
-        options: ["Demliğine her akşam mühür vuruyor; çay temizdi, zehir sonradan katıldı.", "Arda'nın çay sevdiğini bilmeden bardak gönderdi.", "O akşam çayı kütüphaneye kendisi götürdü."]
+        keys: ["mühür", "demlik", "ocak"]
       },
       {
         id: "tolga",
         correct: "Ayakkabısı 43 numara; iz 42. O gece bahçeye basmadı, gölgeyi görünce kaçtı.",
-        options: ["Ayakkabısı 43 numara; iz 42. O gece bahçeye basmadı, gölgeyi görünce kaçtı.", "Borcu yoktu; miras kavgası uydurmaydı.", "Pencereden girip cesedi o halde bıraktı."]
+        keys: ["43", "kırk üç", "kaçtı"]
       },
       {
         id: "fikret",
         correct: "Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.",
-        options: ["Elenemez: 42 numara iz, çay siparişi, kutu bilgisi ve pencere çilesi onu işaret ediyor.", "Sigara içmediği için bahçede olamazdı.", "Karısı o gece evde olduğuna şahitlik etti."]
+        keys: ["elenemez", "katil", "işaret", "o yaptı", "suçlu"]
       }
     ],
     lab: [
@@ -879,13 +881,13 @@ const CASES = [
       + "yalanı — Yusuf kimseyi aramamıştı — son halkaydı. Tütün kokusu Yusuf'un kulübesinden, "
       + "vanilya Selin'den; ikisi de yanıltıcıydı.",
     timeline: [
-      "Ferman şirketteki naylon fatura düzenini fark etti ve savcılığa dilekçe vermeye karar verdi.",
-      "Kadir, Ferman'a defterleri sorarak ne kadar bildiğini ölçtü; Ferman korkmaya başladı.",
-      "Uzun boylu, paltolu bir adam Nazan'dan reçetesiz flunitrazepam istedi; Nazan reddetti.",
-      "Perşembe sabahı Kadir garaja uğradı; torpidodaki uyku damlası şişesi renksiz bir şişeyle değiştirildi.",
-      "Perşembe öğleden sonra Selin, kardeşinin sanarak çayına damla damlattı; Ferman uyuklamaya başladı.",
-      "Perşembe 19:00 civarı uzun boylu adam aracın aynasını ayarladı, benzin kapağını açtı ve motoru çalışır bıraktı.",
-      "Sabaha karşı Yusuf aracı fark etti ve polisi aradı; Ferman sürücü koltuğunda ölü bulundu."
+      "Dilekçe kararı verildi.",
+      "Defterler soruldu, bilgi ölçüldü.",
+      "Eczaneden reçetesiz ilaç istendi, reddedildi.",
+      "Garajda bir şişe değiştirildi.",
+      "Çaya damla damlatıldı.",
+      "Ayna ayarlandı, kapak açıldı, motor çalışır bırakıldı.",
+      "Motor uğultusuyla araç bulundu; polis arandı."
     ],
     quiz: [
       {
@@ -933,37 +935,37 @@ const CASES = [
       {
         id: "mert",
         correct: "Benzin kapağını istasyonda kendisi kapattı; kayıtlar o saatten sonra pompaya araç yaklaşmadığını gösteriyor.",
-        options: ["Benzin kapağını istasyonda kendisi kapattı; kayıtlar o saatten sonra pompaya araç yaklaşmadığını gösteriyor.", "Ferman'a borcu vardı, yakıta ilaç kattı.", "Ferman'la istasyonda kavga etti."]
+        keys: ["kapattı", "kayıt", "pompa", "istasyon"]
       },
       {
         id: "selin",
         correct: "Damlalığı kardeşinin kendi ilacı sanarak kullandı; şişe çoktan değiştirilmişti, kapıyı da kilitlemediğini açıkça anlattı.",
-        options: ["Damlalığı kardeşinin kendi ilacı sanarak kullandı; şişe çoktan değiştirilmişti, kapıyı da kilitlemediğini açıkça anlattı.", "Sigorta parası için kardeşini zehirledi.", "Gece araca dönüp motoru o çalıştırdı."]
+        keys: ["değiştirilmiş", "kendi ilacı", "sandı", "şişe"]
       },
       {
         id: "nazan",
         correct: "Reçetesiz ilacı reddetti; kendi verdiği şişe yeşilimsiydi ve olayda kullanılmadı.",
-        options: ["Reçetesiz ilacı reddetti; kendi verdiği şişe yeşilimsiydi ve olayda kullanılmadı.", "Uzun boylu adama ilacı el altından sattı.", "Ferman'la gizli bir ilişkisi vardı."]
+        keys: ["reddetti", "reçetesiz", "yeşil", "envanter"]
       },
       {
         id: "yusuf",
-        correct: "Gece boyu kulübedeydi; tütün kokusu kulübesinden geldi, araca girmediğini ve yalnızca polisi aradığını tutanak doğruluyor.",
-        options: ["Gece boyu kulübedeydi; tütün kokusu kulübesinden geldi, araca girmediğini ve yalnızca polisi aradığını tutanak doğruluyor.", "Kamerayı kapatıp aracın yanına gitti.", "Ferman'dan alacağını tahsil etmek istedi."]
+        correct: "Gece boyu kulübedeydi; tütün kokusu kulübesinden geldi, araca girmedi ve yalnız polisi aradı.",
+        keys: ["kulübe", "polisi aradı", "155", "girmedi"]
       },
       {
         id: "feride",
         correct: "Ferman'ı en son iki gün önce gördü; o gece evdeydi, annesi ve telefon kayıtları şahit.",
-        options: ["Ferman'ı en son iki gün önce gördü; o gece evdeydi, annesi ve telefon kayıtları şahit.", "Sigorta lehtarı olduğu için tek şüpheli odur.", "Araçta sigara içen kişiydi."]
+        keys: ["anne", "telefon", "iki gün", "evde"]
       },
       {
         id: "baran",
         correct: "Sekizde yalnızca camdan bakıp uyandırmadı; Ferman'ın en yakın arkadaşıydı ve dilekçeyi destekliyordu.",
-        options: ["Sekizde yalnızca camdan bakıp uyandırmadı; Ferman'ın en yakın arkadaşıydı ve dilekçeyi destekliyordu.", "Naylon fatura düzeninin ortağıydı.", "Rakıya zehir kattı."]
+        keys: ["cam", "uyandırmadı", "arkadaş", "sekiz"]
       },
       {
         id: "kadir",
         correct: "Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.",
-        options: ["Elenemez: şişe değişimi, ayna ayarı, benzin kapağı ve motor detayı bilgisi onu işaret ediyor.", "Defterleri temizdi, motivesi yoktu.", "O akşam evdeydi, komşuları şahit."]
+        keys: ["elenemez", "katil", "işaret", "o yaptı", "suçlu"]
       }
     ],
     lab: [
@@ -1332,14 +1334,14 @@ const CASES = [
       { statement: "Haluk'un 03:30'da merdivende gördüğü kişi Recep'ti.", answer: true, why: "On birde çıktığını söyledi; personel anahtarlığı ve kameralar aksini gösterdi." }
     ],
     timeline: [
-      "On beş yıl önce: Liman Davası'nda Hâkim Selim, Recep'in babasını hapse gönderdi; baba hapiste öldü.",
-      "Bir ay önce: Recep adını değiştirerek otelde garson olarak işe başladı.",
-      "Bir hafta önce: Selim otele yerleşti; Nesli onu tanıdı ve yüzüne tükürdü.",
-      "Olaydan bir gün önce: bahçedeki yüksükotundan üç sap kesildi.",
-      "Perşembe 16:00: Dr. Vedat muayene yaptı, 17:00'de ayrıldı.",
-      "Perşembe 20:00–21:00: Ferit ziyaret etti, miras tartışması yaşandı, kameralar önünde ayrıldı.",
-      "Perşembe 22:00: Recep ıhlamur çayını balkona götürdü; gece yarısına doğru Selim öldü.",
-      "Cuma 04:15: ağır gürültü — ceset balkondan terasta sahnelendi; 06:10'da Müjde cesedi buldu."
+      "Liman Davası'nda bir baba hapse girdi.",
+      "Otelde yeni bir garson işe başladı.",
+      "Bir misafir kayıt yaptırdı; yüzüne tükürüldü.",
+      "Bahçeden üç mor sap kesildi.",
+      "Odaya tansiyon muayenesi yapıldı.",
+      "Miras tartışması yaşandı, kapı çarpıldı.",
+      "Balkona ıhlamur çayı çıkarıldı.",
+      "Ağır bir gürültü duyuldu; sabah çığlık atıldı."
     ],
     quiz: [
       {
@@ -1371,38 +1373,38 @@ const CASES = [
     elimination: [
       {
         id: "nesli",
-        correct: "21:00'te evine gitti; giriş kamerası ve kızı doğruluyor. Zehirlenme daha sonra oldu.",
-        options: ["21:00'te evine gitti; giriş kamerası ve kızı doğruluyor. Zehirlenme daha sonra oldu.", "O gece otelde sabaha kadar hesap kapatıyordu.", "Çay ritüelinden haberi yoktu."]
+        correct: "21:00'de evine gitti; giriş kamerası ve kızı doğruluyor. Zehirlenme daha sonra oldu.",
+        keys: ["kamera", "kız", "ev", "dokuz"]
       },
       {
         id: "vedat",
         correct: "Digoksin dolabının envanteri tam; gece boyu hastanede nöbetteydi.",
-        options: ["Digoksin dolabının envanteri tam; gece boyu hastanede nöbetteydi.", "Kurbanın dostu olduğu için şüpheli.", "Selim'e digoksin reçete etmişti."]
+        keys: ["envanter", "nöbet", "hastane", "dolap"]
       },
       {
         id: "recep",
         correct: "Elenemez: çay, yüksükotu ve 03:30'daki personel anahtarlığı onu işaret ediyor.",
-        options: ["Elenemez: çay, yüksükotu ve 03:30'daki personel anahtarlığı onu işaret ediyor.", "On birde çıkış yaptığı için elenir.", "Bahçeyi ve bitkileri bilmez."]
+        keys: ["elenemez", "katil", "işaret", "o yaptı", "suçlu"]
       },
       {
         id: "mujde",
         correct: "18:00'de temizliği bitirip ayrıldı; cesedi sabah bulup alarm veren de o.",
-        options: ["18:00'de temizliği bitirip ayrıldı; cesedi sabah bulup alarm veren de o.", "Tepsiyi topladığı için bardağı o yıkadı.", "O gece otelde kalmıştı."]
+        keys: ["temizlik", "ayrıldı", "buldu", "on sekiz", "18"]
       },
       {
         id: "ferit",
         correct: "Kamera 21:00'de ayrıldığını gösteriyor; 02:00'ye kadar şehirdeydi, fişi var.",
-        options: ["Kamera 21:00'de ayrıldığını gösteriyor; 02:00'ye kadar şehirdeydi, fişi var.", "Miras için tartıştı, bu yüzden suçlu.", "Çay ritüelini bilmiyordu."]
+        keys: ["fiş", "bar", "kamera", "dokuz"]
       },
       {
         id: "nazli",
         correct: "Kurbanla otelde tanıştı; bütün gece kendi odasındaydı, bağlantısı tanıklıktan ibaret.",
-        options: ["Kurbanla otelde tanıştı; bütün gece kendi odasındaydı, bağlantısı tanıklıktan ibaret.", "Gürültüyle uyandığı için şüpheli.", "Balkona çıkıp sahneyi o kurdu."]
+        keys: ["tanıştı", "oda", "tanık", "ilk kez"]
       },
       {
         id: "haluk",
         correct: "Ön giriş kamerası gece boyunca yerinde olduğunu gösteriyor; gürültüyü duyan ve merdivendeki kişiyi gören tanık o.",
-        options: ["Ön giriş kamerası gece boyunca yerinde olduğunu gösteriyor; gürültüyü duyan ve merdivendeki kişiyi gören tanık o.", "Bahçede sigara içtiği için şüpheli.", "Yüksükotunu o kesti."]
+        keys: ["kamera", "giriş", "tanık", "duydu", "gördü"]
       }
     ]
   }
