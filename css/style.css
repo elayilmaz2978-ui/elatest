@@ -2730,7 +2730,7 @@ body.view-game .footer {
 }
 .team-setup__label {
   font-family: var(--font-type);
-  font-size: 0.85rem;
+  font-size: 1.02rem;
   color: var(--ink-soft);
 }
 .team-count {
@@ -2758,7 +2758,7 @@ body.view-game .footer {
   flex-direction: column;
   gap: 0.25rem;
   font-family: var(--font-type);
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--ink-soft);
 }
 .team-setup__name input {
@@ -2783,8 +2783,8 @@ body.view-game .footer {
   padding: 0.3rem 0.6rem;
   cursor: pointer;
 }
-.team-chip strong { font-size: 0.85rem; color: var(--ink); }
-.team-chip em { font-size: 0.68rem; color: var(--ink-soft); font-style: normal; }
+.team-chip strong { font-size: 1.02rem; color: var(--ink); }
+.team-chip em { font-size: 0.82rem; color: var(--ink-soft); font-style: normal; }
 .team-chip.active {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(145, 92, 51, 0.14);
@@ -2792,7 +2792,7 @@ body.view-game .footer {
 .team-consensus { margin-top: 0.6rem; }
 .team-consensus__label {
   font-family: var(--font-type);
-  font-size: 0.8rem;
+  font-size: 0.96rem;
   color: var(--ink-soft);
 }
 .team-consensus__chips { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-top: 0.4rem; }
@@ -2842,12 +2842,12 @@ body.view-game .footer {
   text-transform: uppercase;
   width: 5.5rem;
 }
-.team-setup__hint { font-size: 0.72rem; color: var(--ink-soft); }
+.team-setup__hint { font-size: 0.86rem; color: var(--ink-soft); }
 /* ---- Sohbet + ping ---- */
 .chat-panel { margin-top: 1rem; border-top: 1px dashed var(--line); padding-top: 0.6rem; }
-.chat-panel__head { font-family: var(--font-type); font-size: 0.75rem; letter-spacing: 0.08em; color: var(--ink-soft); }
+.chat-panel__head { font-family: var(--font-type); font-size: 0.9rem; letter-spacing: 0.08em; color: var(--ink-soft); }
 .chat-list { list-style: none; max-height: 9rem; overflow-y: auto; margin: 0.4rem 0; display: flex; flex-direction: column; gap: 0.3rem; }
-.chat-msg { font-size: 0.82rem; background: var(--paper-panel); border: 1px solid var(--line); padding: 0.3rem 0.5rem; }
+.chat-msg { font-size: 0.98rem; background: var(--paper-panel); border: 1px solid var(--line); padding: 0.3rem 0.5rem; }
 .chat-msg strong { color: var(--accent); }
 .chat-input { display: flex; gap: 0.4rem; }
 .chat-input input { flex: 1; border: 1px solid var(--line); background: var(--paper-panel); color: var(--ink); padding: 0.4rem 0.55rem; font-family: var(--font-type); }
